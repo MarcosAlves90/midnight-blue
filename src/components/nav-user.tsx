@@ -1,12 +1,15 @@
 "use client"
 
+import { useTheme } from "next-themes"
 import {
   BadgeCheck,
   Bell,
   ChevronsUpDown,
   CreditCard,
   LogOut,
-  Sparkles,
+  Monitor,
+  Moon,
+  Sun,
 } from "lucide-react"
 
 import {
@@ -40,6 +43,17 @@ export function NavUser({
   }
 }) {
   const { isMobile } = useSidebar()
+  const { theme, setTheme } = useTheme()
+
+  const toggleTheme = () => {
+    if (theme === "light") {
+      setTheme("dark")
+    } else if (theme === "dark") {
+      setTheme("system")
+    } else {
+      setTheme("light")
+    }
+  }
 
   return (
     <SidebarMenu>
@@ -81,9 +95,15 @@ export function NavUser({
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <Sparkles />
-                Atualizar para Pro
+              <DropdownMenuItem onClick={toggleTheme}>
+                {theme === "light" ? (
+                  <Sun />
+                ) : theme === "dark" ? (
+                  <Moon />
+                ) : (
+                  <Monitor />
+                )}
+                Trocar tema
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
