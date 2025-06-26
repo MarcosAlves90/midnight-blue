@@ -120,3 +120,14 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Animação personalizada para o botão da página inicial */
+
+@keyframes gridPulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}

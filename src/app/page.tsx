@@ -1,4 +1,5 @@
 import ParallaxBackground from '@/components/parallax-background'
+import EnterButton from '@/components/enter-button'
 
 export default function Home() {
 
@@ -27,8 +28,13 @@ export default function Home() {
           
           {/* Subtle subtitle */}
           <p className="text-white/60 text-sm md:text-base max-w-md mx-auto font-[family-name:var(--font-futura-pro-book)]">
-            Uma experiência imersiva no universo de RPG
+            Uma experiência imersiva no universo de TMW
           </p>
+          
+          {/* Enter Button */}
+          <div className="mt-10">
+            <EnterButton />
+          </div>
         </div>
       </div>
       
