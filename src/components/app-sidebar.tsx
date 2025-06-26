@@ -3,15 +3,15 @@
 import * as React from "react"
 import {
   AudioWaveform,
-  BookOpen,
-  Bot,
+  BookOpenText,
+  Store,
   Command,
   Frame,
   GalleryVerticalEnd,
   Map,
   PieChart,
-  Settings2,
-  SquareTerminal,
+  BookMarked,
+  VenetianMask,
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -52,48 +52,60 @@ const data = {
   ],
   navMain: [
     {
-      title: "Playground",
+      title: "Personagem",
       url: "#",
-      icon: SquareTerminal,
+      icon: VenetianMask,
       isActive: true,
       items: [
         {
-          title: "History",
+          title: "Individual",
           url: "#",
         },
         {
-          title: "Starred",
+          title: "Características",
           url: "#",
         },
         {
-          title: "Settings",
+          title: "Status",
+          url: "#",
+        },
+        {
+          title: "Skills",
+          url: "#",
+        },
+        {
+          title: "Inventário",
+          url: "#",
+        },
+        {
+          title: "Anotações",
           url: "#",
         },
       ],
     },
     {
-      title: "Models",
+      title: "Loja",
       url: "#",
-      icon: Bot,
+      icon: Store,
       items: [
         {
-          title: "Genesis",
+          title: "Deep Web",
           url: "#",
         },
         {
-          title: "Explorer",
+          title: "Taverna Animada",
           url: "#",
         },
         {
-          title: "Quantum",
+          title: "Barco do Musiquinho",
           url: "#",
         },
       ],
     },
     {
-      title: "Documentation",
+      title: "Documentação",
       url: "#",
-      icon: BookOpen,
+      icon: BookOpenText,
       items: [
         {
           title: "Introduction",
@@ -114,9 +126,9 @@ const data = {
       ],
     },
     {
-      title: "Settings",
+      title: "Wiki",
       url: "#",
-      icon: Settings2,
+      icon: BookMarked,
       items: [
         {
           title: "General",
