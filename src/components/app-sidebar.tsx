@@ -52,7 +52,7 @@ const data = {
   navMain: [
     {
       title: "Personagem",
-      url: "#",
+      url: "/dashboard/personagem",
       icon: VenetianMask,
       isActive: true,
       items: [
@@ -62,7 +62,7 @@ const data = {
         },
         {
           title: "Características",
-          url: "#",
+          url: "/dashboard/personagem/caracteristicas",
         },
         {
           title: "Status",
@@ -70,80 +70,80 @@ const data = {
         },
         {
           title: "Skills",
-          url: "#",
+          url: "/dashboard/personagem/skills",
         },
         {
           title: "Inventário",
-          url: "#",
+          url: "/dashboard/personagem/inventario",
         },
         {
           title: "Anotações",
-          url: "#",
+          url: "/dashboard/personagem/anotacoes",
         },
       ],
     },
     {
       title: "Loja",
-      url: "#",
+      url: "/dashboard/loja",
       icon: Store,
       items: [
         {
           title: "Deep Web",
-          url: "#",
+          url: "/dashboard/loja/deep-web",
         },
         {
           title: "Taverna Animada",
-          url: "#",
+          url: "/dashboard/loja/taverna-animada",
         },
         {
           title: "Barco do Musiquinho",
-          url: "#",
+          url: "/dashboard/loja/barco-musiquinho",
         },
       ],
     },
     {
       title: "Documentação",
-      url: "#",
+      url: "/dashboard/documentacao",
       icon: BookOpenText,
       items: [
         {
           title: "Introduction",
-          url: "#",
+          url: "/dashboard/documentacao/introduction",
         },
         {
           title: "Get Started",
-          url: "#",
+          url: "/dashboard/documentacao/get-started",
         },
         {
           title: "Tutorials",
-          url: "#",
+          url: "/dashboard/documentacao/tutorials",
         },
         {
           title: "Changelog",
-          url: "#",
+          url: "/dashboard/documentacao/changelog",
         },
       ],
     },
     {
       title: "Wiki",
-      url: "#",
+      url: "/dashboard/wiki",
       icon: BookMarked,
       items: [
         {
           title: "General",
-          url: "#",
+          url: "/dashboard/wiki/general",
         },
         {
           title: "Team",
-          url: "#",
+          url: "/dashboard/wiki/team",
         },
         {
           title: "Billing",
-          url: "#",
+          url: "/dashboard/wiki/billing",
         },
         {
           title: "Limits",
-          url: "#",
+          url: "/dashboard/wiki/limits",
         },
       ],
     },
