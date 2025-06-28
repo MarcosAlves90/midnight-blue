@@ -27,8 +27,8 @@ export default function Home() {
           </h1>
           
           {/* Subtle subtitle */}
-          <p className="text-white/60 text-sm md:text-base max-w-md mx-auto font-[family-name:var(--font-futura-pro-book)]">
-            Uma experiência imersiva no universo de TMW
+          <p className="text-white/60 text-sm md:text-base max-w-lg mx-auto font-[family-name:var(--font-futura-pro-book)]">
+            Clearance Nível ÔMEGA. Terminal de acesso classificado Sevastopol.
           </p>
           
           {/* Enter Button */}
