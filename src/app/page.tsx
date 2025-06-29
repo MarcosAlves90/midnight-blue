@@ -51,7 +51,7 @@ export default function Home() {
       </div>
 
       {/* Main Content */}
-      <div className="relative backdrop-blur-sm overflow-hidden">
+      <div className="relative backdrop-blur-sm overflow-hidden  border-t border-white/10">
         <ParallaxBackground
           src="https://res.cloudinary.com/dflvo098t/image/upload/landing-page_vgw7yx.gif"
           alt="Midnight Blue Background"
@@ -88,27 +88,27 @@ export default function Home() {
             </div>
             <div className="relative">
               <div className="bg-gradient-to-br from-blue-900/30 to-purple-900/30 p-8 rounded-lg border border-white/10 backdrop-blur-sm">
-                <h4 className="text-white text-xl font-[family-name:var(--font-brevis)] mb-4">
-                  Estado Mental
+                <h4 className="text-white text-xl text-center font-[family-name:var(--font-brevis)] mb-4">
+                  Qual carne é a sua carne?
                 </h4>
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-white/70">Sanidade</span>
-                    <div className="w-32 h-2 bg-white/20 rounded-full overflow-hidden">
-                      <div className="w-3/4 h-full bg-green-500"></div>
-                    </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  
+                  <div className="bg-gradient-to-br from-red-500/20 to-orange-500/20 p-3 rounded-lg border border-red-400/30 hover:from-red-500/30 hover:to-orange-500/30 transition-all duration-300 cursor-pointer text-center">
+                    <span className="text-xl block mb-2">⚙️</span>
+                    <h5 className="text-white font-bold text-xs font-[family-name:var(--font-brevis)] mb-1">Controle</h5>
+                    <p className="text-white/70 text-xs font-[family-name:var(--font-futura-pro-book)]">Dominar caos</p>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-white/70">Estresse</span>
-                    <div className="w-32 h-2 bg-white/20 rounded-full overflow-hidden">
-                      <div className="w-1/2 h-full bg-yellow-500"></div>
-                    </div>
+                  
+                  <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 p-3 rounded-lg border border-purple-400/30 hover:from-purple-500/30 hover:to-pink-500/30 transition-all duration-300 cursor-pointer text-center">
+                    <span className="text-xl block mb-2">⚖️</span>
+                    <h5 className="text-white font-bold text-xs font-[family-name:var(--font-brevis)] mb-1">Equilíbrio</h5>
+                    <p className="text-white/70 text-xs font-[family-name:var(--font-futura-pro-book)]">Equilibrar tudo</p>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-white/70">Trauma</span>
-                    <div className="w-32 h-2 bg-white/20 rounded-full overflow-hidden">
-                      <div className="w-1/4 h-full bg-red-500"></div>
-                    </div>
+                  
+                  <div className="bg-gradient-to-br from-blue-500/20 to-cyan-500/20 p-3 rounded-lg border border-blue-400/30 hover:from-blue-500/30 hover:to-cyan-500/30 transition-all duration-300 cursor-pointer text-center">
+                    <span className="text-xl block mb-2">🕊️</span>
+                    <h5 className="text-white font-bold text-xs font-[family-name:var(--font-brevis)] mb-1">Liberdade</h5>
+                    <p className="text-white/70 text-xs font-[family-name:var(--font-futura-pro-book)]">Quebrar correntes</p>
                   </div>
                 </div>
               </div>
@@ -121,15 +121,15 @@ export default function Home() {
           </h3>
           <div className="grid md:grid-cols-3 gap-8">
             <div className="text-center space-y-4 p-6 border border-white/10 rounded-lg bg-white/5 backdrop-blur-sm hover:bg-white/10 transition-all duration-300">
-              <div className="w-12 h-12 mx-auto bg-blue-500/20 rounded-lg flex items-center justify-center">
-                <span className="text-blue-400 text-xl">📊</span>
+              <div className="w-12 h-12 mx-auto bg-red-500/20 rounded-lg flex items-center justify-center">
+                <span className="text-blue-400 text-xl">⚡</span>
               </div>
               <h4 className="text-white text-xl font-[family-name:var(--font-brevis)]">
                 Fichas Dinâmicas
               </h4>
-              <p className="text-white/70 text-sm font-[family-name:var(--font-futura-pro-book)]">
-                Gerencie seus personagens em tempo real com status que se atualizam automaticamente.
-              </p>
+                <p className="text-white/70 text-sm font-[family-name:var(--font-futura-pro-book)]">
+                Controle total das fichas: edite, acompanhe e veja mudanças instantâneas durante a sessão.
+                </p>
             </div>
             
             <div className="text-center space-y-4 p-6 border border-white/10 rounded-lg bg-white/5 backdrop-blur-sm hover:bg-white/10 transition-all duration-300">
@@ -145,15 +145,14 @@ export default function Home() {
             </div>
             
             <div className="text-center space-y-4 p-6 border border-white/10 rounded-lg bg-white/5 backdrop-blur-sm hover:bg-white/10 transition-all duration-300">
-              <div className="w-12 h-12 mx-auto bg-red-500/20 rounded-lg flex items-center justify-center">
-                <span className="text-red-400 text-xl">⚡</span>
+              <div className="w-12 h-12 mx-auto bg-blue-500/20 rounded-lg flex items-center justify-center">
+                <span className="text-red-400 text-xl">☁️</span>
               </div>
               <h4 className="text-white text-xl font-[family-name:var(--font-brevis)]">
-                Tempo Real
+              Dados na Nuvem
               </h4>
               <p className="text-white/70 text-sm font-[family-name:var(--font-futura-pro-book)]">
-                Colabore com outros agentes. Mudanças na mesa 
-                refletem instantaneamente no sistema.
+              Suas fichas e progresso ficam salvos automaticamente no Firebase. Segurança e acesso de qualquer lugar.
               </p>
             </div>
           </div>
@@ -170,7 +169,7 @@ export default function Home() {
             </div>
             <div className="space-y-2">
               <div className="text-3xl md:text-4xl font-[family-name:var(--font-brevis)] text-white">
-                12
+                4
               </div>
               <div className="text-white/60 text-sm font-[family-name:var(--font-futura-pro-book)] uppercase tracking-wider">
                 Missões Ativas
@@ -178,10 +177,10 @@ export default function Home() {
             </div>
             <div className="space-y-2">
               <div className="text-3xl md:text-4xl font-[family-name:var(--font-brevis)] text-white">
-                3
+                6
               </div>
               <div className="text-white/60 text-sm font-[family-name:var(--font-futura-pro-book)] uppercase tracking-wider">
-                Realidades Alteradas
+                Dimensões Alteradas
               </div>
             </div>
             <div className="space-y-2">
@@ -204,8 +203,8 @@ export default function Home() {
                 MidNight
               </h4>
               <p className="text-white/60 text-sm font-[family-name:var(--font-futura-pro-book)] max-w-xs">
-                Sistema de gerenciamento neural para agentes da Mental World. 
-                Clearance Ômega necessário para acesso completo.
+                Sistema de RPG digital para campanhas de The Mental World. 
+                Desenvolvido para proporcionar recursos avançados de gerenciamento de personagens.
               </p>
             </div>
             
