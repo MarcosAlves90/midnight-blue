@@ -62,3 +62,19 @@ export interface SingleStatBarProps {
     onToggleDot: (dotValue: number) => void
     onRevive: () => void
 }
+
+export interface EditableStatValueProps {
+    value: number
+    maxValue: number
+    onUpdate: (change: number) => void
+    disabled?: boolean
+    className?: string
+}
+
+export interface UseStatusBarsReturn {
+    stats: Stats
+    selectedDots: Set<number>
+    updateStat: (statName: StatKey, change: number) => void
+    handleRevive: () => void
+    toggleDotSelection: (dotValue: number) => void
+}

@@ -1,11 +1,12 @@
-import { getStatusClass } from "./constants"
+import { memo } from "react"
+import { getStatusClass, STYLE_CONSTANTS } from "./constants"
 import { RevivalDots } from "./revival-dots"
 import { RevivalButton } from "./revival-button"
 import { StatControls } from "./stat-controls"
 import { EditableStatValue } from "./editable-stat-value"
-import { SingleStatBarProps } from "./types"
+import type { SingleStatBarProps } from "./types"
 
-export const SingleStatBar = ({
+export const SingleStatBar = memo(function SingleStatBar({
     config,
     value,
     onUpdate,
@@ -15,14 +16,19 @@ export const SingleStatBar = ({
     selectedDots,
     onToggleDot,
     onRevive
-}: SingleStatBarProps) => {
+}: SingleStatBarProps) {
     const { key, label, color, icon: Icon, description, maxValue } = config
     const isKnockedOut = key === 'vida' && value === 0
     const statusClass = getStatusClass(value, maxValue)
+    const barHeight = compact ? STYLE_CONSTANTS.COMPACT_HEIGHT : STYLE_CONSTANTS.NORMAL_HEIGHT
+    const spacing = compact ? STYLE_CONSTANTS.COMPACT_SPACING : STYLE_CONSTANTS.NORMAL_SPACING
+    
+    const progressWidth = Math.min(100, Math.max(2, (value / maxValue) * 100))
+    const minBarWidth = value > 0 ? STYLE_CONSTANTS.MIN_BAR_WIDTH : '0px'
     
     return (
-        <div className={`space-y-2 ${compact ? 'space-y-1' : 'space-y-2'}`}>
-            {/* Header com ícone e label */}
+        <div className={`${spacing}`}>
+            {/* Header */}
             <div className="flex items-center justify-center gap-2">
                 {showIcons && <Icon size={16} className="text-muted-foreground" />}
                 <h3 
@@ -33,28 +39,26 @@ export const SingleStatBar = ({
                 </h3>
             </div>
             
-            {/* Barra de status */}
+            {/* Status Bar */}
             <div 
-                className={`w-full bg-background rounded flex items-center relative transition-all duration-300 ${
-                    compact ? 'h-6' : 'h-8'
-                } ${statusClass}`}
+                className={`w-full bg-background rounded flex items-center relative transition-all ${STYLE_CONSTANTS.TRANSITION_DURATION} ${barHeight} ${statusClass}`}
                 role="progressbar"
                 aria-valuenow={value}
                 aria-valuemin={0}
                 aria-valuemax={maxValue}
                 aria-label={`${label}: ${value} de ${maxValue}`}
             >
-                {/* Barra de progresso */}
+                {/* Progress Bar */}
                 <div 
                     className={`${color} h-full rounded transition-all duration-500 ease-out ${statusClass}`} 
                     style={{ 
-                        width: `${Math.min(100, Math.max(2, (value / maxValue) * 100))}%`,
-                        minWidth: value > 0 ? '2px' : '0px'
+                        width: `${progressWidth}%`,
+                        minWidth: minBarWidth
                     }}
                     aria-hidden="true"
                 />
 
-                {/* Estado especial quando vida está em 0 */}
+                {/* Knocked Out State */}
                 {isKnockedOut ? (
                     <>
                         <RevivalDots 
@@ -68,11 +72,9 @@ export const SingleStatBar = ({
                             disabled={disabled}
                         />
 
-                        {/* Valor do status na direita */}
-                        <span className={`absolute right-2 inset-y-0 flex items-center text-sm font-medium`}>
+                        <span className="absolute right-2 inset-y-0 flex items-center text-sm font-medium">
                             <EditableStatValue 
                                 value={value}
-                                maxValue={maxValue}
                                 onUpdate={onUpdate}
                                 disabled={disabled}
                             />/{maxValue}
@@ -80,11 +82,10 @@ export const SingleStatBar = ({
                     </>
                 ) : (
                     <>
-                        {/* Valor do status no centro */}
-                        <span className={`absolute inset-0 flex items-center justify-center text-sm font-medium`}>
+                        {/* Value Display */}
+                        <span className="absolute inset-0 flex items-center justify-center text-sm font-medium">
                             <EditableStatValue 
                                 value={value}
-                                maxValue={maxValue}
                                 onUpdate={onUpdate}
                                 disabled={disabled}
                             />/{maxValue}
@@ -100,4 +101,4 @@ export const SingleStatBar = ({
             </div>
         </div>
     )
-}
+})

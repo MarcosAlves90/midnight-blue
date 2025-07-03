@@ -1,11 +1,12 @@
 "use client"
 
+import { memo } from "react"
 import { statConfigs } from "./status-bars/stat-configs"
 import { SingleStatBar } from "./status-bars/single-stat-bar"
 import { useStatusBars } from "./status-bars/use-status-bars"
-import { StatusBarsProps } from "./status-bars/types"
+import type { StatusBarsProps } from "./status-bars/types"
 
-export default function StatusBars({
+export const StatusBars = memo(function StatusBars({
     initialStats = {},
     maxValues,
     onStatsChange,
@@ -21,11 +22,13 @@ export default function StatusBars({
         toggleDotSelection
     } = useStatusBars(initialStats, onStatsChange, disabled)
 
+    const spacing = compact ? 'space-y-2' : 'space-y-3'
+
     return (
         <div 
-            className={`bg-muted/50 rounded-xl p-6 flex flex-col justify-center ${
-                compact ? 'space-y-2' : 'space-y-4'
-            } ${disabled ? 'opacity-60' : ''}`}
+            className={`bg-muted/50 rounded-xl p-6 flex flex-col justify-center ${spacing} ${
+                disabled ? 'opacity-60' : ''
+            }`}
             role="group"
             aria-label="Status do personagem"
         >
@@ -48,4 +51,6 @@ export default function StatusBars({
             ))}
         </div>
     )
-}
+})
+
+export default StatusBars

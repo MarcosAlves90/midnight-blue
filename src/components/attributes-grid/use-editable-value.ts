@@ -1,58 +1,57 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect } from "react"
+import { INPUT_LIMITS } from "./constants"
+import type { EditableValueHook } from "./types"
 
 export function useEditableValue(
     initialValue: number, 
     onChange?: (value: number) => void,
     disabled = false
-) {
-    const [value, setValue] = useState(initialValue);
-    const [inputValue, setInputValue] = useState(initialValue.toString());
+): EditableValueHook {
+    const [value, setValue] = useState(initialValue)
+    const [inputValue, setInputValue] = useState(initialValue.toString())
 
     useEffect(() => {
-        setValue(initialValue);
-        setInputValue(initialValue.toString());
-    }, [initialValue]);
+        setValue(initialValue)
+        setInputValue(initialValue.toString())
+    }, [initialValue])
+
+    const validateAndSetValue = useCallback((inputVal: string) => {
+        if (inputVal === '') {
+            setInputValue(value.toString())
+            return
+        }
+        
+        const newValue = parseInt(inputVal, 10)
+        if (!isNaN(newValue)) {
+            const clampedValue = Math.max(INPUT_LIMITS.MIN_VALUE, Math.min(INPUT_LIMITS.MAX_VALUE, newValue))
+            setValue(clampedValue)
+            setInputValue(clampedValue.toString())
+            onChange?.(clampedValue)
+        }
+    }, [value, onChange])
 
     const handleChange = useCallback((inputVal: string) => {
-        if (disabled) return;
-        if (inputVal === '' || (/^\d+$/.test(inputVal) && parseInt(inputVal, 10) <= 9999)) {
-            setInputValue(inputVal);
+        if (disabled) return
+        
+        if (inputVal === '' || (/^\d+$/.test(inputVal) && parseInt(inputVal, 10) <= INPUT_LIMITS.MAX_VALUE)) {
+            setInputValue(inputVal)
         }
-    }, [disabled]);
+    }, [disabled])
 
     const handleBlur = useCallback(() => {
-        if (disabled) return;
-        if (inputValue === '') {
-            setInputValue(value.toString());
-        } else {
-            const newValue = parseInt(inputValue, 10);
-            if (!isNaN(newValue)) {
-                const clampedValue = Math.max(0, Math.min(9999, newValue));
-                setValue(clampedValue);
-                setInputValue(clampedValue.toString());
-                onChange?.(clampedValue);
-            }
-        }
-    }, [inputValue, value, onChange, disabled]);
+        if (disabled) return
+        validateAndSetValue(inputValue)
+    }, [inputValue, disabled, validateAndSetValue])
 
     const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (disabled) return;
+        if (disabled) return
+        
         if (e.key === 'Enter') {
-            if (inputValue === '') {
-                setInputValue(value.toString());
-            } else {
-                const newValue = parseInt(inputValue, 10);
-                if (!isNaN(newValue)) {
-                    const clampedValue = Math.max(0, Math.min(9999, newValue));
-                    setValue(clampedValue);
-                    setInputValue(clampedValue.toString());
-                    onChange?.(clampedValue);
-                }
-            }
+            validateAndSetValue(inputValue)
         } else if (e.key === 'Escape') {
-            setInputValue(value.toString());
+            setInputValue(value.toString())
         }
-    }, [inputValue, value, onChange, disabled]);
+    }, [inputValue, value, disabled, validateAndSetValue])
 
     return {
         value,
@@ -60,5 +59,5 @@ export function useEditableValue(
         handleChange,
         handleBlur,
         handleKeyDown
-    };
+    }
 }

@@ -1,26 +1,32 @@
 import { useState, useCallback } from "react"
-import { Stats, StatKey } from "./types"
+import { clampValue } from "./constants"
+import type { Stats, StatKey, UseStatusBarsReturn } from "./types"
+
+const DEFAULT_STATS: Stats = {
+    vida: 85,
+    energia: 60,
+    estresse: 30,
+    sanidade: 75
+} as const
 
 export const useStatusBars = (
     initialStats: Partial<Stats> = {},
     onStatsChange?: (stats: Stats) => void,
-    disabled: boolean = false
-) => {
+    disabled = false
+): UseStatusBarsReturn => {
     const [stats, setStats] = useState<Stats>({
-        vida: 85,
-        energia: 60,
-        estresse: 30,
-        sanidade: 75,
+        ...DEFAULT_STATS,
         ...initialStats
     })
 
     const [selectedDots, setSelectedDots] = useState<Set<number>>(new Set())
 
-    // Função otimizada para atualizar status
     const updateStat = useCallback((statName: StatKey, change: number) => {
         if (disabled) return
         
-        const newValue = Math.max(0, Math.min(9999, stats[statName] + change)) // Mínimo 0, máximo 9999
+        const currentValue = stats[statName]
+        const newValue = clampValue(currentValue + change)
+        
         const newStats = {
             ...stats,
             [statName]: newValue
@@ -29,20 +35,18 @@ export const useStatusBars = (
         onStatsChange?.(newStats)
     }, [stats, onStatsChange, disabled])
 
-    // Função para reviver personagem
     const handleRevive = useCallback(() => {
         if (disabled) return
         
         const newStats = {
             ...stats,
-            vida: 1 // Sempre revive com 1 ponto de vida
+            vida: 1
         }
         setStats(newStats)
         onStatsChange?.(newStats)
-        setSelectedDots(new Set()) // Limpa as bolinhas selecionadas
+        setSelectedDots(new Set())
     }, [stats, onStatsChange, disabled])
 
-    // Função para alternar seleção de bolinhas
     const toggleDotSelection = useCallback((dotValue: number) => {
         if (disabled) return
         

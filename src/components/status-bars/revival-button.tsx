@@ -1,6 +1,10 @@
-import { RevivalButtonProps } from "./types"
+import { memo } from "react"
+import type { RevivalButtonProps } from "./types"
 
-export const RevivalButton = ({ onRevive, disabled = false }: RevivalButtonProps) => {
+export const RevivalButton = memo(function RevivalButton({ 
+    onRevive, 
+    disabled = false 
+}: RevivalButtonProps) {
     return (
         <button
             onClick={onRevive}
@@ -16,4 +20,4 @@ export const RevivalButton = ({ onRevive, disabled = false }: RevivalButtonProps
             CURAR
         </button>
     )
-}
+})
