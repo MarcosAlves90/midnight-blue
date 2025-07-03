@@ -20,7 +20,7 @@ export const useStatusBars = (
     const updateStat = useCallback((statName: StatKey, change: number) => {
         if (disabled) return
         
-        const newValue = Math.max(0, stats[statName] + change) // Mínimo sempre 0, sem máximo
+        const newValue = Math.max(0, Math.min(9999, stats[statName] + change)) // Mínimo 0, máximo 9999
         const newStats = {
             ...stats,
             [statName]: newValue

@@ -9,7 +9,7 @@ export default function Home() {
     <div className="relative min-h-screen overflow-hidden">
     
       {/* Hero */}
-      <div className="relative flex flex-col items-center justify-center min-h-screen px-4 text-center overflow-hidden">
+      <div className="relative flex flex-col items-center justify-center min-h-screen px-6 text-center overflow-hidden">
           <ParallaxBackground
             src="https://res.cloudinary.com/dflvo098t/image/upload/midnight-main-menu_bafpwg.gif"
             alt="Midnight Blue Background"
@@ -51,17 +51,17 @@ export default function Home() {
       </div>
 
       {/* Main Content */}
-      <div className="relative backdrop-blur-sm overflow-hidden  border-t border-white/10">
+      <div className="relative backdrop-blur-sm overflow-hidden border-t border-white/10">
         <ParallaxBackground
           src="https://res.cloudinary.com/dflvo098t/image/upload/landing-page_vgw7yx.gif"
           alt="Midnight Blue Background"
           intensity={8}
           overlayType="black"
         />
-        <div className="max-w-6xl mx-auto px-4 py-20 relative z-20">
+        <div className="max-w-6xl mx-auto px-6 py-20 relative z-20">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div className="space-y-6">
-              <h3 className="text-white text-3xl md:text-4xl font-[family-name:var(--font-futura-pro-book)] uppercase font-bold">
+              <h3 className="text-white text-center md:text-start text-2xl sm:text-3xl md:text-4xl font-[family-name:var(--font-futura-pro-book)] uppercase font-bold">
                 The Mental World: Ano 1
               </h3>
                 <p className="text-white/80 font-[family-name:var(--font-futura-pro-book)] leading-relaxed">
@@ -88,10 +88,10 @@ export default function Home() {
             </div>
             <div className="relative">
               <div className="bg-gradient-to-br from-blue-900/30 to-purple-900/30 p-8 rounded-lg border border-white/10 backdrop-blur-sm">
-                <h4 className="text-white text-xl text-center font-[family-name:var(--font-brevis)] mb-4">
+                <h4 className="text-white text-lg sm:text-xl text-center font-[family-name:var(--font-brevis)] mb-4">
                   Qual carne é a sua carne?
                 </h4>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
                   
                   <div className="bg-gradient-to-br from-red-500/20 to-orange-500/20 p-3 rounded-lg border border-red-400/30 hover:from-red-500/30 hover:to-orange-500/30 transition-all duration-300 cursor-pointer text-center">
                     <span className="text-xl block mb-2">⚙️</span>
@@ -105,7 +105,7 @@ export default function Home() {
                     <p className="text-white/70 text-xs font-[family-name:var(--font-futura-pro-book)]">Equilibrar tudo</p>
                   </div>
                   
-                  <div className="bg-gradient-to-br from-blue-500/20 to-cyan-500/20 p-3 rounded-lg border border-blue-400/30 hover:from-blue-500/30 hover:to-cyan-500/30 transition-all duration-300 cursor-pointer text-center">
+                  <div className="bg-gradient-to-br from-blue-500/20 col-span-2 lg:col-span-1 to-cyan-500/20 p-3 rounded-lg border border-blue-400/30 hover:from-blue-500/30 hover:to-cyan-500/30 transition-all duration-300 cursor-pointer text-center">
                     <span className="text-xl block mb-2">🕊️</span>
                     <h5 className="text-white font-bold text-xs font-[family-name:var(--font-brevis)] mb-1">Liberdade</h5>
                     <p className="text-white/70 text-xs font-[family-name:var(--font-futura-pro-book)]">Quebrar correntes</p>
@@ -115,7 +115,7 @@ export default function Home() {
             </div>
           </div>
         </div>
-        <div className="max-w-6xl mx-auto px-4 py-20 relative z-20">
+        <div className="max-w-6xl mx-auto px-6 py-20 relative z-20">
           <h3 className="text-white text-3xl md:text-4xl font-[family-name:var(--font-brevis)] text-center mb-12">
             Recursos do Sistema
           </h3>
@@ -157,7 +157,7 @@ export default function Home() {
             </div>
           </div>
         </div>
-        <div className="max-w-4xl mx-auto px-4 py-16 relative z-20">
+        <div className="max-w-4xl mx-auto px-6 py-16 relative z-20">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             <div className="space-y-2">
               <div className="text-3xl md:text-4xl font-[family-name:var(--font-brevis)] text-white">
@@ -196,7 +196,7 @@ export default function Home() {
       </div>
 
       <div className="relative z-10 bg-black border-t border-white/10">
-        <div className="max-w-6xl mx-auto px-4 py-12">
+        <div className="max-w-6xl mx-auto px-6 py-12">
           <div className="grid md:grid-cols-3 gap-8">
             <div className="space-y-4">
               <h4 className="text-white text-lg font-[family-name:var(--font-brevis)]">

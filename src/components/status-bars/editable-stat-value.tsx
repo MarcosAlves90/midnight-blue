@@ -28,29 +28,37 @@ export const EditableStatValue = ({
         const newValue = parseInt(inputValue, 10)
         
         if (!isNaN(newValue)) {
-            // Garantir que o valor não seja negativo, mas permitir valores acima do máximo
-            const clampedValue = Math.max(0, newValue)
+            // Garantir que o valor não seja negativo e não ultrapasse 9999
+            const clampedValue = Math.max(0, Math.min(9999, newValue))
             onUpdate(clampedValue - value) // Enviar a diferença, não o valor absoluto
         }
     }
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === 'Enter') {
-            handleSubmit()
+            if (inputValue === '') {
+                setInputValue(value.toString())
+            } else {
+                handleSubmit()
+            }
         } else if (e.key === 'Escape') {
             setInputValue(value.toString())
         }
     }
 
     const handleBlur = () => {
-        handleSubmit()
+        if (inputValue === '') {
+            setInputValue(value.toString())
+        } else {
+            handleSubmit()
+        }
     }
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const inputVal = e.target.value
         
-        // Permitir apenas números
-        if (inputVal === '' || /^\d+$/.test(inputVal)) {
+        // Permitir apenas números e garantir que não ultrapasse 9999
+        if (inputVal === '' || (/^\d+$/.test(inputVal) && parseInt(inputVal, 10) <= 9999)) {
             setInputValue(inputVal)
         }
     }
