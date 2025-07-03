@@ -3,9 +3,6 @@ export const STAT_CONFIG = {
     MIN_VALUE: 0,
     SMALL_INCREMENT: 1,
     LARGE_INCREMENT: 5,
-    CRITICAL_THRESHOLD: 25,
-    WARNING_THRESHOLD: 50,
-    DOT_VALUE: 10,
     REVIVAL_DOTS: [1, 2, 3] as const
 } as const
 

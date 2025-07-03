@@ -1,18 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical } from "lucide-react";
-
-interface AttributeCardProps {
-    id: string;
-    name: string;
-    abbreviation: string;
-    borderColor: string;
-    value?: number;
-    bonus?: number;
-}
+import { AttributeCardProps } from "./types";
+import { useEditableValue } from "./use-editable-value";
 
 export default function AttributeCard({
     id,
@@ -21,9 +14,13 @@ export default function AttributeCard({
     borderColor,
     value = 0,
     bonus = 0,
+    onValueChange,
+    onBonusChange,
+    disabled = false,
+    editable = true
 }: AttributeCardProps) {
-    const [baseValue, setBaseValue] = useState(value);
-    const [bonusValue, setBonusValue] = useState(bonus);
+    const baseValueState = useEditableValue(value, onValueChange, disabled || !editable);
+    const bonusValueState = useEditableValue(bonus, onBonusChange, disabled || !editable);
 
     const {
         attributes,
@@ -39,7 +36,10 @@ export default function AttributeCard({
         transition,
     };
 
-    const total = baseValue + bonusValue;
+    const total = useMemo(() => 
+        baseValueState.value + bonusValueState.value, 
+        [baseValueState.value, bonusValueState.value]
+    );
 
     return (
         <div 
@@ -48,14 +48,16 @@ export default function AttributeCard({
             {...attributes}
             className={`bg-muted/50 rounded p-3 space-y-2 border-t-4 ${borderColor} ${
                 isDragging ? "opacity-50" : ""
-            } relative`}>
+            } ${disabled ? "opacity-50 cursor-not-allowed" : ""} relative`}>
             
-            <div 
-                {...listeners}
-                className="absolute top-2 left-2 cursor-grab active:cursor-grabbing p-1 hover:bg-muted/80 rounded transition-colors"
-            >
-                <GripVertical className="w-4 h-4 text-muted-foreground" />
-            </div>
+            {editable && !disabled && (
+                <div 
+                    {...listeners}
+                    className="absolute top-2 left-2 cursor-grab active:cursor-grabbing p-1 hover:bg-muted/80 rounded transition-colors"
+                >
+                    <GripVertical className="w-4 h-4 text-muted-foreground" />
+                </div>
+            )}
 
             <div className="text-center">
                 <h3 className="text-sm font-medium text-center">{name}</h3>
@@ -68,14 +70,24 @@ export default function AttributeCard({
 
             <div className="grid grid-cols-2 gap-2">
                 <input
-                    value={baseValue}
-                    onChange={(e) => setBaseValue(Number(e.target.value) || 0)}
-                    className="w-full text-center text-sm font-medium px-1 py-0.5 bg-primary/10 rounded transition-colors duration-200 focus:bg-primary/15 border-0 outline-none"
+                    value={baseValueState.inputValue}
+                    onChange={(e) => baseValueState.handleChange(e.target.value)}
+                    onBlur={baseValueState.handleBlur}
+                    onKeyDown={baseValueState.handleKeyDown}
+                    placeholder={baseValueState.value.toString()}
+                    aria-label={`${name} valor base`}
+                    disabled={disabled || !editable}
+                    className="w-full text-center text-sm font-medium px-1 py-0.5 bg-primary/10 rounded transition-colors duration-200 focus:bg-primary/15 border-0 outline-none disabled:opacity-50 disabled:cursor-not-allowed"
                 />
                 <input
-                    value={bonusValue}
-                    onChange={(e) => setBonusValue(Number(e.target.value) || 0)}
-                    className="w-full text-center text-sm font-medium px-1 py-0.5 bg-purple-500/30 rounded transition-colors duration-200 focus:bg-purple-500/40 border-0 outline-none"
+                    value={bonusValueState.inputValue}
+                    onChange={(e) => bonusValueState.handleChange(e.target.value)}
+                    onBlur={bonusValueState.handleBlur}
+                    onKeyDown={bonusValueState.handleKeyDown}
+                    placeholder={bonusValueState.value.toString()}
+                    aria-label={`${name} valor bônus`}
+                    disabled={disabled || !editable}
+                    className="w-full text-center text-sm font-medium px-1 py-0.5 bg-purple-500/30 rounded transition-colors duration-200 focus:bg-purple-500/40 border-0 outline-none disabled:opacity-50 disabled:cursor-not-allowed"
                 />
             </div>
         </div>

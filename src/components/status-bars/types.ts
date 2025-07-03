@@ -62,11 +62,3 @@ export interface SingleStatBarProps {
     onToggleDot: (dotValue: number) => void
     onRevive: () => void
 }
-
-export interface EditableStatValueProps {
-    value: number
-    maxValue: number
-    onUpdate: (newValue: number) => void
-    disabled?: boolean
-    className?: string
-}
