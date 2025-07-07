@@ -27,12 +27,6 @@ export interface AttributeCardProps {
     editable?: boolean
 }
 
-export interface ColorClasses {
-    border: string
-    bg: string
-    focusBg: string
-}
-
 export interface EditableValueHook {
     value: number
     inputValue: string

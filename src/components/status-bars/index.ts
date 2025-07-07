@@ -1,4 +1,4 @@
-export { StatusBars as default } from "../status-bars"
+export { StatusBars as default } from "."
 export type { 
     Stats, 
     StatKey, 

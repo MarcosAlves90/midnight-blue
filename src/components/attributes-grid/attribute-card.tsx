@@ -6,8 +6,9 @@ import { CSS } from "@dnd-kit/utilities"
 import { GripVertical } from "lucide-react"
 import { AttributeCardProps } from "./types"
 import { useEditableValue } from "./use-editable-value"
-import { getColorClasses } from "./utils"
-import { DiceIcon } from "./dice-icon"
+import { getColorClasses } from "../../lib/colors"
+import { DiceIcon } from "../dice-icon"
+import { rollDice } from "../../lib/dice-system"
 
 export const AttributeCard = memo(function AttributeCard({
     id,
@@ -46,8 +47,12 @@ export const AttributeCard = memo(function AttributeCard({
     }
 
     const handleRollDice = () => {
-        // TODO: Implementar sistema de rolagem
-        console.log(`Rolling dice for ${name} with total: ${total}`)
+        if (baseValueState.value === 0) {
+            rollDice(undefined, undefined, bonusValueState.value, 0, true, color);
+        } else {
+            const diceCount = baseValueState.value;
+            rollDice(diceCount, 20, 0, bonusValueState.value, true);
+        }
     }
 
     return (

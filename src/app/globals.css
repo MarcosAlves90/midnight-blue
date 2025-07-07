@@ -121,6 +121,23 @@
   }
 }
 
+/* Notificações Toast */
+
+.notification-toast {
+  @apply bg-card/50 backdrop-blur-sm text-primary border-2 border-accent rounded !overflow-hidden;
+}
+
+.Toastify__progress-bar--wrp {
+  @apply rounded-none;
+}
+
+.Toastify__progress-bar--bg {
+  @apply bg-accent opacity-100;
+}
+
+.Toastify__close-button {
+  @apply text-primary;
+}
 /* Animação personalizada para o botão da página inicial */
 
 @keyframes gridPulse {
