@@ -5,6 +5,7 @@ import { ThemeProvider } from "next-themes";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./globals.css";
+import { AppProviders } from "../contexts/Providers";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,7 +30,7 @@ const futuraProBook = localFont({
 export const metadata: Metadata = {
   title: {
     default: "MidNight",
-    template: "MidNight - %s",
+    template: "%s - MidNight",
   },
   description: "Plataforma de fichas de RPG para o sistema de The Mental World.",
 };
@@ -44,12 +45,14 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${brevis.variable} ${futuraProBook.variable} antialiased`}
       >
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          {children}
-          <ToastContainer 
-            limit={5}
-          />
-        </ThemeProvider>
+        <AppProviders>
+          <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+            {children}
+            <ToastContainer 
+              limit={5}
+            />
+          </ThemeProvider>
+        </AppProviders>
       </body>
     </html>
   );

@@ -4,27 +4,18 @@ export interface Attribute {
     abbreviation: string
     color: string
     value: number
-    bonus: number
+    bonus?: number // agora opcional
+    type: "attribute" | "biotype"
 }
 
 export interface AttributesGridProps {
     initialAttributes?: Attribute[]
+    initialBiotypes?: Attribute[]
     onAttributesChange?: (attributes: Attribute[]) => void
+    onBiotypesChange?: (biotypes: Attribute[]) => void
     disabled?: boolean
     editable?: boolean
-}
-
-export interface AttributeCardProps {
-    id: string
-    name: string
-    abbreviation: string
-    color: string
-    value: number
-    bonus: number
-    onValueChange?: (value: number) => void
-    onBonusChange?: (bonus: number) => void
-    disabled?: boolean
-    editable?: boolean
+    mode?: "attribute" | "biotype"
 }
 
 export interface EditableValueHook {

@@ -4,11 +4,36 @@ import { memo, useMemo } from "react"
 import { useSortable } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
 import { GripVertical } from "lucide-react"
-import { AttributeCardProps } from "./types"
+// import { AttributeCardProps } from "./types" // Removido para evitar conflito
 import { useEditableValue } from "./use-editable-value"
 import { getColorClasses } from "../../lib/colors"
 import { DiceIcon } from "../dice-icon"
 import { rollDice } from "../../lib/dice-system"
+
+export interface AttributeFieldConfig {
+    key: string;
+    label: string;
+    type: 'number' | 'text';
+    editable?: boolean;
+    placeholder?: string;
+    className?: string;
+}
+
+export interface AttributeCardProps {
+    id: string;
+    name: string;
+    abbreviation: string;
+    color: string;
+    value: number;
+    bonus?: number;
+    type: "attribute" | "biotype";
+    onValueChange?: (value: number) => void;
+    onBonusChange?: (bonus: number) => void;
+    disabled?: boolean;
+    editable?: boolean;
+    fields?: AttributeFieldConfig[];
+    inputLimits?: { MIN_VALUE?: number; MAX_VALUE?: number };
+}
 
 export const AttributeCard = memo(function AttributeCard({
     id,
@@ -17,19 +42,24 @@ export const AttributeCard = memo(function AttributeCard({
     color,
     value = 0,
     bonus = 0,
+    type,
     onValueChange,
     onBonusChange,
     disabled = false,
-    editable = true
+    editable = true,
+    fields,
+    inputLimits,
 }: AttributeCardProps) {
-    const baseValueState = useEditableValue(value, onValueChange, disabled || !editable)
-    const bonusValueState = useEditableValue(bonus, onBonusChange, disabled || !editable)
+    const baseValueState = useEditableValue(value, onValueChange, disabled || !editable, inputLimits)
+    const bonusValueState = useEditableValue(bonus ?? 0, onBonusChange, disabled || !editable, inputLimits)
     
     const colorClasses = useMemo(() => getColorClasses(color), [color])
     
-    const total = useMemo(() => 
-        baseValueState.value + bonusValueState.value, 
-        [baseValueState.value, bonusValueState.value]
+    const total = useMemo(() =>
+        type === "attribute"
+            ? baseValueState.value + bonusValueState.value
+            : baseValueState.value,
+        [baseValueState.value, bonusValueState.value, type]
     )
 
     const {
@@ -47,12 +77,42 @@ export const AttributeCard = memo(function AttributeCard({
     }
 
     const handleRollDice = () => {
-        if (baseValueState.value === 0) {
-            rollDice(undefined, undefined, bonusValueState.value, 0, true, color);
+        if (type !== "attribute") return;
+        if (baseValueState.value === 0 && bonusValueState.value === 0) {
+            // Ambos zero: rola 2d20 (padrão do sistema) e notifica
+            rollDice({ notify: true, color });
+        } else if (baseValueState.value === 0 && bonusValueState.value > 0) {
+            // Usa o bônus como quantidade de dados, sem bônus adicional
+            rollDice({ count: bonusValueState.value, faces: 20, notify: true, color });
         } else {
             const diceCount = baseValueState.value;
-            rollDice(diceCount, 20, 0, bonusValueState.value, true);
+            rollDice({ count: diceCount, faces: 20, bonus: bonusValueState.value, notify: true, color });
         }
+    }
+
+    // Renderização dinâmica dos campos, se fornecidos
+    const renderFields = () => {
+        if (!fields) return null;
+        return fields.map((field: AttributeFieldConfig) => {
+            if (field.type === 'number') {
+                const valueState = field.key === 'bonus' ? bonusValueState : baseValueState;
+                return (
+                    <input
+                        key={field.key}
+                        value={valueState.inputValue}
+                        onChange={(e) => valueState.handleChange(e.target.value)}
+                        onBlur={valueState.handleBlur}
+                        onKeyDown={valueState.handleKeyDown}
+                        placeholder={field.placeholder || valueState.value.toString()}
+                        aria-label={field.label}
+                        disabled={disabled || !editable || field.editable === false}
+                        className={field.className || 'w-full text-center text-sm font-medium px-1 py-0.5 bg-primary/10 rounded transition-colors duration-200 focus:bg-primary/15 border-0 outline-none disabled:opacity-50 disabled:cursor-not-allowed'}
+                    />
+                )
+            }
+            // Outros tipos podem ser adicionados aqui
+            return null;
+        })
     }
 
     return (
@@ -73,7 +133,8 @@ export const AttributeCard = memo(function AttributeCard({
                 </div>
             )}
             
-            {!disabled && (
+            {/* Botão de rolagem de dados só para atributos */}
+            {type === "attribute" && !disabled && (
                 <button 
                     onClick={handleRollDice}
                     className="absolute top-2 cursor-pointer right-2 p-1 hover:bg-muted/80 rounded transition-colors"
@@ -92,29 +153,35 @@ export const AttributeCard = memo(function AttributeCard({
             <div className="text-center">
                 <div className="text-2xl font-bold">{total}</div>
             </div>
-
-            <div className="grid grid-cols-2 gap-2">
-                <input
-                    value={baseValueState.inputValue}
-                    onChange={(e) => baseValueState.handleChange(e.target.value)}
-                    onBlur={baseValueState.handleBlur}
-                    onKeyDown={baseValueState.handleKeyDown}
-                    placeholder={baseValueState.value.toString()}
-                    aria-label={`${name} valor base`}
-                    disabled={disabled || !editable}
-                    className="w-full text-center text-sm font-medium px-1 py-0.5 bg-primary/10 rounded transition-colors duration-200 focus:bg-primary/15 border-0 outline-none disabled:opacity-50 disabled:cursor-not-allowed"
-                />
-                <input
-                    value={bonusValueState.inputValue}
-                    onChange={(e) => bonusValueState.handleChange(e.target.value)}
-                    onBlur={bonusValueState.handleBlur}
-                    onKeyDown={bonusValueState.handleKeyDown}
-                    placeholder={bonusValueState.value.toString()}
-                    aria-label={`${name} valor bônus`}
-                    disabled={disabled || !editable}
-                    className={`w-full text-center text-sm font-medium px-1 py-0.5 ${colorClasses.bg} rounded transition-colors duration-200 ${colorClasses.focusBg} border-0 outline-none disabled:opacity-50 disabled:cursor-not-allowed`}
-                />
-            </div>
+            {/* Renderização dinâmica dos campos, se fornecidos */}
+            {fields ? (
+                <div>{renderFields()}</div>
+            ) : (
+                <div className="flex flex-row gap-2 w-full">
+                    <input
+                        value={baseValueState.inputValue}
+                        onChange={(e) => baseValueState.handleChange(e.target.value)}
+                        onBlur={baseValueState.handleBlur}
+                        onKeyDown={baseValueState.handleKeyDown}
+                        placeholder={baseValueState.value.toString()}
+                        aria-label={`${name} valor base`}
+                        disabled={disabled || !editable}
+                        className="w-full text-center text-sm font-medium px-1 py-0.5 bg-primary/10 rounded transition-colors duration-200 focus:bg-primary/15 border-0 outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+                    />
+                    {type === "attribute" && (
+                        <input
+                            value={bonusValueState.inputValue}
+                            onChange={(e) => bonusValueState.handleChange(e.target.value)}
+                            onBlur={bonusValueState.handleBlur}
+                            onKeyDown={bonusValueState.handleKeyDown}
+                            placeholder={bonusValueState.value.toString()}
+                            aria-label={`${name} valor bônus`}
+                            disabled={disabled || !editable}
+                            className={`w-full text-center text-sm font-medium px-1 py-0.5 ${colorClasses.bg} rounded transition-colors duration-200 ${colorClasses.focusBg} border-0 outline-none disabled:opacity-50 disabled:cursor-not-allowed`}
+                        />
+                    )}
+                </div>
+            )}
         </div>
     )
 })

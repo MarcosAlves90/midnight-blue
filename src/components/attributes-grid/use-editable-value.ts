@@ -1,14 +1,16 @@
 import { useState, useCallback, useEffect } from "react"
-import { INPUT_LIMITS } from "./constants"
+import { getInputLimits, DEFAULT_INPUT_LIMITS } from "./constants"
 import type { EditableValueHook } from "./types"
 
 export function useEditableValue(
-    initialValue: number, 
+    initialValue: number,
     onChange?: (value: number) => void,
-    disabled = false
+    disabled = false,
+    customLimits?: { MIN_VALUE?: number, MAX_VALUE?: number }
 ): EditableValueHook {
     const [value, setValue] = useState(initialValue)
     const [inputValue, setInputValue] = useState(initialValue.toString())
+    const limits = getInputLimits(customLimits)
 
     useEffect(() => {
         setValue(initialValue)
@@ -20,23 +22,24 @@ export function useEditableValue(
             setInputValue(value.toString())
             return
         }
-        
         const newValue = parseInt(inputVal, 10)
         if (!isNaN(newValue)) {
-            const clampedValue = Math.max(INPUT_LIMITS.MIN_VALUE, Math.min(INPUT_LIMITS.MAX_VALUE, newValue))
+            const clampedValue = Math.max(limits.MIN_VALUE, Math.min(limits.MAX_VALUE, newValue))
             setValue(clampedValue)
             setInputValue(clampedValue.toString())
             onChange?.(clampedValue)
         }
-    }, [value, onChange])
+    }, [value, onChange, limits])
 
     const handleChange = useCallback((inputVal: string) => {
         if (disabled) return
-        
-        if (inputVal === '' || (/^\d+$/.test(inputVal) && parseInt(inputVal, 10) <= INPUT_LIMITS.MAX_VALUE)) {
+        if (
+            inputVal === '' ||
+            (/^\d+$/.test(inputVal) && parseInt(inputVal, 10) <= limits.MAX_VALUE)
+        ) {
             setInputValue(inputVal)
         }
-    }, [disabled])
+    }, [disabled, limits])
 
     const handleBlur = useCallback(() => {
         if (disabled) return
@@ -45,7 +48,6 @@ export function useEditableValue(
 
     const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
         if (disabled) return
-        
         if (e.key === 'Enter') {
             validateAndSetValue(inputValue)
         } else if (e.key === 'Escape') {

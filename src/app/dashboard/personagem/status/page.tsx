@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import StatusBars from "@/components/status-bars"
 import AttributesGrid from "@/components/attributes-grid"
+import AdvancedStatus from "@/components/advanced-status"
 
 export const metadata: Metadata = {
   title: "Status",
@@ -8,11 +9,11 @@ export const metadata: Metadata = {
 
 export default function PersonagemStatsPage() {
   return (
-    <div className="flex flex-1 flex-col gap-4 pt-0">
-      <div className="grid auto-rows-min gap-4 md:grid-cols-3">
-        <StatusBars />
+    <div className="flex flex-1 gap-4 pt-0">
+      <div className="flex flex-col gap-4 max-w-120">
         <AttributesGrid />
-        <div className="bg-card aspect-video rounded-xl" />
+        <StatusBars />
+        <AdvancedStatus />
       </div>
       <div className="bg-card min-h-[100vh] flex-1 rounded-xl md:min-h-min" />
     </div>

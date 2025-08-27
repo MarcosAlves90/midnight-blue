@@ -6,15 +6,15 @@ export const metadata: Metadata = {
 
 export default function PersonagemStatsPage() {
     return (
-        <div className="space-y-6">
-            <div>
-                <h1 className="text-3xl font-bold tracking-tight">
-                    Individual
-                </h1>
-                <p className="text-muted-foreground">
-                    Esta página é dedicada a exibir informações detalhadas sobre um personagem específico.
-                </p>
-            </div>
+        <div className="flex flex-1 flex-col gap-4 pt-0">
+        <div className="grid auto-rows-min gap-4 md:grid-cols-3">
+                <div className="bg-card aspect-video rounded-xl">
+                    
+                </div>
+                <div className="bg-card aspect-video rounded-xl" />
+                <div className="bg-card aspect-video rounded-xl" />
         </div>
+        <div className="bg-card min-h-[100vh] flex-1 rounded-xl md:min-h-min" />
+      </div>
     );
 }
