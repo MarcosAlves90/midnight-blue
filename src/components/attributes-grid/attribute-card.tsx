@@ -78,15 +78,21 @@ export const AttributeCard = memo(function AttributeCard({
 
     const handleRollDice = () => {
         if (type !== "attribute") return;
+        // Define strategy: somente usar "lowest" quando o valor base for 0;
+        // caso contrário, tomar o maior resultado ("highest").
+        const strategy = baseValueState.value === 0 ? 'lowest' : 'highest';
+
         if (baseValueState.value === 0 && bonusValueState.value === 0) {
             // Ambos zero: rola 2d20 (padrão do sistema) e notifica
-            rollDice({ notify: true, color });
+            rollDice({ notify: true, color, strategy });
         } else if (baseValueState.value === 0 && bonusValueState.value > 0) {
             // Usa o bônus como quantidade de dados, sem bônus adicional
-            rollDice({ count: bonusValueState.value, faces: 20, notify: true, color });
+            rollDice({ count: bonusValueState.value, faces: 20, notify: true, color, strategy });
         } else {
             const diceCount = baseValueState.value;
-            rollDice({ count: diceCount, faces: 20, bonus: bonusValueState.value, notify: true, color });
+            // O bônus do atributo aumenta a quantidade de dados (diceBonus),
+            // em vez de somar ao resultado final.
+            rollDice({ count: diceCount, faces: 20, diceBonus: bonusValueState.value, notify: true, color, strategy });
         }
     }
 
@@ -120,7 +126,7 @@ export const AttributeCard = memo(function AttributeCard({
             ref={setNodeRef}
             style={style}
             {...attributes}
-            className={`bg-muted/50 rounded p-2 space-y-2 border-t-4 ${colorClasses.border} ${
+            className={`bg-muted/50 rounded-b p-2 space-y-2 border-t-2 ${colorClasses.border} ${
                 isDragging ? "opacity-50" : ""
             } ${disabled ? "opacity-50 cursor-not-allowed" : ""} relative`}
         >

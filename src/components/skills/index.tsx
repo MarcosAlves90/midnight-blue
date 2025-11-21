@@ -1,0 +1,124 @@
+"use client"
+
+import React, { useState, useCallback, useMemo } from "react"
+import { Edit3, Lock, ChevronDown } from "lucide-react"
+import { INITIAL_SKILLS } from "./constants"
+import SkillCard from "./skill-card"
+import type { Skill } from "./types"
+
+type SortOption = 'name-asc' | 'name-desc' | 'attribute' | 'value-asc' | 'value-desc' | 'others-asc' | 'others-desc'
+
+export function SkillsList() {
+  // local state for now. Could be persisted later.
+  // ensure default numeric fields are set to 0 if missing
+  const [skills, setSkills] = useState<Skill[]>(
+    INITIAL_SKILLS.map(s => ({ ...s, value: s.value ?? 0, others: s.others ?? 0 }))
+  )
+  const [isEditMode, setIsEditMode] = useState(false)
+  const [sortOption, setSortOption] = useState<SortOption>('name-asc')
+
+  const handleChange = (id: string, field: 'value' | 'others', value: number) => {
+    setSkills(prev => prev.map(s => (s.id === id ? { ...s, [field]: value } : s)))
+  }
+
+  const toggleEditMode = useCallback(() => {
+    setIsEditMode(prev => !prev)
+  }, [])
+
+  // Função para ordenar as perícias
+  const sortedSkills = useMemo(() => {
+    const sorted = [...skills]
+    
+    switch (sortOption) {
+      case 'name-asc':
+        return sorted.sort((a, b) => a.name.localeCompare(b.name))
+      case 'name-desc':
+        return sorted.sort((a, b) => b.name.localeCompare(a.name))
+      case 'attribute':
+        return sorted.sort((a, b) => a.attribute.localeCompare(b.attribute))
+      case 'value-asc':
+        return sorted.sort((a, b) => (a.value ?? 0) - (b.value ?? 0))
+      case 'value-desc':
+        return sorted.sort((a, b) => (b.value ?? 0) - (a.value ?? 0))
+      case 'others-asc':
+        return sorted.sort((a, b) => (a.others ?? 0) - (b.others ?? 0))
+      case 'others-desc':
+        return sorted.sort((a, b) => (b.others ?? 0) - (a.others ?? 0))
+      default:
+        return sorted
+    }
+  }, [skills, sortOption])
+
+  const renderEditButton = () => (
+    <button
+      onClick={toggleEditMode}
+      className={`p-2 rounded cursor-pointer transition-all duration-200 ${
+        isEditMode 
+          ? "bg-primary text-primary-foreground hover:bg-primary/90" 
+          : "bg-muted-foreground/20 text-muted-foreground hover:bg-muted-foreground/30"
+      }`}
+      title={isEditMode ? "Desativar modo de edição" : "Ativar modo de edição"}
+      aria-label={isEditMode ? "Desativar modo de edição" : "Ativar modo de edição"}
+      aria-pressed={isEditMode}
+    >
+      {isEditMode ? <Edit3 className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
+    </button>
+  )
+
+  const renderSortDropdown = () => (
+    <div className="relative">
+      <select
+        value={sortOption}
+        onChange={(e) => setSortOption(e.target.value as SortOption)}
+        className="appearance-none px-3 py-2 rounded text-sm bg-muted-foreground/20 text-muted-foreground border-0 outline-none cursor-pointer hover:bg-muted-foreground/30 transition-colors pr-8"
+        aria-label="Ordenar perícias"
+      >
+        <option value="name-asc">Nome (A-Z)</option>
+        <option value="name-desc">Nome (Z-A)</option>
+        <option value="attribute">Por Atributo</option>
+        <option value="value-asc">Valor (↑)</option>
+        <option value="value-desc">Valor (↓)</option>
+        <option value="others-asc">Bônus (↑)</option>
+        <option value="others-desc">Bônus (↓)</option>
+      </select>
+      <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+    </div>
+  )
+
+  return (
+    <div className="overflow-x-auto">
+      <div className="flex items-center justify-between mb-4 gap-3">
+        <h2 className="text-lg font-semibold">Perícias</h2>
+        <div className="flex items-center gap-2">
+          {renderSortDropdown()}
+          {renderEditButton()}
+        </div>
+      </div>
+      <table className="w-full table-fixed">
+        <thead>
+          <tr className="text-left text-xs text-muted-foreground">
+            <th className="w-1/3 px-4 py-2">Perícia</th>
+            <th className="w-1/5 px-4 py-2">Atributo</th>
+            <th className="w-1/6 px-4 py-2 text-center">Valor</th>
+            <th className="w-1/6 px-4 py-2 text-center">Outros</th>
+          </tr>
+        </thead>
+
+        <tbody className="divide-y">
+          {sortedSkills.map(skill => (
+            <SkillCard
+              key={skill.id}
+              {...skill}
+              value={skill.value ?? 0}
+              others={skill.others ?? 0}
+              onChange={handleChange}
+              disabled={!isEditMode}
+            />
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
+export default SkillsList

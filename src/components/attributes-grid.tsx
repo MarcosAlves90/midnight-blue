@@ -1,8 +1,8 @@
 "use client"
 
 import { memo, useState, useEffect, useCallback } from "react"
-import { DndContext, closestCenter } from "@dnd-kit/core"
-import { SortableContext, rectSortingStrategy } from "@dnd-kit/sortable"
+import { DndContext, closestCenter, DragEndEvent } from "@dnd-kit/core"
+import { SortableContext, rectSortingStrategy, arrayMove } from "@dnd-kit/sortable"
 import { restrictToParentElement } from "@dnd-kit/modifiers"
 import { Edit3, Lock } from "lucide-react"
 import { AttributeCard } from "./attributes-grid/attribute-card"
@@ -41,6 +41,18 @@ export const AttributesGrid = memo(function AttributesGrid({
 
     const toggleEditMode = useCallback(() => {
         setIsEditMode(prev => !prev)
+    }, [])
+
+    // Handler para reordenar atributos ao arrastar
+    const handleAttributesDragEnd = useCallback((event: DragEndEvent) => {
+        const { active, over } = event
+        if (!over || active.id === over.id) return
+
+        setAttributes(prev => {
+            const oldIndex = prev.findIndex(attr => attr.id === active.id)
+            const newIndex = prev.findIndex(attr => attr.id === over.id)
+            return arrayMove(prev, oldIndex, newIndex)
+        })
     }, [])
 
     const renderEditButton = () => (
@@ -130,7 +142,7 @@ export const AttributesGrid = memo(function AttributesGrid({
     const dndProps = activeTab === 'attribute'
         ? {
             items: attributes,
-            handleDragEnd: undefined, // Drag de atributos desabilitado por enquanto
+            handleDragEnd: isEditable ? handleAttributesDragEnd : undefined,
         }
         : {
             items: biotypes,
