@@ -44,7 +44,7 @@ export function SkillCard({ id, name, attribute, value = 0, others = 0, onChange
                     <button
                         onClick={handleRollSkill}
                         aria-label={`Rolar perícia ${name}`}
-                        className="p-0.5 hover:bg-muted/80 rounded transition-colors cursor-pointer opacity-100 sm:opacity-50 sm:group-hover:opacity-100"
+                        className="p-0.5 hover:bg-muted/80 rounded transition-colors cursor-pointer"
                     >
                         <DiceIcon className="w-3.5 h-3.5 text-muted-foreground hover:text-foreground" />
                     </button>

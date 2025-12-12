@@ -2,6 +2,7 @@
 import { useState, useCallback } from "react"
 import { Input } from "@/components/ui/input"
 import { useAttributesContext } from "@/contexts/AttributesContext"
+import { useSkillsContext } from "@/contexts/SkillsContext"
 import { Shield, Star, Move, Edit3, Lock, Zap, Plus, Minus, RotateCcw } from "lucide-react"
 import { rollDice } from "@/lib/dice-system"
 import { DiceIcon } from "@/components/dice-icon"
@@ -25,7 +26,7 @@ function DefenseCard({ title, attributeValue, attributeAbbrev, attributeColor, i
     }
 
     return (
-        <div className="bg-background/30 rounded-md p-2 border border-muted/20 flex items-center justify-between">
+        <div className="bg-background/30 p-2 border border-muted/20 flex items-center justify-between">
             <div className="flex items-center gap-2">
                 <button
                     onClick={handleRollDefense}
@@ -75,6 +76,7 @@ function useEditableNumber(initial: number, min: number = 0) {
 
 export default function AdvancedStatus() {
     const { attributes } = useAttributesContext()
+    const { skills } = useSkillsContext()
 
     const [isEditMode, setIsEditMode] = useState(false)
     const [extraPoints, setExtraPoints] = useState(0)
@@ -141,6 +143,13 @@ export default function AdvancedStatus() {
     const resistenciaTotal = vigor + resistenciaPoints.value
     const vontadeTotal = prontidao + vontadePoints.value
 
+    // Calculate spent points (Attributes: 2 per rank, Defenses: 1 per rank, Skills: 1 per 2 ranks)
+    const attributesSpent = attributes.reduce((acc, attr) => acc + (attr.value * 2), 0)
+    const defensesSpent = apararPoints.value + esquivaPoints.value + fortitudePoints.value + resistenciaPoints.value + vontadePoints.value
+    const skillsSpent = Math.ceil(skills.reduce((acc, skill) => acc + (skill.value || 0), 0) / 2)
+    const totalSpent = attributesSpent + defensesSpent + skillsSpent
+    const isOverLimit = totalSpent > totalPowerPoints
+
     return (
         <div className="bg-muted/50 rounded-xl p-6 space-y-4">
             <div className="flex items-center justify-between mb-3">
@@ -168,7 +177,7 @@ export default function AdvancedStatus() {
                 {isEditMode ? "Modo de edição ativado" : "Modo de edição desativado"}
             </div>
 
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                     <div className="flex items-center gap-1.5">
                         <Star className="h-3.5 w-3.5 text-muted-foreground" />
@@ -185,47 +194,6 @@ export default function AdvancedStatus() {
                 </div>
 
                 <div className="space-y-1.5">
-                    <div className="flex items-center gap-1.5">
-                        <Zap className="h-3.5 w-3.5 text-muted-foreground" />
-                        <label className="text-xs font-medium text-muted-foreground">Pontos de Poder</label>
-                    </div>
-                    <div className="flex items-center justify-between h-8 bg-primary/10 rounded-md px-2 border-0 transition-colors focus-within:bg-primary/15">
-                        {isEditMode ? (
-                            <>
-                                <button 
-                                    onClick={handleRemovePoint}
-                                    className="p-0.5 hover:bg-muted/50 rounded text-muted-foreground hover:text-foreground transition-colors"
-                                    title="Remover ponto"
-                                >
-                                    <Minus className="w-3 h-3" />
-                                </button>
-                                <div className="flex items-center gap-1.5 justify-center flex-1">
-                                    <span className="font-mono text-sm text-foreground">{totalPowerPoints}</span>
-                                    <button 
-                                        onClick={handleResetPoints}
-                                        className="p-0.5 hover:bg-muted/50 rounded text-muted-foreground hover:text-foreground transition-colors"
-                                        title="Resetar pontos extras"
-                                    >
-                                        <RotateCcw className="w-2.5 h-2.5" />
-                                    </button>
-                                </div>
-                                <button 
-                                    onClick={handleAddPoint}
-                                    className="p-0.5 hover:bg-muted/50 rounded text-muted-foreground hover:text-foreground transition-colors"
-                                    title="Adicionar ponto"
-                                >
-                                    <Plus className="w-3 h-3" />
-                                </button>
-                            </>
-                        ) : (
-                            <div className="w-full text-center font-mono text-sm text-foreground">
-                                {totalPowerPoints}
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-                <div className="space-y-1.5">
                     <div className="flex items-center gap-2">
                         <Move className="h-3.5 w-3.5 text-muted-foreground" />
                         <label className="text-xs font-medium text-muted-foreground">Deslocamento</label>
@@ -237,6 +205,65 @@ export default function AdvancedStatus() {
                         onChange={e => deslocamento.update(e.target.value)}
                         disabled={!isEditMode}
                         className="text-center text-sm font-mono bg-primary/10 rounded-md focus:bg-primary/15 border-0 outline-none transition-colors h-8 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    />
+                </div>
+            </div>
+
+            <div className="bg-background/40 border border-muted/20 overflow-hidden relative">
+                <div className="p-2 flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                        <div className={`p-1.5 rounded-md ${isOverLimit ? "bg-red-500/10 text-red-500" : "bg-yellow-500/10 text-yellow-500"}`}>
+                            <Zap className="h-3.5 w-3.5" />
+                        </div>
+                        <div className="flex flex-col">
+                            <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider leading-none mb-0.5">Pontos de Poder</span>
+                            <div className="flex items-baseline gap-1 leading-none">
+                                <span className={`font-mono font-bold text-sm ${isOverLimit ? "text-red-500" : "text-foreground"}`}>
+                                    {totalSpent}
+                                </span>
+                                <span className="text-xs text-muted-foreground">/</span>
+                                <span className="font-mono font-bold text-sm text-muted-foreground">
+                                    {totalPowerPoints}
+                                </span>
+                                {isOverLimit && (
+                                    <span className="ml-1 text-[9px] font-bold text-red-500 animate-pulse">
+                                        ({totalSpent - totalPowerPoints})
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    {isEditMode && (
+                        <div className="flex items-center gap-0.5 bg-background/50 border border-border/50 p-0.5">
+                            <button 
+                                onClick={handleRemovePoint}
+                                className="p-1 hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                            >
+                                <Minus className="w-3 h-3" />
+                            </button>
+                            <button 
+                                onClick={handleAddPoint}
+                                className="p-1 hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                            >
+                                <Plus className="w-3 h-3" />
+                            </button>
+                             <button 
+                                onClick={handleResetPoints} 
+                                className="p-1 hover:bg-muted text-muted-foreground hover:text-foreground transition-colors border-l border-border/50 ml-0.5 pl-1"
+                                title="Resetar"
+                            > 
+                                <RotateCcw className="w-3 h-3" /> 
+                            </button>
+                        </div>
+                    )}
+                </div>
+                
+                {/* Progress Bar */}
+                <div className="h-0.5 w-full bg-muted/20">
+                    <div 
+                        className={`h-full transition-all duration-500 ease-out ${isOverLimit ? "bg-red-500" : "bg-yellow-500"}`}
+                        style={{ width: `${Math.min((totalSpent / (totalPowerPoints || 1)) * 100, 100)}%` }}
                     />
                 </div>
             </div>

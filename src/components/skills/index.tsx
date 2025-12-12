@@ -2,24 +2,19 @@
 
 import React, { useState, useCallback, useMemo } from "react"
 import { Edit3, Lock, ChevronDown, Search, X } from "lucide-react"
-import { INITIAL_SKILLS } from "./constants"
 import SkillCard from "./skill-card"
-import type { Skill } from "./types"
+import { useSkillsContext } from "@/contexts/SkillsContext"
 
 type SortOption = 'name-asc' | 'name-desc' | 'attribute' | 'value-asc' | 'value-desc' | 'others-asc' | 'others-desc'
 
 export function SkillsList() {
-  // local state for now. Could be persisted later.
-  // ensure default numeric fields are set to 0 if missing
-  const [skills, setSkills] = useState<Skill[]>(
-    INITIAL_SKILLS.map(s => ({ ...s, value: s.value ?? 0, others: s.others ?? 0 }))
-  )
+  const { skills, updateSkill } = useSkillsContext()
   const [isEditMode, setIsEditMode] = useState(false)
   const [sortOption, setSortOption] = useState<SortOption>('name-asc')
   const [searchTerm, setSearchTerm] = useState('')
 
   const handleChange = (id: string, field: 'value' | 'others', value: number) => {
-    setSkills(prev => prev.map(s => (s.id === id ? { ...s, [field]: value } : s)))
+    updateSkill(id, field, value)
   }
 
   const toggleEditMode = useCallback(() => {

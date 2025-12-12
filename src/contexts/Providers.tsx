@@ -1,5 +1,6 @@
 "use client"
 import { AttributesProvider } from "./AttributesContext";
+import { SkillsProvider } from "./SkillsContext";
 
 /**
  * Componente que agrupa todos os provedores de contexto da aplicação.
@@ -9,7 +10,9 @@ import { AttributesProvider } from "./AttributesContext";
 export function AppProviders({ children }: { children: React.ReactNode }) {
   return (
     <AttributesProvider>
-      {children}
+      <SkillsProvider>
+        {children}
+      </SkillsProvider>
     </AttributesProvider>
   );
 } 

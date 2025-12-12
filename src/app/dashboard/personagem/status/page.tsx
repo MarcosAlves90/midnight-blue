@@ -14,7 +14,7 @@ export default function PersonagemStatsPage() {
         <AttributesGrid />
         <AdvancedStatus />
       </div>
-      <div className="bg-card min-h-[100vh] flex-1 rounded-xl md:min-h-min p-6">
+      <div className="bg-card flex-1 rounded-xl p-6 h-fit">
         <SkillsList />
       </div>
     </div>
