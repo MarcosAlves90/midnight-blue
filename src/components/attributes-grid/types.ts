@@ -5,17 +5,14 @@ export interface Attribute {
     color: string
     value: number
     bonus?: number // agora opcional
-    type: "attribute" | "biotype"
+    type: "attribute"
 }
 
 export interface AttributesGridProps {
     initialAttributes?: Attribute[]
-    initialBiotypes?: Attribute[]
     onAttributesChange?: (attributes: Attribute[]) => void
-    onBiotypesChange?: (biotypes: Attribute[]) => void
     disabled?: boolean
     editable?: boolean
-    mode?: "attribute" | "biotype"
 }
 
 export interface EditableValueHook {

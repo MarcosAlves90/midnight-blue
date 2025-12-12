@@ -1,4 +1,4 @@
-type ColorName = 'red' | 'yellow' | 'green' | 'blue' | 'purple' | 'gray' | 'pink' | 'cyan' | 'orange' | 'lime'
+type ColorName = 'red' | 'yellow' | 'green' | 'blue' | 'purple' | 'gray' | 'pink' | 'cyan' | 'orange' | 'lime' | 'amber' | 'maroon' | 'indigo'
 
 interface ColorClasses {
     border: string
@@ -56,6 +56,21 @@ export const COLORS: Record<ColorName, ColorClasses> = {
         border: '!border-lime-500',
         bg: '!bg-lime-500',
         focusBg: '!focus:bg-lime-500'
+    },
+    amber: {
+        border: '!border-amber-500',
+        bg: '!bg-amber-500',
+        focusBg: '!focus:bg-amber-500'
+    },
+    maroon: {
+        border: '!border-red-900',
+        bg: '!bg-red-900',
+        focusBg: '!focus:bg-red-900'
+    },
+    indigo: {
+        border: '!border-indigo-500',
+        bg: '!bg-indigo-500',
+        focusBg: '!focus:bg-indigo-500'
     },
 
 } as const

@@ -31,7 +31,10 @@ export function showRollNotification(result: DiceResult, color?: string): void {
     const colorClasses = color ? getColorClasses(color) : null;
     const progressClassName = colorClasses ? colorClasses.bg : '';
 
-    toast.info(`[${formattedRolls}] = ${result.total}`, {
+    const modifiersPart = result.modifiers.length > 0 ? ` + ${result.modifiers.join(' + ')}` : '';
+    const message = `[${result.selected}]${modifiersPart} = ${result.total}`;
+
+    toast.info(message, {
         position: 'bottom-right',
         autoClose: 15000,
         icon: () => React.createElement(DiceIcon, { className: 'w-5 h-5' }),

@@ -1,6 +1,5 @@
 "use client"
 import { AttributesProvider } from "./AttributesContext";
-import { BiotypesProvider } from "./BiotypesContext";
 
 /**
  * Componente que agrupa todos os provedores de contexto da aplicação.
@@ -10,9 +9,7 @@ import { BiotypesProvider } from "./BiotypesContext";
 export function AppProviders({ children }: { children: React.ReactNode }) {
   return (
     <AttributesProvider>
-      <BiotypesProvider>
-        {children}
-      </BiotypesProvider>
+      {children}
     </AttributesProvider>
   );
 } 

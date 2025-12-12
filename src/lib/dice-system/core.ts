@@ -10,6 +10,7 @@ const DEFAULT_CONFIG: Required<RollConfig> = {
     faces: 20,
     bonus: 0,
     diceBonus: 0,
+    modifiers: [],
     notify: false,
     color: '',
     strategy: 'lowest',
@@ -43,12 +44,13 @@ export function rollDice(config: Partial<RollConfig> = {}): DiceResult {
     const selected = calculateSelected(rolls, fullConfig.strategy);
 
     // Calculate final total
-    const total = selected + fullConfig.bonus;
+    const modifiersSum = fullConfig.modifiers.reduce((sum, mod) => sum + mod, 0);
+    const total = selected + fullConfig.bonus + modifiersSum;
 
     // Generate notation
     const notation = generateNotation(fullConfig.count, fullConfig.faces, fullConfig.bonus, fullConfig.diceBonus);
 
-    const result: DiceResult = { rolls, selected, total, notation };
+    const result: DiceResult = { rolls, selected, total, notation, modifiers: fullConfig.modifiers };
 
     // Display notification if requested
     if (fullConfig.notify) {

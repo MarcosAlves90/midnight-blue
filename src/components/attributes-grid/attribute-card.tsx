@@ -26,7 +26,7 @@ export interface AttributeCardProps {
     color: string;
     value: number;
     bonus?: number;
-    type: "attribute" | "biotype";
+    type: "attribute";
     onValueChange?: (value: number) => void;
     onBonusChange?: (bonus: number) => void;
     disabled?: boolean;
@@ -78,22 +78,8 @@ export const AttributeCard = memo(function AttributeCard({
 
     const handleRollDice = () => {
         if (type !== "attribute") return;
-        // Define strategy: somente usar "lowest" quando o valor base for 0;
-        // caso contrário, tomar o maior resultado ("highest").
-        const strategy = baseValueState.value === 0 ? 'lowest' : 'highest';
-
-        if (baseValueState.value === 0 && bonusValueState.value === 0) {
-            // Ambos zero: rola 2d20 (padrão do sistema) e notifica
-            rollDice({ notify: true, color, strategy });
-        } else if (baseValueState.value === 0 && bonusValueState.value > 0) {
-            // Usa o bônus como quantidade de dados, sem bônus adicional
-            rollDice({ count: bonusValueState.value, faces: 20, notify: true, color, strategy });
-        } else {
-            const diceCount = baseValueState.value;
-            // O bônus do atributo aumenta a quantidade de dados (diceBonus),
-            // em vez de somar ao resultado final.
-            rollDice({ count: diceCount, faces: 20, diceBonus: bonusValueState.value, notify: true, color, strategy });
-        }
+        // Rola d20 + modificador da habilidade
+        rollDice({ count: 1, faces: 20, modifiers: [baseValueState.value], notify: true, color });
     }
 
     // Renderização dinâmica dos campos, se fornecidos

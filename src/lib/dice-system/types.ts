@@ -10,6 +10,8 @@ export interface DiceResult {
     total: number;
     /** Dice notation string (e.g., "3d6+2") */
     notation: string;
+    /** Array of modifiers added to the roll */
+    modifiers: number[];
 }
 
 /**
@@ -24,6 +26,8 @@ export interface RollConfig {
     bonus?: number;
     /** Additional dice to roll */
     diceBonus?: number;
+    /** Array of modifiers to add to the result */
+    modifiers?: number[];
     /** Whether to show a notification */
     notify?: boolean;
     /** Optional color for notification styling */

@@ -2,17 +2,13 @@ import { Attribute } from "./types"
 
 export const INITIAL_ATTRIBUTES: Attribute[] = [
     { id: "FOR", name: "Força", abbreviation: "FOR", color: "red", value: 0, bonus: 0, type: "attribute" },
-    { id: "DES", name: "Destreza", abbreviation: "DES", color: "yellow", value: 0, bonus: 0, type: "attribute" },
     { id: "VIG", name: "Vigor", abbreviation: "VIG", color: "green", value: 0, bonus: 0, type: "attribute" },
-    { id: "INT", name: "Inteligência", abbreviation: "INT", color: "blue", value: 0, bonus: 0, type: "attribute" },
+    { id: "AGI", name: "Agilidade", abbreviation: "AGI", color: "amber", value: 0, bonus: 0, type: "attribute" },
+    { id: "DES", name: "Destreza", abbreviation: "DES", color: "yellow", value: 0, bonus: 0, type: "attribute" },
+    { id: "LUT", name: "Luta", abbreviation: "LUT", color: "maroon", value: 0, bonus: 0, type: "attribute" },
+    { id: "INT", name: "Intelecto", abbreviation: "INT", color: "blue", value: 0, bonus: 0, type: "attribute" },
+    { id: "PRO", name: "Prontidão", abbreviation: "PRO", color: "indigo", value: 0, bonus: 0, type: "attribute" },
     { id: "PRE", name: "Presença", abbreviation: "PRE", color: "purple", value: 0, bonus: 0, type: "attribute" },
-] as const
-
-export const INITIAL_BIOTYPES: Attribute[] = [
-    { id: "VID", name: "Vida", abbreviation: "VID", color: "pink", value: 0, type: "biotype" },
-    { id: "NRG", name: "Energia", abbreviation: "NRG", color: "cyan", value: 0, type: "biotype" },
-    { id: "PER", name: "Perícias", abbreviation: "PER", color: "orange", value: 0, type: "biotype" },
-    { id: "CRO", name: "Cromos", abbreviation: "CRO", color: "lime", value: 0, type: "biotype" },
 ] as const
 
 export const DEFAULT_INPUT_LIMITS = {

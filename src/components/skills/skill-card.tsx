@@ -4,7 +4,7 @@ import React, { useMemo } from "react"
 import { Input } from "@/components/ui/input"
 import { getColorClasses } from "@/lib/colors"
 import { useAttributesContext } from "@/contexts/AttributesContext"
-import { rollDice, showRollNotification } from "@/lib/dice-system"
+import { rollDice } from "@/lib/dice-system"
 import { DiceIcon } from "@/components/dice-icon"
 import { useEditableValue } from "../attributes-grid/use-editable-value"
 import type { Skill } from "./types"
@@ -26,27 +26,15 @@ export function SkillCard({ id, name, attribute, abbreviation, value = 0, others
     const attributeColor = attributes.find(a => a.id === attribute)?.color ?? 'gray'
     const colorClasses = useMemo(() => getColorClasses(attributeColor), [attributeColor])
 
-    // Role de perícia: rola o atributo correspondente e soma o valor+bonus da perícia
+    // Role de perícia: d20 + graduações + modificador de habilidade + outros
     const handleRollSkill = () => {
         const attributeObj = attributes.find(a => a.id === attribute)
         const attrValue = attributeObj?.value ?? 0
-        const attrBonus = attributeObj?.bonus ?? 0
 
-        const strategy = attrValue === 0 ? 'lowest' : 'highest'
+        const modifiers = [attrValue, valueState.value]
+        if (othersState.value !== 0) modifiers.push(othersState.value)
 
-        let result
-        if (attrValue === 0 && attrBonus === 0) {
-            result = rollDice({ notify: false, color: attributeColor, strategy })
-        } else if (attrValue === 0 && attrBonus > 0) {
-            result = rollDice({ count: attrBonus, faces: 20, notify: false, color: attributeColor, strategy })
-        } else {
-            result = rollDice({ count: attrValue, faces: 20, diceBonus: attrBonus, notify: false, color: attributeColor, strategy })
-        }
-
-        const skillTotal = result.total + valueState.value + othersState.value
-
-        // Mostra notificação com o total da rolagem + atributo + perícia
-        showRollNotification({ ...result, total: skillTotal }, attributeColor)
+        rollDice({ count: 1, faces: 20, modifiers, notify: true, color: attributeColor })
     }
 
     return (

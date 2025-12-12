@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useCallback, useMemo } from "react"
-import { Edit3, Lock, ChevronDown } from "lucide-react"
+import { Edit3, Lock, ChevronDown, Search, X } from "lucide-react"
 import { INITIAL_SKILLS } from "./constants"
 import SkillCard from "./skill-card"
 import type { Skill } from "./types"
@@ -16,6 +16,7 @@ export function SkillsList() {
   )
   const [isEditMode, setIsEditMode] = useState(false)
   const [sortOption, setSortOption] = useState<SortOption>('name-asc')
+  const [searchTerm, setSearchTerm] = useState('')
 
   const handleChange = (id: string, field: 'value' | 'others', value: number) => {
     setSkills(prev => prev.map(s => (s.id === id ? { ...s, [field]: value } : s)))
@@ -27,7 +28,15 @@ export function SkillsList() {
 
   // Função para ordenar as perícias
   const sortedSkills = useMemo(() => {
-    const sorted = [...skills]
+    // Primeiro filtra por termo de busca
+    const filtered = skills.filter(skill => 
+      skill.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      skill.attribute.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (skill.abbreviation && skill.abbreviation.toLowerCase().includes(searchTerm.toLowerCase()))
+    )
+
+    // Depois ordena
+    const sorted = [...filtered]
     
     switch (sortOption) {
       case 'name-asc':
@@ -47,7 +56,7 @@ export function SkillsList() {
       default:
         return sorted
     }
-  }, [skills, sortOption])
+  }, [skills, sortOption, searchTerm])
 
   const renderEditButton = () => (
     <button
@@ -85,11 +94,35 @@ export function SkillsList() {
     </div>
   )
 
+  const renderSearchInput = () => (
+    <div className="relative">
+      <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+      <input
+        type="text"
+        placeholder="Buscar perícia..."
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        className="pl-8 pr-8 py-2 rounded text-sm bg-muted-foreground/20 text-muted-foreground placeholder:text-muted-foreground/60 border-0 outline-none hover:bg-muted-foreground/30 transition-colors"
+        aria-label="Buscar perícias"
+      />
+      {searchTerm && (
+        <button
+          onClick={() => setSearchTerm('')}
+          className="absolute right-2 top-1/2 transform -translate-y-1/2 p-0.5 hover:bg-muted-foreground/40 rounded transition-colors cursor-pointer"
+          aria-label="Limpar busca"
+        >
+          <X className="w-4 h-4 text-muted-foreground" />
+        </button>
+      )}
+    </div>
+  )
+
   return (
     <div className="overflow-x-auto">
       <div className="flex items-center justify-between mb-4 gap-3">
         <h2 className="text-lg font-semibold">Perícias</h2>
         <div className="flex items-center gap-2">
+          {renderSearchInput()}
           {renderSortDropdown()}
           {renderEditButton()}
         </div>
@@ -117,6 +150,11 @@ export function SkillsList() {
           ))}
         </tbody>
       </table>
+      {sortedSkills.length === 0 && (
+        <div className="text-center py-8 text-muted-foreground">
+          Nenhuma perícia encontrada
+        </div>
+      )}
     </div>
   )
 }

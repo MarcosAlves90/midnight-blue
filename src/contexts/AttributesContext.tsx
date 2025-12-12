@@ -22,7 +22,17 @@ export const AttributesProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
-        setAttributes(JSON.parse(stored));
+        const parsedAttributes: Attribute[] = JSON.parse(stored);
+        // Check if stored attributes match current INITIAL_ATTRIBUTES structure
+        const currentIds = new Set(INITIAL_ATTRIBUTES.map(attr => attr.id));
+        const storedIds = new Set(parsedAttributes.map(attr => attr.id));
+        const idsMatch = currentIds.size === storedIds.size && [...currentIds].every(id => storedIds.has(id));
+        if (idsMatch) {
+          setAttributes(parsedAttributes);
+        } else {
+          // Reset to new INITIAL_ATTRIBUTES if structure changed
+          setAttributes(INITIAL_ATTRIBUTES);
+        }
       }
     } catch {
       // ignore malformed storage
