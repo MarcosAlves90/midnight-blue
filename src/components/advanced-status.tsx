@@ -1,53 +1,59 @@
 'use client'
-import { useState, useCallback, useMemo } from "react"
+import { useState, useCallback } from "react"
 import { Input } from "@/components/ui/input"
 import { useAttributesContext } from "@/contexts/AttributesContext"
-import { Shield, Zap, Star, Move, Edit3, Lock } from "lucide-react"
+import { Shield, Star, Move, Edit3, Lock, Zap, Plus, Minus, RotateCcw } from "lucide-react"
+import { rollDice } from "@/lib/dice-system"
+import { DiceIcon } from "@/components/dice-icon"
 
-interface StatCardProps {
+interface DefenseCardProps {
     title: string
-    icon: React.ReactNode
-    value: number
-    base: number
+    attributeValue: number
+    attributeAbbrev: string
+    attributeColor: string
+    inputValue: string
+    total: number
     isEditMode: boolean
-    components: Array<{
-        label: string
-        value: string
-        onChange: (value: string) => void
-        placeholder?: string
-    }>
+    onInputChange: (value: string) => void
 }
 
-function StatCard({ title, icon, value, base, isEditMode, components }: StatCardProps) {
+function DefenseCard({ title, attributeValue, attributeAbbrev, attributeColor, inputValue, total, isEditMode, onInputChange }: DefenseCardProps) {
+    const handleRollDefense = () => {
+        const points = Number(inputValue) || 0
+        const modifiers = [attributeValue, points].filter(val => val !== 0)
+        rollDice({ count: 1, faces: 20, modifiers, notify: true, color: attributeColor })
+    }
+
     return (
-        <div className="bg-background/30 rounded-lg p-3 border border-muted/20">
-            <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-1.5">
-                    {icon}
-                    <span className="text-xs font-medium text-foreground">{title}</span>
-                </div>
-                <span className="text-lg font-bold bg-gradient-to-r from-blue-400 to-blue-500 bg-clip-text text-transparent">
-                    {value}
-                </span>
+        <div className="bg-background/30 rounded-md p-2 border border-muted/20 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+                <button
+                    onClick={handleRollDefense}
+                    aria-label={`Rolar defesa ${title}`}
+                    className="p-1 hover:bg-muted/80 rounded transition-colors cursor-pointer"
+                >
+                    <DiceIcon className="w-3.5 h-3.5 text-muted-foreground hover:text-foreground" />
+                </button>
+                <span className="text-xs font-medium text-foreground">{title}</span>
             </div>
-            <div className="space-y-1.5">
-                <div className="flex items-center justify-between text-xs">
-                    <span className="text-muted-foreground">Base</span>
-                    <span className="font-mono text-foreground">{base}</span>
+            <div className="flex items-center gap-3">
+                <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                    <span>{attributeAbbrev}</span>
+                    <span className="font-mono text-foreground text-xs">{attributeValue}</span>
                 </div>
-                {components.map((comp, index) => (
-                    <div key={index} className="flex items-center justify-between text-xs">
-                        <span className="text-muted-foreground">{comp.label}</span>
-                        <Input
-                            type="number"
-                            value={comp.value}
-                            onChange={e => comp.onChange(e.target.value)}
-                            disabled={!isEditMode}
-                            className="w-12 h-6 text-center text-xs font-mono bg-primary/10 rounded focus:bg-primary/15 border-0 outline-none transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                            placeholder={comp.placeholder || "0"}
-                        />
-                    </div>
-                ))}
+                <div className="h-3 w-px bg-border/50" />
+                <Input
+                    type="number"
+                    value={inputValue}
+                    onChange={e => onInputChange(e.target.value)}
+                    disabled={!isEditMode}
+                    className="w-10 h-5 text-center text-xs font-mono bg-primary/10 rounded focus:bg-primary/15 border-0 outline-none transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none p-0"
+                    placeholder="0"
+                />
+                <div className="h-3 w-px bg-border/50" />
+                <span className="text-sm font-bold bg-gradient-to-r from-blue-400 to-blue-500 bg-clip-text text-transparent min-w-[1.5rem] text-right">
+                    {total}
+                </span>
             </div>
         </div>
     )
@@ -68,31 +74,72 @@ function useEditableNumber(initial: number, min: number = 0) {
 }
 
 export default function AdvancedStatus() {
-    const { attributes, setAttributes } = useAttributesContext()
+    const { attributes } = useAttributesContext()
 
     const [isEditMode, setIsEditMode] = useState(false)
+    const [extraPoints, setExtraPoints] = useState(0)
 
     // Editable values
     const nivel = useEditableNumber(1, 1)
-    const equipamento = useEditableNumber(0)
-    const defesaOutros = useEditableNumber(0)
     const deslocamento = useEditableNumber(9)
-    const dtOutros = useEditableNumber(0)
+
+    const handleAddPoint = () => {
+        if (extraPoints >= 14) {
+            setExtraPoints(0)
+            nivel.update((nivel.value + 1).toString())
+        } else {
+            setExtraPoints(prev => prev + 1)
+        }
+    }
+
+    const handleRemovePoint = () => {
+        if (extraPoints <= 0) {
+            if (nivel.value > 1) {
+                setExtraPoints(14)
+                nivel.update((nivel.value - 1).toString())
+            }
+        } else {
+            setExtraPoints(prev => prev - 1)
+        }
+    }
+
+    const handleResetPoints = () => {
+        setExtraPoints(0)
+    }
+
+    const totalPowerPoints = (nivel.value * 15) + extraPoints
+
+    // Defense points
+    const apararPoints = useEditableNumber(0)
+    const esquivaPoints = useEditableNumber(0)
+    const fortitudePoints = useEditableNumber(0)
+    const resistenciaPoints = useEditableNumber(0)
+    const vontadePoints = useEditableNumber(0)
 
     const toggleEditMode = useCallback(() => {
         setIsEditMode(prev => !prev)
     }, [])
 
     const getAttrValue = useCallback((id: string) => attributes.find(attr => attr.id === id)?.value ?? 0, [attributes])
-    const setAttrValue = useCallback((id: string, value: number) =>
-        setAttributes(prev => prev.map(attr => attr.id === id ? { ...attr, value } : attr)), [setAttributes])
+    const getAttrColor = useCallback((id: string) => attributes.find(attr => attr.id === id)?.color ?? 'gray', [attributes])
 
     // Calculated values
-    const destreza = getAttrValue("DES")
-    const presenca = getAttrValue("PRE")
+    const agilidade = getAttrValue("AGI")
+    const luta = getAttrValue("LUT")
+    const vigor = getAttrValue("VIG")
+    const prontidao = getAttrValue("PRO")
 
-    const defesa = useMemo(() => 10 + destreza + equipamento.value + defesaOutros.value, [destreza, equipamento.value, defesaOutros.value])
-    const dt = useMemo(() => 10 + nivel.value + presenca + dtOutros.value, [nivel.value, presenca, dtOutros.value])
+    const agilidadeColor = getAttrColor("AGI")
+    const lutaColor = getAttrColor("LUT")
+    const vigorColor = getAttrColor("VIG")
+    const prontidaoColor = getAttrColor("PRO")
+
+    // Defense totals
+    const apararTotal = luta + apararPoints.value
+    const esquivaTotal = agilidade + esquivaPoints.value
+    const fortitudeTotal = vigor + fortitudePoints.value
+    const resistenciaTotal = vigor + resistenciaPoints.value
+    const vontadeTotal = prontidao + vontadePoints.value
 
     return (
         <div className="bg-muted/50 rounded-xl p-6 space-y-4">
@@ -121,11 +168,11 @@ export default function AdvancedStatus() {
                 {isEditMode ? "Modo de edição ativado" : "Modo de edição desativado"}
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-3 gap-3">
                 <div className="space-y-1.5">
                     <div className="flex items-center gap-1.5">
                         <Star className="h-3.5 w-3.5 text-muted-foreground" />
-                        <label className="text-xs font-medium text-muted-foreground">Nível</label>
+                        <label className="text-xs font-medium text-muted-foreground">Nível de Poder</label>
                     </div>
                     <Input
                         type="number"
@@ -135,6 +182,47 @@ export default function AdvancedStatus() {
                         disabled={!isEditMode}
                         className="text-center text-sm font-mono bg-primary/10 rounded-md focus:bg-primary/15 border-0 outline-none transition-colors h-8 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     />
+                </div>
+
+                <div className="space-y-1.5">
+                    <div className="flex items-center gap-1.5">
+                        <Zap className="h-3.5 w-3.5 text-muted-foreground" />
+                        <label className="text-xs font-medium text-muted-foreground">Pontos de Poder</label>
+                    </div>
+                    <div className="flex items-center justify-between h-8 bg-primary/10 rounded-md px-2 border-0 transition-colors focus-within:bg-primary/15">
+                        {isEditMode ? (
+                            <>
+                                <button 
+                                    onClick={handleRemovePoint}
+                                    className="p-0.5 hover:bg-muted/50 rounded text-muted-foreground hover:text-foreground transition-colors"
+                                    title="Remover ponto"
+                                >
+                                    <Minus className="w-3 h-3" />
+                                </button>
+                                <div className="flex items-center gap-1.5 justify-center flex-1">
+                                    <span className="font-mono text-sm text-foreground">{totalPowerPoints}</span>
+                                    <button 
+                                        onClick={handleResetPoints}
+                                        className="p-0.5 hover:bg-muted/50 rounded text-muted-foreground hover:text-foreground transition-colors"
+                                        title="Resetar pontos extras"
+                                    >
+                                        <RotateCcw className="w-2.5 h-2.5" />
+                                    </button>
+                                </div>
+                                <button 
+                                    onClick={handleAddPoint}
+                                    className="p-0.5 hover:bg-muted/50 rounded text-muted-foreground hover:text-foreground transition-colors"
+                                    title="Adicionar ponto"
+                                >
+                                    <Plus className="w-3 h-3" />
+                                </button>
+                            </>
+                        ) : (
+                            <div className="w-full text-center font-mono text-sm text-foreground">
+                                {totalPowerPoints}
+                            </div>
+                        )}
+                    </div>
                 </div>
 
                 <div className="space-y-1.5">
@@ -153,32 +241,63 @@ export default function AdvancedStatus() {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <StatCard
-                    title="Defesa"
-                    icon={<Shield className="h-3.5 w-3.5 text-blue-400" />}
-                    value={defesa}
-                    base={10}
-                    isEditMode={isEditMode}
-                    components={[
-                        { label: "DES", value: destreza.toString(), onChange: v => setAttrValue("DES", v === "" ? 0 : Number(v) || 0) },
-                        { label: "Equip", value: equipamento.input, onChange: equipamento.update },
-                        { label: "Outros", value: defesaOutros.input, onChange: defesaOutros.update }
-                    ]}
-                />
-
-                <StatCard
-                    title="DT"
-                    icon={<Zap className="h-3.5 w-3.5 text-yellow-400" />}
-                    value={dt}
-                    base={10}
-                    isEditMode={isEditMode}
-                    components={[
-                        { label: "Nível", value: nivel.input, onChange: nivel.update, placeholder: "1" },
-                        { label: "PRE", value: presenca.toString(), onChange: v => setAttrValue("PRE", v === "" ? 0 : Number(v) || 0) },
-                        { label: "Outros", value: dtOutros.input, onChange: dtOutros.update }
-                    ]}
-                />
+            <div className="space-y-3">
+                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                    <Shield className="h-4 w-4 text-blue-400" />
+                    Defesas
+                </h3>
+                <div className="grid grid-cols-1 gap-2">
+                    <DefenseCard
+                        title="Aparar"
+                        attributeValue={luta}
+                        attributeAbbrev="LUT"
+                        attributeColor={lutaColor}
+                        inputValue={apararPoints.input}
+                        total={apararTotal}
+                        isEditMode={isEditMode}
+                        onInputChange={apararPoints.update}
+                    />
+                    <DefenseCard
+                        title="Esquiva"
+                        attributeValue={agilidade}
+                        attributeAbbrev="AGI"
+                        attributeColor={agilidadeColor}
+                        inputValue={esquivaPoints.input}
+                        total={esquivaTotal}
+                        isEditMode={isEditMode}
+                        onInputChange={esquivaPoints.update}
+                    />
+                    <DefenseCard
+                        title="Fortitude"
+                        attributeValue={vigor}
+                        attributeAbbrev="VIG"
+                        attributeColor={vigorColor}
+                        inputValue={fortitudePoints.input}
+                        total={fortitudeTotal}
+                        isEditMode={isEditMode}
+                        onInputChange={fortitudePoints.update}
+                    />
+                    <DefenseCard
+                        title="Resistência"
+                        attributeValue={vigor}
+                        attributeAbbrev="VIG"
+                        attributeColor={vigorColor}
+                        inputValue={resistenciaPoints.input}
+                        total={resistenciaTotal}
+                        isEditMode={isEditMode}
+                        onInputChange={resistenciaPoints.update}
+                    />
+                    <DefenseCard
+                        title="Vontade"
+                        attributeValue={prontidao}
+                        attributeAbbrev="PRO"
+                        attributeColor={prontidaoColor}
+                        inputValue={vontadePoints.input}
+                        total={vontadeTotal}
+                        isEditMode={isEditMode}
+                        onInputChange={vontadePoints.update}
+                    />
+                </div>
             </div>
         </div>
     )

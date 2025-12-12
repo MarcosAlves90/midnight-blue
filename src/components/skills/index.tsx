@@ -129,15 +129,15 @@ export function SkillsList() {
       </div>
       <table className="w-full table-fixed">
         <thead>
-          <tr className="text-left text-xs text-muted-foreground">
-            <th className="w-1/3 px-4 py-2">Perícia</th>
-            <th className="w-1/5 px-4 py-2">Atributo</th>
-            <th className="w-1/6 px-4 py-2 text-center">Valor</th>
-            <th className="w-1/6 px-4 py-2 text-center">Outros</th>
+          <tr className="text-left text-[10px] uppercase tracking-wider text-muted-foreground border-b border-muted/20">
+            <th className="w-[50%] sm:w-[40%] px-2 py-1 font-medium">Perícia</th>
+            <th className="hidden sm:table-cell sm:w-[20%] px-2 py-1 font-medium">Attr</th>
+            <th className="w-[25%] sm:w-[20%] px-1 py-1 text-center font-medium">Grad</th>
+            <th className="w-[25%] sm:w-[20%] px-1 py-1 text-center font-medium">Outros</th>
           </tr>
         </thead>
 
-        <tbody className="divide-y">
+        <tbody className="divide-y divide-muted/10">
           {sortedSkills.map(skill => (
             <SkillCard
               key={skill.id}

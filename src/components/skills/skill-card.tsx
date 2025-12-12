@@ -16,7 +16,7 @@ interface SkillCardProps extends Skill {
     disabled?: boolean
 }
 
-export function SkillCard({ id, name, attribute, abbreviation, value = 0, others = 0, onChange, disabled = false }: SkillCardProps) {
+export function SkillCard({ id, name, attribute, value = 0, others = 0, onChange, disabled = false }: SkillCardProps) {
     const valueState = useEditableValue(value, (v) => onChange?.(id, 'value', v), disabled)
     const othersState = useEditableValue(others ?? 0, (v) => onChange?.(id, 'others', v), disabled)
 
@@ -38,24 +38,26 @@ export function SkillCard({ id, name, attribute, abbreviation, value = 0, others
     }
 
     return (
-        <tr className={`bg-muted/50 border-t-2 ${colorClasses.border}`}>
-            <td className="px-4 py-2 align-top">
-                <div className="text-xs text-muted-foreground flex items-center gap-2">
+        <tr className={`group hover:bg-muted/50 transition-colors border-b border-muted/20 last:border-0`}>
+            <td className={`px-2 py-1 align-middle border-l-2 ${colorClasses.border}`}>
+                <div className="flex items-center gap-2">
                     <button
                         onClick={handleRollSkill}
                         aria-label={`Rolar perícia ${name}`}
-                        className="p-1 hover:bg-muted/80 rounded transition-colors cursor-pointer"
+                        className="p-0.5 hover:bg-muted/80 rounded transition-colors cursor-pointer opacity-100 sm:opacity-50 sm:group-hover:opacity-100"
                     >
-                        <DiceIcon className="w-4 h-4 text-muted-foreground hover:text-foreground" />
+                        <DiceIcon className="w-3.5 h-3.5 text-muted-foreground hover:text-foreground" />
                     </button>
-                    <div className="text-sm font-medium">{name}</div>
-                    <span className="truncate">{abbreviation ?? id}</span>
+                    <div className="flex flex-col">
+                        <span className="text-xs font-medium leading-none">{name}</span>
+                        <span className="text-[9px] text-muted-foreground sm:hidden mt-0.5 font-mono">{attribute}</span>
+                    </div>
                 </div>
             </td>
 
-            <td className="px-4 py-2 align-top text-xs text-muted-foreground">{attribute}</td>
+            <td className="hidden sm:table-cell px-2 py-1 align-middle text-[10px] text-muted-foreground font-mono">{attribute}</td>
 
-            <td className="px-2 py-1 align-top text-center">
+            <td className="px-1 py-1 align-middle text-center">
                 <Input
                     value={valueState.inputValue}
                     onChange={(e) => valueState.handleChange(e.target.value)}
@@ -63,11 +65,11 @@ export function SkillCard({ id, name, attribute, abbreviation, value = 0, others
                     onKeyDown={valueState.handleKeyDown}
                     aria-label={`${name} valor`}
                     disabled={disabled}
-                    className="w-16 mx-auto text-center text-sm font-medium px-1 py-0.5 bg-primary/10 rounded transition-colors duration-200 focus:bg-primary/15 border-0 outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-8 h-5 mx-auto text-center text-[10px] font-medium px-0 bg-primary/10 rounded focus:bg-primary/15 border-0 outline-none p-0"
                 />
             </td>
 
-            <td className="px-2 py-1 align-top text-center">
+            <td className="px-1 py-1 align-middle text-center">
                 <Input
                     value={othersState.inputValue}
                     onChange={(e) => othersState.handleChange(e.target.value)}
@@ -75,7 +77,7 @@ export function SkillCard({ id, name, attribute, abbreviation, value = 0, others
                     onKeyDown={othersState.handleKeyDown}
                     aria-label={`${name} outros`}
                     disabled={disabled}
-                    className={`w-16 mx-auto text-center text-sm font-medium px-1 py-0.5 ${colorClasses.bg} rounded transition-colors duration-200 ${colorClasses.focusBg} border-0 outline-none disabled:opacity-50 disabled:cursor-not-allowed`}
+                    className={`w-8 h-5 mx-auto text-center text-[10px] font-medium px-0 ${colorClasses.bg} rounded ${colorClasses.focusBg} border-0 outline-none p-0`}
                 />
             </td>
         </tr>

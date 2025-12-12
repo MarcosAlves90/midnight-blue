@@ -1,9 +1,6 @@
 "use client"
 
 import { memo, useMemo } from "react"
-import { useSortable } from "@dnd-kit/sortable"
-import { CSS } from "@dnd-kit/utilities"
-import { GripVertical } from "lucide-react"
 // import { AttributeCardProps } from "./types" // Removido para evitar conflito
 import { useEditableValue } from "./use-editable-value"
 import { getColorClasses } from "../../lib/colors"
@@ -36,7 +33,6 @@ export interface AttributeCardProps {
 }
 
 export const AttributeCard = memo(function AttributeCard({
-    id,
     name,
     abbreviation,
     color,
@@ -61,20 +57,6 @@ export const AttributeCard = memo(function AttributeCard({
             : baseValueState.value,
         [baseValueState.value, bonusValueState.value, type]
     )
-
-    const {
-        attributes,
-        listeners,
-        setNodeRef,
-        transform,
-        transition,
-        isDragging,
-    } = useSortable({ id })
-
-    const style = {
-        transform: CSS.Transform.toString(transform),
-        transition,
-    }
 
     const handleRollDice = () => {
         if (type !== "attribute") return;
@@ -109,71 +91,60 @@ export const AttributeCard = memo(function AttributeCard({
 
     return (
         <div 
-            ref={setNodeRef}
-            style={style}
-            {...attributes}
-            className={`bg-muted/50 rounded-b p-2 space-y-2 border-t-2 ${colorClasses.border} ${
-                isDragging ? "opacity-50" : ""
-            } ${disabled ? "opacity-50 cursor-not-allowed" : ""} relative`}
+            className={`bg-muted/50 p-2 border-l-2 ${colorClasses.border} ${disabled ? "opacity-50 cursor-not-allowed" : ""} relative flex items-center justify-between gap-2`}
         >
-            {editable && !disabled && (
-                <div 
-                    {...listeners}
-                    className="absolute top-2 left-2 cursor-grab active:cursor-grabbing p-1 hover:bg-muted/80 rounded transition-colors"
-                >
-                    <GripVertical className="w-4 h-4 text-muted-foreground" />
+            <div className="flex items-center gap-2">
+                <div className="flex flex-col min-w-[3rem]">
+                    <h3 className="text-sm font-bold leading-none">{name}</h3>
+                    <p className="text-[10px] text-muted-foreground leading-none mt-0.5">{abbreviation}</p>
                 </div>
-            )}
-            
-            {/* Botão de rolagem de dados só para atributos */}
-            {type === "attribute" && !disabled && (
-                <button 
-                    onClick={handleRollDice}
-                    className="absolute top-2 cursor-pointer right-2 p-1 hover:bg-muted/80 rounded transition-colors"
-                    disabled={disabled}
-                    aria-label={`Rolar dado para ${name}`}
-                >
-                    <DiceIcon className="w-4 h-4 text-muted-foreground hover:text-foreground" />
-                </button>
-            )}
-
-            <div className="text-center">
-                <h3 className="text-sm font-medium text-center">{name}</h3>
-                <p className="text-xs text-muted-foreground">{abbreviation}</p>
             </div>
 
-            <div className="text-center">
-                <div className="text-2xl font-bold">{total}</div>
-            </div>
-            {/* Renderização dinâmica dos campos, se fornecidos */}
-            {fields ? (
-                <div>{renderFields()}</div>
-            ) : (
-                <div className="flex flex-row gap-2 w-full">
-                    <input
-                        value={baseValueState.inputValue}
-                        onChange={(e) => baseValueState.handleChange(e.target.value)}
-                        onBlur={baseValueState.handleBlur}
-                        onKeyDown={baseValueState.handleKeyDown}
-                        placeholder={baseValueState.value.toString()}
-                        aria-label={`${name} valor base`}
-                        disabled={disabled || !editable}
-                        className="w-full text-center text-sm font-medium px-1 py-0.5 bg-primary/10 rounded transition-colors duration-200 focus:bg-primary/15 border-0 outline-none disabled:opacity-50 disabled:cursor-not-allowed"
-                    />
-                    {type === "attribute" && (
+            <div className="flex items-center gap-3">
+                <div className="text-xl font-bold min-w-[1.5rem] text-center">{total}</div>
+                
+                {/* Renderização dinâmica dos campos, se fornecidos */}
+                {fields ? (
+                    <div>{renderFields()}</div>
+                ) : (
+                    <div className="flex flex-col gap-1">
                         <input
-                            value={bonusValueState.inputValue}
-                            onChange={(e) => bonusValueState.handleChange(e.target.value)}
-                            onBlur={bonusValueState.handleBlur}
-                            onKeyDown={bonusValueState.handleKeyDown}
-                            placeholder={bonusValueState.value.toString()}
-                            aria-label={`${name} valor bônus`}
+                            value={baseValueState.inputValue}
+                            onChange={(e) => baseValueState.handleChange(e.target.value)}
+                            onBlur={baseValueState.handleBlur}
+                            onKeyDown={baseValueState.handleKeyDown}
+                            placeholder={baseValueState.value.toString()}
+                            aria-label={`${name} valor base`}
                             disabled={disabled || !editable}
-                            className={`w-full text-center text-sm font-medium px-1 py-0.5 ${colorClasses.bg} rounded transition-colors duration-200 ${colorClasses.focusBg} border-0 outline-none disabled:opacity-50 disabled:cursor-not-allowed`}
+                            className="w-8 text-center text-[10px] font-medium h-4 bg-primary/10 rounded transition-colors duration-200 focus:bg-primary/15 border-0 outline-none disabled:opacity-50 disabled:cursor-not-allowed p-0"
                         />
-                    )}
-                </div>
-            )}
+                        {type === "attribute" && (
+                            <input
+                                value={bonusValueState.inputValue}
+                                onChange={(e) => bonusValueState.handleChange(e.target.value)}
+                                onBlur={bonusValueState.handleBlur}
+                                onKeyDown={bonusValueState.handleKeyDown}
+                                placeholder={bonusValueState.value.toString()}
+                                aria-label={`${name} valor bônus`}
+                                disabled={disabled || !editable}
+                                className={`w-8 text-center text-[10px] font-medium h-4 ${colorClasses.bg} rounded transition-colors duration-200 ${colorClasses.focusBg} border-0 outline-none disabled:opacity-50 disabled:cursor-not-allowed p-0`}
+                            />
+                        )}
+                    </div>
+                )}
+
+                {/* Botão de rolagem de dados só para atributos */}
+                {type === "attribute" && !disabled && (
+                    <button 
+                        onClick={handleRollDice}
+                        className="cursor-pointer p-1.5 hover:bg-muted/80 rounded transition-colors"
+                        disabled={disabled}
+                        aria-label={`Rolar dado para ${name}`}
+                    >
+                        <DiceIcon className="w-4 h-4 text-muted-foreground hover:text-foreground" />
+                    </button>
+                )}
+            </div>
         </div>
     )
 })
