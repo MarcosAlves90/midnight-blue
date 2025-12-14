@@ -1,6 +1,8 @@
 import React from "react"
 import { Input } from "@/components/ui/input"
 import { useIsMobile } from "@/hooks/use-mobile"
+import { useGlitchColor } from "@/hooks/use-glitch-color"
+import GlitchText from "@/components/glitch-text"
 
 interface IdentityCardContentProps {
   alternateIdentity: string
@@ -10,25 +12,37 @@ interface IdentityCardContentProps {
 
 export const IdentityCardContent: React.FC<IdentityCardContentProps> = ({ alternateIdentity, onChange, favoriteColor }) => {
   const isMobile = useIsMobile()
+  const glitchColor = useGlitchColor({
+    baseColor: favoriteColor,
+    glitchColor: "#ef4444",
+    glitchChance: 0.12,
+    glitchDuration: 150,
+    intervalMs: 250,
+  })
 
   return (
     <div
       className={`${isMobile ? 'p-3' : 'p-4'} flex-1 bg-gradient-to-b from-black/40 to-black/60 ${isMobile ? 'min-h-[80px]' : 'min-h-[120px]'} flex flex-col gap-3 font-mono text-xs`}
       style={{
-        borderLeftColor: `${favoriteColor}4d`,
+        borderLeftColor: `${glitchColor}4d`,
       }}
     >
-      <div className="space-y-1.5 border-l-2 pl-2" style={{ borderColor: `${favoriteColor}4d` }}>
-        <div style={{ color: `${favoriteColor}99` }}>
-          <span style={{ color: favoriteColor }}>root@</span>
-          <span>identity</span>
-          <span style={{ color: favoriteColor }}>:</span>
-          <span style={{ color: `${favoriteColor}66` }}>~</span>
-          <span style={{ color: favoriteColor }}>$</span>
+      <div className="space-y-1.5 border-l-2 pl-2" style={{ borderColor: `${glitchColor}4d` }}>
+        <div style={{ color: `${glitchColor}99` }}>
+          <GlitchText
+            glitchChance={0.15}
+            glitchDuration={120}
+            intervalMs={200}
+            alternateChance={0.2}
+            characterGlitchChance={0.4}
+            className="inline"
+          >
+            root@identity:~$
+          </GlitchText>
         </div>
         <div className="flex items-baseline gap-1">
-          <span style={{ color: `${favoriteColor}80` }}>civil_id</span>
-          <span style={{ color: favoriteColor }}>=</span>
+          <span style={{ color: `${glitchColor}80` }}>civil_id</span>
+          <span style={{ color: glitchColor }}>=</span>
           <Input
             value={alternateIdentity}
             onChange={(e) => onChange(e.target.value)}
@@ -36,8 +50,8 @@ export const IdentityCardContent: React.FC<IdentityCardContentProps> = ({ altern
             placeholder="[ENCRYPTED]"
             aria-label="Nome civil verdadeiro"
             style={{
-              color: favoriteColor,
-              caretColor: favoriteColor,
+              color: glitchColor,
+              caretColor: glitchColor,
             }}
           />
         </div>
@@ -46,12 +60,21 @@ export const IdentityCardContent: React.FC<IdentityCardContentProps> = ({ altern
       <div
         className={`${isMobile ? 'mt-auto pt-2' : 'mt-auto pt-3'} border-t text-center font-mono`}
         style={{
-          borderColor: `${favoriteColor}33`,
-          color: `${favoriteColor}66`,
+          borderColor: `${glitchColor}33`,
+          color: `${glitchColor}66`,
         }}
       >
         <p className={`${isMobile ? 'text-[8px]' : 'text-[9px]'}`}>
-          &gt; midnight_blue.exe --running
+          <GlitchText
+            glitchChance={0.1}
+            glitchDuration={100}
+            intervalMs={300}
+            alternateChance={0.15}
+            characterGlitchChance={0.3}
+            className="inline"
+          >
+            &gt; midnight_blue.exe --running
+          </GlitchText>
         </p>
       </div>
     </div>

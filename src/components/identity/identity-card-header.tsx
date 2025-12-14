@@ -2,6 +2,8 @@ import React from "react"
 import { Input } from "@/components/ui/input"
 import { Download } from "lucide-react"
 import { useIsMobile } from "@/hooks/use-mobile"
+import { useGlitchColor } from "@/hooks/use-glitch-color"
+import GlitchText from "@/components/glitch-text"
 
 interface IdentityCardHeaderProps {
   name: string
@@ -12,20 +14,34 @@ interface IdentityCardHeaderProps {
 
 export const IdentityCardHeader: React.FC<IdentityCardHeaderProps> = ({ name, onChange, favoriteColor, onSave }) => {
   const isMobile = useIsMobile()
+  const glitchColor = useGlitchColor({
+    baseColor: favoriteColor,
+    glitchColor: "#ef4444",
+    glitchChance: 0.12,
+    glitchDuration: 150,
+    intervalMs: 250,
+  })
 
   return (
     <div
-      className={`${isMobile ? 'p-2' : 'p-3'} border-b-2 bg-gradient-to-b from-black/80 to-black/60 flex justify-between items-center relative z-10 font-mono ${isMobile ? 'text-xs' : 'text-sm'}`}
+      className={`${isMobile ? 'p-2' : 'p-3'} border-b-2 bg-gradient-to-b from-card/80 to-card/60 flex justify-between items-center relative z-10 font-mono ${isMobile ? 'text-xs' : 'text-sm'}`}
       style={{
-        borderColor: `${favoriteColor}50`,
+        borderColor: `rgba(var(--identity-theme-rgb), 0.3)`,
       }}
     >
       <div className="flex items-center gap-2 flex-1">
-        <span style={{ color: favoriteColor }}>$</span>
-        <span style={{ color: `${favoriteColor}99` }}>identity</span>
-        <span style={{ color: `${favoriteColor}66` }}>::</span>
-        <span style={{ color: `${favoriteColor}99` }}>name</span>
-        <span style={{ color: favoriteColor }}>=</span>
+        <span style={{ color: `var(--identity-theme-color, ${favoriteColor})` }}>
+          <GlitchText
+            glitchChance={0.12}
+            glitchDuration={110}
+            intervalMs={250}
+            alternateChance={0.18}
+            characterGlitchChance={0.35}
+            className="inline"
+          >
+            $ identity::name=
+          </GlitchText>
+        </span>
       </div>
       <div className="flex items-center gap-1">
         <Input
@@ -35,8 +51,8 @@ export const IdentityCardHeader: React.FC<IdentityCardHeaderProps> = ({ name, on
           placeholder="HERO_NAME"
           aria-label="Nome do personagem"
           style={{
-            color: favoriteColor,
-            caretColor: favoriteColor,
+            color: glitchColor,
+            caretColor: glitchColor,
           }}
         />
         <button
@@ -45,7 +61,7 @@ export const IdentityCardHeader: React.FC<IdentityCardHeaderProps> = ({ name, on
           title="Salvar Card"
           type="button"
         >
-          <Download className={`${isMobile ? 'w-2.5 h-2.5' : 'w-3 h-3'}`} style={{ color: favoriteColor }} />
+          <Download className={`${isMobile ? 'w-2.5 h-2.5' : 'w-3 h-3'}`} style={{ color: glitchColor }} />
         </button>
       </div>
     </div>

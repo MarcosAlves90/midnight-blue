@@ -20,6 +20,7 @@ export interface IdentityData {
   occupation: string;
   favoriteColor: string;
   profileImage?: string;
+  imagePosition?: number;
 }
 
 const INITIAL_IDENTITY: IdentityData = {
@@ -39,13 +40,14 @@ const INITIAL_IDENTITY: IdentityData = {
   motivation: "",
   placeOfBirth: "",
   occupation: "",
-  favoriteColor: "#3b82f6", // default blue
-  profileImage: ""
+  favoriteColor: "#1e3a8a", // midnight blue theme
+  profileImage: "",
+  imagePosition: 50, // Center (50%)
 };
 
 interface IdentityContextType {
   identity: IdentityData;
-  updateIdentity: (field: keyof IdentityData, value: string) => void;
+  updateIdentity: <K extends keyof IdentityData>(field: K, value: IdentityData[K]) => void;
   setIdentity: React.Dispatch<React.SetStateAction<IdentityData>>;
 }
 
@@ -76,7 +78,7 @@ export const IdentityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   }, [identity]);
 
-  const updateIdentity = (field: keyof IdentityData, value: string) => {
+  const updateIdentity = <K extends keyof IdentityData>(field: K, value: IdentityData[K]) => {
     setIdentity(prev => ({ ...prev, [field]: value }));
   };
 

@@ -1,9 +1,8 @@
 "use client"
 
-import React, { useRef, useState, useCallback } from "react"
+import React, { useRef, useCallback } from "react"
 import { toPng } from 'html-to-image'
 import { useIdentityContext, IdentityData } from "@/contexts/IdentityContext"
-import { MousePosition } from "./identity/types"
 import { IdentityCardContainer } from "./identity/identity-card-container"
 import { BiometricDataSection } from "./identity/biometric-data-section"
 import { PersonalDataSection } from "./identity/personal-data-section"
@@ -21,42 +20,12 @@ export default function IdentityForm() {
   const { identity, updateIdentity } = useIdentityContext()
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const cardRef = useRef<HTMLDivElement | null>(null)
-  const [mousePosition, setMousePosition] = useState<MousePosition>({
-    x: 0,
-    y: 0,
-  })
-
-  /**
-   * Handles mouse movement for 3D card rotation effect
-   */
-  const handleMouseMove = useCallback(
-    (e: React.MouseEvent<HTMLDivElement>) => {
-      if (!cardRef.current) return
-
-      const rect = cardRef.current.getBoundingClientRect()
-      const centerX = rect.left + rect.width / 2
-      const centerY = rect.top + rect.height / 2
-
-      const x = (e.clientX - centerX) / (rect.width / 2)
-      const y = (e.clientY - centerY) / (rect.height / 2)
-
-      setMousePosition({ x, y })
-    },
-    []
-  )
-
-  /**
-   * Resets the card position when mouse leaves
-   */
-  const handleMouseLeave = useCallback(() => {
-    setMousePosition({ x: 0, y: 0 })
-  }, [])
 
   /**
    * Updates identity field value
    */
   const handleChange = useCallback(
-    (field: keyof IdentityData, value: string) => {
+    <K extends keyof IdentityData>(field: K, value: IdentityData[K]) => {
       updateIdentity(field, value)
     },
     [updateIdentity]
@@ -116,9 +85,6 @@ export default function IdentityForm() {
       {/* ID Card Section */}
       <IdentityCardContainer
         identity={identity}
-        mousePosition={mousePosition}
-        onMouseMove={handleMouseMove}
-        onMouseLeave={handleMouseLeave}
         cardRef={cardRef}
         onFieldChange={handleChange}
         fileInputRef={fileInputRef}
