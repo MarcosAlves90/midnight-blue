@@ -81,38 +81,42 @@ export default function IdentityForm() {
   }, [])
 
   return (
-    <div className="space-y-4 pb-10">
-      {/* ID Card Section */}
-      <IdentityCardContainer
-        identity={identity}
-        cardRef={cardRef}
-        onFieldChange={handleChange}
-        fileInputRef={fileInputRef}
-        onImageUpload={triggerImageUpload}
-        onFileSelect={handleImageUpload}
-        onSave={handleSaveImage}
-      />
-
-      {/* Form Sections */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-        {/* Left Column: Physical & Personal */}
-        <div className="lg:col-span-7 space-y-4">
-          <BiometricDataSection
-            identity={identity}
-            onFieldChange={handleChange}
-          />
-          <PersonalDataSection
-            identity={identity}
-            onFieldChange={handleChange}
-          />
+    <div className="pb-10">
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
+        {/* Left Column: ID Card */}
+        <div className="xl:col-span-3">
+          <div className="sticky top-6">
+            <IdentityCardContainer
+              identity={identity}
+              cardRef={cardRef}
+              onFieldChange={handleChange}
+              fileInputRef={fileInputRef}
+              onImageUpload={triggerImageUpload}
+              onFileSelect={handleImageUpload}
+              onSave={handleSaveImage}
+            />
+          </div>
         </div>
 
-        {/* Right Column: Background */}
-        <div className="lg:col-span-5 space-y-6">
-          <ConfidentialFileSection
-            identity={identity}
-            onFieldChange={handleChange}
-          />
+        {/* Right Column: Forms */}
+        <div className="xl:col-span-9 grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="space-y-4">
+            <BiometricDataSection
+              identity={identity}
+              onFieldChange={handleChange}
+            />
+            <PersonalDataSection
+              identity={identity}
+              onFieldChange={handleChange}
+            />
+          </div>
+
+          <div className="space-y-4">
+            <ConfidentialFileSection
+              identity={identity}
+              onFieldChange={handleChange}
+            />
+          </div>
         </div>
       </div>
     </div>
