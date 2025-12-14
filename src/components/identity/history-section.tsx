@@ -13,7 +13,7 @@ export const HistorySection: React.FC<HistorySectionProps> = ({ identity, onFiel
     <div className="flex items-center gap-2 mb-6 pb-2 border-b border-border/40">
       <BookOpen className="w-4 h-4 text-primary" aria-hidden="true" />
       <h3 className="text-sm font-bold uppercase tracking-wider">
-        História do Personagem
+        Análise de Monitoramento
       </h3>
     </div>
 
@@ -22,7 +22,7 @@ export const HistorySection: React.FC<HistorySectionProps> = ({ identity, onFiel
         value={identity.history || ""}
         onChange={(e) => onFieldChange("history", e.target.value)}
         className="bg-muted/20 border-transparent focus:bg-background min-h-[200px] resize-y"
-        placeholder="Escreva a história do seu personagem aqui..."
+        placeholder="Escreva sua história aqui..."
         aria-label="História do personagem"
       />
     </div>
