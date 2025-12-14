@@ -22,6 +22,13 @@ export interface IdentityData {
   profileImage?: string;
   imagePosition?: number;
   history: string;
+  complications: Complication[];
+}
+
+export interface Complication {
+  id: string;
+  name: string;
+  description: string;
 }
 
 const INITIAL_IDENTITY: IdentityData = {
@@ -45,6 +52,7 @@ const INITIAL_IDENTITY: IdentityData = {
   profileImage: "",
   imagePosition: 50, // Center (50%)
   history: "",
+  complications: [],
 };
 
 interface IdentityContextType {

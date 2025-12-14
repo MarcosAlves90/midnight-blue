@@ -8,6 +8,7 @@ import { BiometricDataSection } from "./identity/biometric-data-section"
 import { PersonalDataSection } from "./identity/personal-data-section"
 import { ConfidentialFileSection } from "./identity/confidential-file-section"
 import { HistorySection } from "./identity/history-section"
+import { ComplicationsSection } from "./identity/complications-section"
 
 // ============================================================================
 // Component: IdentityForm
@@ -123,6 +124,12 @@ export default function IdentityForm() {
           
           {/* History Section */}
           <HistorySection
+            identity={identity}
+            onFieldChange={handleChange}
+          />
+
+          {/* Complications Section */}
+          <ComplicationsSection
             identity={identity}
             onFieldChange={handleChange}
           />
