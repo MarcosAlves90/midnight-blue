@@ -7,6 +7,7 @@ import { IdentityCardContainer } from "./identity/identity-card-container"
 import { BiometricDataSection } from "./identity/biometric-data-section"
 import { PersonalDataSection } from "./identity/personal-data-section"
 import { ConfidentialFileSection } from "./identity/confidential-file-section"
+import { HistorySection } from "./identity/history-section"
 
 // ============================================================================
 // Component: IdentityForm
@@ -99,24 +100,32 @@ export default function IdentityForm() {
         </div>
 
         {/* Right Column: Forms */}
-        <div className="xl:col-span-9 grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <div className="space-y-4">
-            <BiometricDataSection
-              identity={identity}
-              onFieldChange={handleChange}
-            />
-            <PersonalDataSection
-              identity={identity}
-              onFieldChange={handleChange}
-            />
-          </div>
+        <div className="xl:col-span-9 space-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div className="space-y-4">
+              <BiometricDataSection
+                identity={identity}
+                onFieldChange={handleChange}
+              />
+              <PersonalDataSection
+                identity={identity}
+                onFieldChange={handleChange}
+              />
+            </div>
 
-          <div className="space-y-4">
-            <ConfidentialFileSection
-              identity={identity}
-              onFieldChange={handleChange}
-            />
+            <div className="space-y-4">
+              <ConfidentialFileSection
+                identity={identity}
+                onFieldChange={handleChange}
+              />
+            </div>
           </div>
+          
+          {/* History Section */}
+          <HistorySection
+            identity={identity}
+            onFieldChange={handleChange}
+          />
         </div>
       </div>
     </div>

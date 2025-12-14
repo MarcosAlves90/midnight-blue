@@ -44,6 +44,7 @@ export const IdentityCardContainer: React.FC<IdentityCardContainerProps> = ({
 
       requestAnimationFrame(() => {
         if (cardRef.current) {
+          cardRef.current.style.transition = 'none' // Disable transition for instant response
           cardRef.current.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(${scale})`
         }
       })
@@ -55,12 +56,13 @@ export const IdentityCardContainer: React.FC<IdentityCardContainerProps> = ({
     if (isMobile || !cardRef.current) return
     requestAnimationFrame(() => {
       if (cardRef.current) {
+        cardRef.current.style.transition = 'transform 0.5s ease-out' // Re-enable transition for smooth reset
         cardRef.current.style.transform = 'none'
       }
     })
   }, [isMobile, cardRef])
 
-  const boxShadow = isMobile ? '0 8px 16px rgba(0, 0, 0, 0.3)' : '0 20px 40px rgba(0, 0, 0, 0.5)'
+  const boxShadow = isMobile ? '0 4px 8px rgba(0, 0, 0, 0.2)' : '0 10px 20px rgba(0, 0, 0, 0.4)'
 
   return (
     <div
@@ -73,7 +75,7 @@ export const IdentityCardContainer: React.FC<IdentityCardContainerProps> = ({
         ref={cardRef}
         onMouseMove={isMobile ? undefined : handleMouseMove}
         onMouseLeave={isMobile ? undefined : handleMouseLeave}
-        className={`relative ${isMobile ? '' : 'transform transition-transform duration-300 ease-out'}`}
+        className={`relative ${isMobile ? '' : 'will-change-transform'}`}
         style={{
           pointerEvents: "auto",
         }}

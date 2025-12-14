@@ -1,6 +1,7 @@
 import React from "react"
 import { Shield, Users, MapPin, Zap, Heart } from "lucide-react"
 import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
 import { IdentityData } from "@/contexts/IdentityContext"
 
 interface ConfidentialFileSectionProps {
@@ -65,10 +66,10 @@ export const ConfidentialFileSection: React.FC<ConfidentialFileSectionProps> = (
           <Heart className="w-3 h-3" aria-hidden="true" />
           <span>Motivação</span>
         </label>
-        <textarea
+        <Textarea
           value={identity.motivation}
           onChange={(e) => onFieldChange("motivation", e.target.value)}
-          className="flex min-h-[100px] w-full rounded-md border border-transparent bg-muted/20 px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 focus:bg-background transition-colors resize-none"
+          className="bg-muted/20 border-transparent focus:bg-background min-h-[100px] resize-none"
           placeholder="O que move seu personagem?"
           aria-label="Motivação do personagem"
         />

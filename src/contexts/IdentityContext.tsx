@@ -1,5 +1,5 @@
 "use client"
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 
 export interface IdentityData {
   name: string;
@@ -21,6 +21,7 @@ export interface IdentityData {
   favoriteColor: string;
   profileImage?: string;
   imagePosition?: number;
+  history: string;
 }
 
 const INITIAL_IDENTITY: IdentityData = {
@@ -43,6 +44,7 @@ const INITIAL_IDENTITY: IdentityData = {
   favoriteColor: "#1e3a8a", // midnight blue theme
   profileImage: "",
   imagePosition: 50, // Center (50%)
+  history: "",
 };
 
 interface IdentityContextType {
@@ -78,9 +80,9 @@ export const IdentityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   }, [identity]);
 
-  const updateIdentity = <K extends keyof IdentityData>(field: K, value: IdentityData[K]) => {
+  const updateIdentity = useCallback(<K extends keyof IdentityData>(field: K, value: IdentityData[K]) => {
     setIdentity(prev => ({ ...prev, [field]: value }));
-  };
+  }, []);
 
   return (
     <IdentityContext.Provider value={{ identity, updateIdentity, setIdentity }}>

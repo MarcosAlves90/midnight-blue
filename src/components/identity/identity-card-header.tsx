@@ -47,7 +47,7 @@ export const IdentityCardHeader: React.FC<IdentityCardHeaderProps> = ({ name, on
         <Input
           value={name}
           onChange={(e) => onChange(e.target.value)}
-          className={`font-mono bg-transparent border-none h-6 px-1 focus-visible:ring-0 w-auto ${isMobile ? 'max-w-[120px] text-xs' : 'max-w-[150px] text-xs'} text-right`}
+          className={`font-mono h-7 px-2 w-auto ${isMobile ? 'max-w-[120px] text-xs' : 'max-w-[150px] text-xs'} text-right bg-background/50 border-border/50 focus-visible:ring-1 focus-visible:ring-primary`}
           placeholder="HERO_NAME"
           aria-label="Nome do personagem"
           style={{

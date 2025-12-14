@@ -46,7 +46,7 @@ export const IdentityCardContent: React.FC<IdentityCardContentProps> = ({ altern
           <Input
             value={alternateIdentity}
             onChange={(e) => onChange(e.target.value)}
-            className="font-mono text-xs bg-transparent border-none px-0 h-auto focus-visible:ring-0 flex-1"
+            className="font-mono text-xs h-7 px-2 bg-background/50 border-border/50 focus-visible:ring-1 focus-visible:ring-primary flex-1"
             placeholder="[ENCRYPTED]"
             aria-label="Nome civil verdadeiro"
             style={{
