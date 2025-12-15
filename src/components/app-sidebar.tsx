@@ -61,20 +61,8 @@ const data = {
           url: "/dashboard/personagem/individual",
         },
         {
-          title: "Características",
-          url: "/dashboard/personagem/caracteristicas",
-        },
-        {
           title: "Status",
           url: "/dashboard/personagem/status",
-        },
-        {
-          title: "Skills",
-          url: "/dashboard/personagem/skills",
-        },
-        {
-          title: "Inventário",
-          url: "/dashboard/personagem/inventario",
         },
         {
           title: "Anotações",
