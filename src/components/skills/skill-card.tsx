@@ -2,6 +2,7 @@
 
 import React, { useMemo } from "react"
 import { Input } from "@/components/ui/input"
+import { Tip } from "@/components/ui/tip"
 import { getColorClasses } from "@/lib/colors"
 import { useAttributesContext } from "@/contexts/AttributesContext"
 import { rollDice } from "@/lib/dice-system"
@@ -16,7 +17,7 @@ interface SkillCardProps extends Skill {
     disabled?: boolean
 }
 
-export function SkillCard({ id, name, attribute, value = 0, others = 0, onChange, disabled = false }: SkillCardProps) {
+export function SkillCard({ id, name, attribute, value = 0, others = 0, description, onChange, disabled = false }: SkillCardProps) {
     const valueState = useEditableValue(value, (v) => onChange?.(id, 'value', v), disabled)
     const othersState = useEditableValue(others ?? 0, (v) => onChange?.(id, 'others', v), disabled)
 
@@ -48,8 +49,14 @@ export function SkillCard({ id, name, attribute, value = 0, others = 0, onChange
                     >
                         <DiceIcon className="w-3.5 h-3.5 text-muted-foreground hover:text-foreground" />
                     </button>
-                    <div className="flex flex-col">
-                        <span className="text-xs font-medium leading-none">{name}</span>
+                    <div className="flex flex-col items-start">
+                        {description ? (
+                            <Tip content={<div className="max-w-xs text-xs">{description}</div>} side="top" align="start">
+                                <span className="text-xs font-medium leading-none cursor-help decoration-dotted underline underline-offset-2">{name}</span>
+                            </Tip>
+                        ) : (
+                            <span className="text-xs font-medium leading-none">{name}</span>
+                        )}
                         <span className="text-[9px] text-muted-foreground sm:hidden mt-0.5 font-mono">{attribute}</span>
                     </div>
                 </div>

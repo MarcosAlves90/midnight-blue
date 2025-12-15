@@ -144,7 +144,7 @@ export const ComplicationsSection: React.FC<ComplicationsSectionProps> = ({ iden
               Tipo
             </label>
             <select
-              className="w-full h-8 rounded-md border border-input bg-background/50 px-2 py-1 text-xs shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              className="w-full h-8 rounded-md border-transparent focus:bg-background bg-background/50 px-2 py-1 text-xs shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
               value={selectedType}
               onChange={(e) => setSelectedType(e.target.value)}
             >
@@ -163,7 +163,7 @@ export const ComplicationsSection: React.FC<ComplicationsSectionProps> = ({ iden
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder={COMPLICATION_PLACEHOLDERS[selectedType] || "Descreva a complicação..."}
-              className="h-8 text-xs bg-background/50"
+              className="h-8 text-xs bg-muted/20 border-transparent focus:bg-background"
             />
           </div>
         </div>

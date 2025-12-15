@@ -6,6 +6,7 @@ export interface Attribute {
     value: number
     bonus?: number // agora opcional
     type: "attribute"
+    description?: string
 }
 
 export interface AttributesGridProps {

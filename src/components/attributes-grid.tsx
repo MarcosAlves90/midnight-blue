@@ -4,7 +4,7 @@ import { memo, useState, useEffect, useCallback } from "react"
 import { Edit3, Lock } from "lucide-react"
 import { AttributeCard } from "./attributes-grid/attribute-card"
 import { AttributesGridProps, Attribute } from "./attributes-grid/types"
-import { DEFAULT_INPUT_LIMITS } from "./attributes-grid/constants"
+import { DEFAULT_INPUT_LIMITS, INITIAL_ATTRIBUTES } from "./attributes-grid/constants"
 import { useAttributesContext } from "@/contexts/AttributesContext"
 
 export const AttributesGrid = memo(function AttributesGrid({
@@ -31,23 +31,27 @@ export const AttributesGrid = memo(function AttributesGrid({
 
     const renderCards = (forceDisabled = false) => (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {attributes.map((attr) => (
-                <AttributeCard
-                    key={attr.id}
-                    id={attr.id}
-                    name={attr.name}
-                    abbreviation={attr.abbreviation}
-                    color={attr.color}
-                    value={attr.value}
-                    bonus={attr.bonus}
-                    type="attribute"
-                    disabled={disabled || forceDisabled}
-                    editable={isEditable && !forceDisabled}
-                    onValueChange={isEditable && !forceDisabled ? (value) => updateAttribute(attr.id, { value }) : undefined}
-                    onBonusChange={isEditable && !forceDisabled ? (bonus) => updateAttribute(attr.id, { bonus }) : undefined}
-                    inputLimits={DEFAULT_INPUT_LIMITS}
-                />
-            ))}
+            {attributes.map((attr) => {
+                const initialAttr = INITIAL_ATTRIBUTES.find(a => a.id === attr.id)
+                return (
+                    <AttributeCard
+                        key={attr.id}
+                        id={attr.id}
+                        name={attr.name}
+                        abbreviation={attr.abbreviation}
+                        color={attr.color}
+                        value={attr.value}
+                        bonus={attr.bonus}
+                        type="attribute"
+                        description={attr.description || initialAttr?.description}
+                        disabled={disabled || forceDisabled}
+                        editable={isEditable && !forceDisabled}
+                        onValueChange={isEditable && !forceDisabled ? (value) => updateAttribute(attr.id, { value }) : undefined}
+                        onBonusChange={isEditable && !forceDisabled ? (bonus) => updateAttribute(attr.id, { bonus }) : undefined}
+                        inputLimits={DEFAULT_INPUT_LIMITS}
+                    />
+                )
+            })}
         </div>
     )
 

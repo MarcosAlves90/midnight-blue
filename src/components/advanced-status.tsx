@@ -1,6 +1,7 @@
 'use client'
 import { useState, useCallback } from "react"
 import { Input } from "@/components/ui/input"
+import { Tip } from "@/components/ui/tip"
 import { useAttributesContext } from "@/contexts/AttributesContext"
 import { useSkillsContext } from "@/contexts/SkillsContext"
 import { Shield, Star, Move, Edit3, Lock, Zap, Plus, Minus, RotateCcw } from "lucide-react"
@@ -9,6 +10,7 @@ import { DiceIcon } from "@/components/dice-icon"
 
 interface DefenseCardProps {
     title: string
+    description?: string
     attributeValue: number
     attributeAbbrev: string
     attributeColor: string
@@ -18,7 +20,7 @@ interface DefenseCardProps {
     onInputChange: (value: string) => void
 }
 
-function DefenseCard({ title, attributeValue, attributeAbbrev, attributeColor, inputValue, total, isEditMode, onInputChange }: DefenseCardProps) {
+function DefenseCard({ title, description, attributeValue, attributeAbbrev, attributeColor, inputValue, total, isEditMode, onInputChange }: DefenseCardProps) {
     const handleRollDefense = () => {
         const points = Number(inputValue) || 0
         const modifiers = [attributeValue, points].filter(val => val !== 0)
@@ -35,7 +37,13 @@ function DefenseCard({ title, attributeValue, attributeAbbrev, attributeColor, i
                 >
                     <DiceIcon className="w-3.5 h-3.5 text-muted-foreground hover:text-foreground" />
                 </button>
-                <span className="text-xs font-medium text-foreground">{title}</span>
+                {description ? (
+                    <Tip content={<div className="max-w-xs text-xs">{description}</div>} side="top">
+                        <span className="text-xs font-medium text-foreground cursor-help decoration-dotted underline underline-offset-2">{title}</span>
+                    </Tip>
+                ) : (
+                    <span className="text-xs font-medium text-foreground">{title}</span>
+                )}
             </div>
             <div className="flex items-center gap-3">
                 <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
@@ -181,7 +189,13 @@ export default function AdvancedStatus() {
                 <div className="space-y-1.5">
                     <div className="flex items-center gap-1.5">
                         <Star className="h-3.5 w-3.5 text-muted-foreground" />
-                        <label className="text-xs font-medium text-muted-foreground">Nível de Poder</label>
+                        <Tip 
+                            content={<div className="max-w-xs text-xs">O Nível de Poder é uma medida geral da eficiência e do poder de um personagem, agindo como um limitador para as características. Impõe limites rígidos sobre quão alto os personagens podem desenvolver suas características (Ataque, Defesa, Perícias, etc). Define também os Pontos de Poder iniciais.</div>}
+                            side="top"
+                            align="start"
+                        >
+                            <label className="text-xs font-medium text-muted-foreground cursor-help decoration-dotted underline underline-offset-2">Nível de Poder</label>
+                        </Tip>
                     </div>
                     <Input
                         type="number"
@@ -216,7 +230,13 @@ export default function AdvancedStatus() {
                             <Zap className="h-3.5 w-3.5" />
                         </div>
                         <div className="flex flex-col">
-                            <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider leading-none mb-0.5">Pontos de Poder</span>
+                            <Tip 
+                                content={<div className="max-w-xs text-xs">Os Pontos de Poder são a moeda de jogo usada para criar e aprimorar os personagens. É o &quot;orçamento&quot; que um herói possui para investir em habilidades, defesas, perícias, vantagens e poderes. Ganha-se mais PP ao completar aventuras.</div>}
+                                side="top"
+                                align="start"
+                            >
+                                <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider leading-none mb-0.5 cursor-help decoration-dotted underline underline-offset-2 w-fit">Pontos de Poder</span>
+                            </Tip>
                             <div className="flex items-baseline gap-1 leading-none">
                                 <span className={`font-mono font-bold text-sm ${isOverLimit ? "text-red-500" : "text-foreground"}`}>
                                     {totalSpent}
@@ -276,6 +296,7 @@ export default function AdvancedStatus() {
                 <div className="grid grid-cols-1 gap-2">
                     <DefenseCard
                         title="Aparar"
+                        description="Baseada em Luta. Mede a habilidade de bloquear ou evadir golpes em combate corpo-a-corpo. É a defesa visada por ataques corpo-a-corpo."
                         attributeValue={luta}
                         attributeAbbrev="LUT"
                         attributeColor={lutaColor}
@@ -286,6 +307,7 @@ export default function AdvancedStatus() {
                     />
                     <DefenseCard
                         title="Esquiva"
+                        description="Baseada na Agilidade. Mede o tempo de reação, rapidez e coordenação geral. É a defesa visada por ataques à distância e outras ameaças que exigem reflexos e velocidade."
                         attributeValue={agilidade}
                         attributeAbbrev="AGI"
                         attributeColor={agilidadeColor}
@@ -296,6 +318,7 @@ export default function AdvancedStatus() {
                     />
                     <DefenseCard
                         title="Fortitude"
+                        description="Baseada no Vigor. Mede a saúde e a resiliência física geral. Usada para resistir a efeitos que visam a saúde do personagem, como venenos ou doenças."
                         attributeValue={vigor}
                         attributeAbbrev="VIG"
                         attributeColor={vigorColor}
@@ -306,6 +329,7 @@ export default function AdvancedStatus() {
                     />
                     <DefenseCard
                         title="Resistência"
+                        description="Baseada em Vigor. É o salvamento primário contra dano ou ferimentos diretos. Não pode ser aumentada diretamente com pontos de poder, apenas por vantagens (como Rolamento Defensivo) e poderes (como Proteção)."
                         attributeValue={vigor}
                         attributeAbbrev="VIG"
                         attributeColor={vigorColor}
@@ -316,6 +340,7 @@ export default function AdvancedStatus() {
                     />
                     <DefenseCard
                         title="Vontade"
+                        description="Baseada na Prontidão. Mede a estabilidade mental, lucidez, determinação e força de vontade. Usada para resistir a ataques mentais ou espirituais."
                         attributeValue={prontidao}
                         attributeAbbrev="PRO"
                         attributeColor={prontidaoColor}

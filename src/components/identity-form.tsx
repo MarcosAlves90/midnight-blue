@@ -122,18 +122,20 @@ export default function IdentityForm() {
             </div>
           </div>
           
-          {/* History Section */}
-          <HistorySection
-            identity={identity}
-            onFieldChange={handleChange}
-          />
-
-          {/* Complications Section */}
-          <ComplicationsSection
-            identity={identity}
-            onFieldChange={handleChange}
-          />
         </div>
+      </div>
+
+      {/* History and Complications Sections - Full Width */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
+        <ComplicationsSection
+          identity={identity}
+          onFieldChange={handleChange}
+        />
+        <HistorySection
+          identity={identity}
+          onFieldChange={handleChange}
+        />
+
       </div>
     </div>
   )

@@ -6,6 +6,7 @@ import { useEditableValue } from "./use-editable-value"
 import { getColorClasses } from "../../lib/colors"
 import { DiceIcon } from "../dice-icon"
 import { rollDice } from "../../lib/dice-system"
+import { Tip } from "@/components/ui/tip"
 
 export interface AttributeFieldConfig {
     key: string;
@@ -24,6 +25,7 @@ export interface AttributeCardProps {
     value: number;
     bonus?: number;
     type: "attribute";
+    description?: string;
     onValueChange?: (value: number) => void;
     onBonusChange?: (bonus: number) => void;
     disabled?: boolean;
@@ -39,6 +41,7 @@ export const AttributeCard = memo(function AttributeCard({
     value = 0,
     bonus = 0,
     type,
+    description,
     onValueChange,
     onBonusChange,
     disabled = false,
@@ -95,7 +98,13 @@ export const AttributeCard = memo(function AttributeCard({
         >
             <div className="flex items-center gap-2">
                 <div className="flex flex-col min-w-[3rem]">
-                    <h3 className="text-sm font-bold leading-none">{name}</h3>
+                    {description ? (
+                        <Tip content={<div className="max-w-xs text-xs">{description}</div>} side="top" align="start">
+                            <h3 className="text-sm font-bold leading-none cursor-help decoration-dotted underline underline-offset-2 w-fit">{name}</h3>
+                        </Tip>
+                    ) : (
+                        <h3 className="text-sm font-bold leading-none">{name}</h3>
+                    )}
                     <p className="text-[10px] text-muted-foreground leading-none mt-0.5">{abbreviation}</p>
                 </div>
             </div>
@@ -144,6 +153,7 @@ export const AttributeCard = memo(function AttributeCard({
                         <DiceIcon className="w-4 h-4 text-muted-foreground hover:text-foreground" />
                     </button>
                 )}
+
             </div>
         </div>
     )
