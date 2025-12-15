@@ -24,6 +24,7 @@ export const BiometricDataSection: React.FC<BiometricDataSectionProps> = ({ iden
         value={identity.gender}
         onChange={(v) => onFieldChange("gender", v)}
         placeholder="Ex: Masculino"
+        description="O gênero do personagem (Masculino, Feminino, Não-binário, etc)."
       />
       <StatField
         icon={<Calendar className="w-3 h-3" aria-hidden="true" />}
@@ -31,6 +32,7 @@ export const BiometricDataSection: React.FC<BiometricDataSectionProps> = ({ iden
         value={identity.age}
         onChange={(v) => onFieldChange("age", v)}
         placeholder="Ex: 25"
+        description="A idade cronológica ou aparente do personagem."
       />
       <StatField
         icon={<Ruler className="w-3 h-3" aria-hidden="true" />}
@@ -38,6 +40,7 @@ export const BiometricDataSection: React.FC<BiometricDataSectionProps> = ({ iden
         value={identity.height}
         onChange={(v) => onFieldChange("height", v)}
         placeholder="Ex: 1.80m"
+        description="A altura do personagem em metros ou pés."
       />
       <StatField
         icon={<Weight className="w-3 h-3" aria-hidden="true" />}
@@ -45,6 +48,7 @@ export const BiometricDataSection: React.FC<BiometricDataSectionProps> = ({ iden
         value={identity.weight}
         onChange={(v) => onFieldChange("weight", v)}
         placeholder="Ex: 75kg"
+        description="O peso do personagem em quilogramas ou libras."
       />
       <StatField
         icon={<Eye className="w-3 h-3" aria-hidden="true" />}
@@ -52,6 +56,7 @@ export const BiometricDataSection: React.FC<BiometricDataSectionProps> = ({ iden
         value={identity.eyes}
         onChange={(v) => onFieldChange("eyes", v)}
         placeholder="Ex: Castanhos"
+        description="A cor dos olhos do personagem."
       />
       <StatField
         icon={<Scissors className="w-3 h-3" aria-hidden="true" />}
@@ -59,6 +64,7 @@ export const BiometricDataSection: React.FC<BiometricDataSectionProps> = ({ iden
         value={identity.hair}
         onChange={(v) => onFieldChange("hair", v)}
         placeholder="Ex: Preto"
+        description="A cor e estilo do cabelo do personagem."
       />
     </div>
   </div>

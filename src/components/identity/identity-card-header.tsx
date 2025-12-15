@@ -1,5 +1,6 @@
 import React from "react"
 import { Input } from "@/components/ui/input"
+import { Tip } from "@/components/ui/tip"
 import { Download } from "lucide-react"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { useGlitchColor } from "@/hooks/use-glitch-color"
@@ -31,16 +32,20 @@ export const IdentityCardHeader: React.FC<IdentityCardHeaderProps> = ({ name, on
     >
       <div className="flex items-center gap-2 flex-1">
         <span style={{ color: `var(--identity-theme-color, ${favoriteColor})` }}>
-          <GlitchText
-            glitchChance={0.12}
-            glitchDuration={110}
-            intervalMs={250}
-            alternateChance={0.18}
-            characterGlitchChance={0.35}
-            className="inline"
-          >
-            $ identity::name=
-          </GlitchText>
+          <Tip content={<div className="max-w-xs text-xs">O codinome ou nome de herói do personagem.</div>} side="bottom" align="start">
+            <div className="inline-block cursor-help">
+              <GlitchText
+                glitchChance={0.12}
+                glitchDuration={110}
+                intervalMs={250}
+                alternateChance={0.18}
+                characterGlitchChance={0.35}
+                className="inline decoration-dotted underline underline-offset-2"
+              >
+                $ identity::name=
+              </GlitchText>
+            </div>
+          </Tip>
         </span>
       </div>
       <div className="flex items-center gap-1">

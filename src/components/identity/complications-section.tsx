@@ -2,6 +2,7 @@ import React, { useState } from "react"
 import { AlertTriangle, Plus, Trash2, Info, Pencil, X, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Tip } from "@/components/ui/tip"
 import { IdentityData, Complication } from "@/contexts/IdentityContext"
 import { cn } from "@/lib/utils"
 
@@ -132,9 +133,21 @@ export const ComplicationsSection: React.FC<ComplicationsSectionProps> = ({ iden
     <div className="bg-card rounded-xl p-4">
       <div className="flex items-center gap-2 mb-4 pb-2 border-b border-border/40">
         <AlertTriangle className="w-4 h-4 text-primary" aria-hidden="true" />
-        <h3 className="text-sm font-bold uppercase tracking-wider">
-          Complicações
-        </h3>
+        <Tip 
+          content={
+            <div className="max-w-xs text-xs space-y-2">
+              <p>As Complicações representam desafios, problemas pessoais ou vulnerabilidades que os heróis devem superar.</p>
+              <p>Quando uma Complicação afeta o herói no jogo, o jogador recebe <strong>Pontos Heróicos</strong>.</p>
+              <p>Você deve escolher pelo menos duas Complicações, sendo uma delas a <strong>Motivação</strong>.</p>
+            </div>
+          } 
+          side="top" 
+          align="start"
+        >
+          <h3 className="text-sm font-bold uppercase tracking-wider cursor-help decoration-dotted underline underline-offset-2 w-fit">
+            Complicações
+          </h3>
+        </Tip>
       </div>
 
       <div className="space-y-3 mb-4 bg-muted/10 p-3 rounded-lg border border-border/20">

@@ -1,5 +1,6 @@
 import React from "react"
 import { Input } from "@/components/ui/input"
+import { Tip } from "@/components/ui/tip"
 
 interface StatFieldProps {
   icon: React.ReactNode
@@ -8,6 +9,7 @@ interface StatFieldProps {
   onChange: (value: string) => void
   placeholder?: string
   required?: boolean
+  description?: string
 }
 
 export const StatField: React.FC<StatFieldProps> = ({
@@ -17,15 +19,28 @@ export const StatField: React.FC<StatFieldProps> = ({
   onChange,
   placeholder,
   required = false,
+  description,
 }) => (
   <div className="space-y-1.5 group">
-    <label className="text-[10px] font-medium text-muted-foreground uppercase flex items-center gap-1.5 group-hover:text-primary transition-colors">
-      {icon}
-      <span>
-        {label}
-        {required && <span className="text-red-500 ml-0.5" aria-label="obrigatório">*</span>}
-      </span>
-    </label>
+    {description ? (
+      <Tip content={<div className="max-w-xs text-xs">{description}</div>} side="top" align="start">
+        <label className="text-[10px] font-medium text-muted-foreground uppercase flex items-center gap-1.5 group-hover:text-primary transition-colors cursor-help w-fit">
+          {icon}
+          <span className="decoration-dotted underline underline-offset-2">
+            {label}
+            {required && <span className="text-red-500 ml-0.5" aria-label="obrigatório">*</span>}
+          </span>
+        </label>
+      </Tip>
+    ) : (
+      <label className="text-[10px] font-medium text-muted-foreground uppercase flex items-center gap-1.5 group-hover:text-primary transition-colors">
+        {icon}
+        <span>
+          {label}
+          {required && <span className="text-red-500 ml-0.5" aria-label="obrigatório">*</span>}
+        </span>
+      </label>
+    )}
     <Input
       value={value}
       onChange={(e) => onChange(e.target.value)}

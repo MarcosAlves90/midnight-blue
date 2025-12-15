@@ -2,6 +2,7 @@ import React from "react"
 import { Shield, Users, MapPin, Zap, Heart } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
+import { Tip } from "@/components/ui/tip"
 import { IdentityData } from "@/contexts/IdentityContext"
 
 interface ConfidentialFileSectionProps {
@@ -20,10 +21,12 @@ export const ConfidentialFileSection: React.FC<ConfidentialFileSectionProps> = (
 
     <div className="space-y-5">
       <div className="space-y-1.5">
-        <label className="text-[10px] font-medium text-muted-foreground uppercase flex items-center gap-1">
-          <Users className="w-3 h-3" aria-hidden="true" />
-          <span>Afiliação</span>
-        </label>
+        <Tip content={<div className="max-w-xs text-xs">O grupo ou organização ao qual o herói pertence (ex: Liga da Justiça, Vingadores).</div>} side="top" align="start">
+          <label className="text-[10px] font-medium text-muted-foreground uppercase flex items-center gap-1 cursor-help w-fit">
+            <Users className="w-3 h-3" aria-hidden="true" />
+            <span className="decoration-dotted underline underline-offset-2">Afiliação</span>
+          </label>
+        </Tip>
         <Input
           value={identity.groupAffiliation}
           onChange={(e) => onFieldChange("groupAffiliation", e.target.value)}
@@ -34,10 +37,12 @@ export const ConfidentialFileSection: React.FC<ConfidentialFileSectionProps> = (
       </div>
 
       <div className="space-y-1.5">
-        <label className="text-[10px] font-medium text-muted-foreground uppercase flex items-center gap-1">
-          <MapPin className="w-3 h-3" aria-hidden="true" />
-          <span>Base de Operações</span>
-        </label>
+        <Tip content={<div className="max-w-xs text-xs">O local onde o herói opera ou vive (ex: Batcaverna, Torre dos Titãs, Cidade de Nova York).</div>} side="top" align="start">
+          <label className="text-[10px] font-medium text-muted-foreground uppercase flex items-center gap-1 cursor-help w-fit">
+            <MapPin className="w-3 h-3" aria-hidden="true" />
+            <span className="decoration-dotted underline underline-offset-2">Base de Operações</span>
+          </label>
+        </Tip>
         <Input
           value={identity.baseOfOperations}
           onChange={(e) => onFieldChange("baseOfOperations", e.target.value)}
@@ -48,10 +53,12 @@ export const ConfidentialFileSection: React.FC<ConfidentialFileSectionProps> = (
       </div>
 
       <div className="space-y-1.5">
-        <label className="text-[10px] font-medium text-muted-foreground uppercase flex items-center gap-1">
-          <Zap className="w-3 h-3" aria-hidden="true" />
-          <span>Origem dos Poderes</span>
-        </label>
+        <Tip content={<div className="max-w-xs text-xs">A fonte dos poderes do herói (ex: Mutante, Tecnológico, Místico, Treinamento).</div>} side="top" align="start">
+          <label className="text-[10px] font-medium text-muted-foreground uppercase flex items-center gap-1 cursor-help w-fit">
+            <Zap className="w-3 h-3" aria-hidden="true" />
+            <span className="decoration-dotted underline underline-offset-2">Origem dos Poderes</span>
+          </label>
+        </Tip>
         <Input
           value={identity.powerOrigin}
           onChange={(e) => onFieldChange("powerOrigin", e.target.value)}
@@ -62,10 +69,12 @@ export const ConfidentialFileSection: React.FC<ConfidentialFileSectionProps> = (
       </div>
 
       <div className="space-y-1.5">
-        <label className="text-[10px] font-medium text-muted-foreground uppercase flex items-center gap-1">
-          <Heart className="w-3 h-3" aria-hidden="true" />
-          <span>Motivação</span>
-        </label>
+        <Tip content={<div className="max-w-xs text-xs">A razão pela qual o personagem age como herói (ex: Responsabilidade, Justiça, Vingança).</div>} side="top" align="start">
+          <label className="text-[10px] font-medium text-muted-foreground uppercase flex items-center gap-1 cursor-help w-fit">
+            <Heart className="w-3 h-3" aria-hidden="true" />
+            <span className="decoration-dotted underline underline-offset-2">Motivação</span>
+          </label>
+        </Tip>
         <Textarea
           value={identity.motivation}
           onChange={(e) => onFieldChange("motivation", e.target.value)}

@@ -1,6 +1,7 @@
 import React from "react"
 import { FileText, MapPin, Briefcase } from "lucide-react"
 import { Input } from "@/components/ui/input"
+import { Tip } from "@/components/ui/tip"
 import { IdentityData } from "@/contexts/IdentityContext"
 import { ColorPickerDropdown } from "./color-picker-dropdown"
 
@@ -20,10 +21,12 @@ export const PersonalDataSection: React.FC<PersonalDataSectionProps> = ({ identi
 
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div className="space-y-1.5">
-        <label className="text-[10px] font-medium text-muted-foreground uppercase flex items-center gap-1">
-          <MapPin className="w-3 h-3" aria-hidden="true" />
-          <span>Local de Nascimento</span>
-        </label>
+        <Tip content={<div className="max-w-xs text-xs">O local onde o personagem nasceu (cidade, país, planeta, etc).</div>} side="top" align="start">
+          <label className="text-[10px] font-medium text-muted-foreground uppercase flex items-center gap-1 cursor-help w-fit">
+            <MapPin className="w-3 h-3" aria-hidden="true" />
+            <span className="decoration-dotted underline underline-offset-2">Local de Nascimento</span>
+          </label>
+        </Tip>
         <Input
           value={identity.placeOfBirth}
           onChange={(e) => onFieldChange("placeOfBirth", e.target.value)}
@@ -33,10 +36,12 @@ export const PersonalDataSection: React.FC<PersonalDataSectionProps> = ({ identi
         />
       </div>
       <div className="space-y-1.5">
-        <label className="text-[10px] font-medium text-muted-foreground uppercase flex items-center gap-1">
-          <Briefcase className="w-3 h-3" aria-hidden="true" />
-          <span>Ocupação</span>
-        </label>
+        <Tip content={<div className="max-w-xs text-xs">A profissão ou ocupação principal do personagem quando não está atuando como herói.</div>} side="top" align="start">
+          <label className="text-[10px] font-medium text-muted-foreground uppercase flex items-center gap-1 cursor-help w-fit">
+            <Briefcase className="w-3 h-3" aria-hidden="true" />
+            <span className="decoration-dotted underline underline-offset-2">Ocupação</span>
+          </label>
+        </Tip>
         <Input
           value={identity.occupation}
           onChange={(e) => onFieldChange("occupation", e.target.value)}

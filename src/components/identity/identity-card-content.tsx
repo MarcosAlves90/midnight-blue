@@ -1,5 +1,6 @@
 import React from "react"
 import { Input } from "@/components/ui/input"
+import { Tip } from "@/components/ui/tip"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { useGlitchColor } from "@/hooks/use-glitch-color"
 import GlitchText from "@/components/glitch-text"
@@ -41,7 +42,9 @@ export const IdentityCardContent: React.FC<IdentityCardContentProps> = ({ altern
           </GlitchText>
         </div>
         <div className="flex items-baseline gap-1">
-          <span style={{ color: `${glitchColor}80` }}>civil_id</span>
+          <Tip content={<div className="max-w-xs text-xs">O nome real do personagem (identidade secreta ou pública).</div>} side="top" align="start">
+            <span style={{ color: `${glitchColor}80` }} className="cursor-help decoration-dotted underline underline-offset-2">civil_id</span>
+          </Tip>
           <span style={{ color: glitchColor }}>=</span>
           <Input
             value={alternateIdentity}
