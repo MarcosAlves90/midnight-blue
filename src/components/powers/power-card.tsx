@@ -4,11 +4,12 @@ import { useState } from 'react'
 import { Power } from './types'
 import { ACTION_LABELS, RANGE_LABELS, DURATION_LABELS } from './constants'
 import { Tip } from '@/components/ui/tip'
-import { ChevronDown, ChevronUp, Trash2, Sparkles } from 'lucide-react'
+import { ChevronDown, ChevronUp, Trash2, Sparkles, Edit3 } from 'lucide-react'
 
 interface PowerCardProps {
   power: Power
   onDelete: (id: string) => void
+  onEdit?: (power: Power) => void
   isEditMode: boolean
 }
 
@@ -16,16 +17,16 @@ function calculatePowerCost(power: Power): number {
   const baseEffect = power.effects.reduce((acc, e) => acc + e.baseCost, 0)
   
   const extrasTotal = power.modifiers
-    .filter(m => m.type === 'extra' && !m.isFlat)
-    .reduce((acc, m) => acc + m.costPerRank, 0)
+    .filter(m => m.modifier.type === 'extra' && !m.modifier.isFlat)
+    .reduce((acc, m) => acc + m.modifier.costPerRank, 0)
   
   const flawsTotal = power.modifiers
-    .filter(m => m.type === 'falha' && !m.isFlat)
-    .reduce((acc, m) => acc + m.costPerRank, 0)
+    .filter(m => m.modifier.type === 'falha' && !m.modifier.isFlat)
+    .reduce((acc, m) => acc + m.modifier.costPerRank, 0)
   
   const flatModifiers = power.modifiers
-    .filter(m => m.isFlat)
-    .reduce((acc, m) => acc + m.costPerRank, 0)
+    .filter(m => m.modifier.isFlat)
+    .reduce((acc, m) => acc + m.modifier.costPerRank, 0)
 
   const costPerRank = baseEffect + extrasTotal + flawsTotal
   
@@ -41,12 +42,12 @@ function calculatePowerCost(power: Power): number {
   return Math.max(1, totalCost + flatModifiers)
 }
 
-export function PowerCard({ power, onDelete, isEditMode }: PowerCardProps) {
+export function PowerCard({ power, onDelete, onEdit, isEditMode }: PowerCardProps) {
   const [isExpanded, setIsExpanded] = useState(false)
   const cost = calculatePowerCost(power)
 
-  const extras = power.modifiers.filter(m => m.type === 'extra')
-  const flaws = power.modifiers.filter(m => m.type === 'falha')
+  const extras = power.modifiers.filter(m => m.modifier.type === 'extra')
+  const flaws = power.modifiers.filter(m => m.modifier.type === 'falha')
 
   const action = power.customAction || power.effects[0]?.action || 'padrao'
   const range = power.customRange || power.effects[0]?.range || 'perto'
@@ -143,10 +144,10 @@ export function PowerCard({ power, onDelete, isEditMode }: PowerCardProps) {
                 <div>
                   <span className="text-[10px] text-green-400 uppercase tracking-wider font-medium">Extras</span>
                   <div className="flex flex-wrap gap-1 mt-1">
-                    {extras.map(modifier => (
-                      <Tip key={modifier.id} content={<div className="max-w-xs text-xs">{modifier.description}</div>}>
+                    {extras.map(instance => (
+                      <Tip key={instance.id} content={<div className="max-w-xs text-xs">{instance.customDescription || instance.modifier.description}</div>}>
                         <span className="px-2 py-0.5 text-[10px] bg-green-500/10 text-green-300 rounded cursor-help">
-                          {modifier.name} (+{modifier.costPerRank})
+                          {instance.modifier.name} (+{instance.modifier.costPerRank})
                         </span>
                       </Tip>
                     ))}
@@ -157,10 +158,10 @@ export function PowerCard({ power, onDelete, isEditMode }: PowerCardProps) {
                 <div>
                   <span className="text-[10px] text-red-400 uppercase tracking-wider font-medium">Falhas</span>
                   <div className="flex flex-wrap gap-1 mt-1">
-                    {flaws.map(modifier => (
-                      <Tip key={modifier.id} content={<div className="max-w-xs text-xs">{modifier.description}</div>}>
+                    {flaws.map(instance => (
+                      <Tip key={instance.id} content={<div className="max-w-xs text-xs">{instance.customDescription || instance.modifier.description}</div>}>
                         <span className="px-2 py-0.5 text-[10px] bg-red-500/10 text-red-300 rounded cursor-help">
-                          {modifier.name} ({modifier.costPerRank})
+                          {instance.modifier.name} ({instance.modifier.costPerRank})
                         </span>
                       </Tip>
                     ))}
@@ -177,18 +178,32 @@ export function PowerCard({ power, onDelete, isEditMode }: PowerCardProps) {
             </p>
           )}
 
-          {/* Delete Button */}
+          {/* Action Buttons */}
           {isEditMode && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation()
-                onDelete(power.id)
-              }}
-              className="w-full mt-2 p-2 flex items-center justify-center gap-2 text-xs text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded transition-colors"
-            >
-              <Trash2 className="h-3 w-3" />
-              Remover Poder
-            </button>
+            <div className="flex gap-2 mt-2">
+              {onEdit && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onEdit(power)
+                  }}
+                  className="flex-1 p-2 flex items-center justify-center gap-2 text-xs text-purple-400 hover:text-purple-300 hover:bg-purple-500/10 rounded transition-colors"
+                >
+                  <Edit3 className="h-3 w-3" />
+                  Editar
+                </button>
+              )}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onDelete(power.id)
+                }}
+                className="flex-1 p-2 flex items-center justify-center gap-2 text-xs text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded transition-colors"
+              >
+                <Trash2 className="h-3 w-3" />
+                Remover
+              </button>
+            </div>
           )}
         </div>
       )}

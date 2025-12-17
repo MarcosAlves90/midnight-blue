@@ -17,14 +17,14 @@ export default function PersonagemStatsPage() {
           <AttributesGrid />
           <AdvancedStatus />
         </div>
-        <div className="bg-card flex-1 rounded-xl p-6 h-fit">
-          <SkillsList />
+        <div className="flex gap-4 flex-1 max-xl:flex-col">
+          <div className="bg-card flex-1 rounded-xl p-6 h-fit">
+            <SkillsList />
+          </div>
+          <div className="bg-card flex-1 rounded-xl p-6 h-fit">
+            <PowersSection powerLevel={10} />
+          </div>
         </div>
-      </div>
-
-      {/* Powers Section - Completely Separate */}
-      <div className="w-full">
-        <PowersSection powerLevel={10} />
       </div>
     </div>
   )
