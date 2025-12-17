@@ -62,6 +62,11 @@ function PowerBuilderModalContent({
     editingPower?.customDuration || null,
   );
   const [notes, setNotes] = useState(editingPower?.notes || "");
+  // Effect-specific options (seleções que são parte do efeito, não modificadores)
+  const [effectOptions, setEffectOptions] = useState<Record<string, import("./types").EffectOptions>>(
+    editingPower?.effectOptions || {},
+  );
+
 
   // Filtered Lists
   const filteredEffects = useMemo(
@@ -206,7 +211,12 @@ function PowerBuilderModalContent({
   const calculateCost = (): number => {
     if (selectedEffects.length === 0) return 0;
 
-    const baseEffect = selectedEffects.reduce((acc, e) => acc + e.baseCost, 0);
+    // Calcular custo base dos efeitos, considerando effectOptions (ex: ppCost para Ambiente)
+    const baseEffect = selectedEffects.reduce((acc, e) => {
+      const opts = effectOptions[e.id];
+      const ppCost = opts?.ppCost ?? e.baseCost;
+      return acc + ppCost;
+    }, 0);
     const extrasTotal = selectedModifierInstances
       .filter((m) => m.modifier.type === "extra" && !m.modifier.isFlat)
       .reduce((acc, m) => acc + m.modifier.costPerRank, 0);
@@ -239,6 +249,7 @@ function PowerBuilderModalContent({
     customRange: customRange || undefined,
     customDuration: customDuration || undefined,
     notes: notes.trim() || undefined,
+    effectOptions,
   };
 
   const handleSave = () => {
@@ -246,7 +257,9 @@ function PowerBuilderModalContent({
     const powerToSave = isEditing
       ? { ...previewPower, id: editingPower.id }
       : { ...previewPower, id: crypto.randomUUID() };
-    onSave(powerToSave);
+    // incluir effectOptions no objeto final salvo
+    const powerWithOptions = { ...powerToSave, effectOptions };
+    onSave(powerWithOptions);
     onClose();
   };
 
@@ -284,6 +297,11 @@ function PowerBuilderModalContent({
                   filteredEffects={filteredEffects}
                   selectedEffects={selectedEffects}
                   onToggleEffect={toggleEffect}
+                  effectOptions={effectOptions}
+                  onUpdateEffectOptions={(effectId, opts) =>
+                    setEffectOptions((prev) => ({ ...prev, [effectId]: opts }))
+                  }
+                  rank={rank}
                 />
               )}
 

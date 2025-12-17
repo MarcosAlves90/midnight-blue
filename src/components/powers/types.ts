@@ -53,6 +53,12 @@ export interface Effect {
   duration: DurationType;
 }
 
+export interface EffectOptions {
+  sub?: string;
+  ppCost?: number;
+  [key: string]: unknown;
+}
+
 export interface Power {
   id: string;
   name: string;
@@ -64,6 +70,8 @@ export interface Power {
   customRange?: RangeType;
   customDuration?: DurationType;
   notes?: string;
+  // Opções específicas por efeito (ex: ambiente -> { sub: 'luz', ppCost: 2 })
+  effectOptions?: Record<string, EffectOptions>;
 }
 
 export interface PowerBuilderState {

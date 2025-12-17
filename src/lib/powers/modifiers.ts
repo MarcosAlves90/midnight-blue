@@ -581,6 +581,15 @@ export const EFFECT_SPECIFIC_EXTRAS: Modifier[] = [
     description: "Aflição impõe condições adicionais por grau de sucesso.",
   },
   {
+    id: "concentracao-aflicao",
+    name: "Concentração",
+    type: "extra",
+    costPerRank: 1,
+    appliesTo: ["aflicao"],
+    description:
+      "Uma Aflição de Concentração exige que o usuário gaste uma ação padrão por rodada para mantê-la; enquanto o usuário mantiver, o alvo faz um novo teste de salvamento a cada rodada para evitar o efeito (sem necessidade de teste de ataque).",
+  },
+  {
     id: "cumulativo",
     name: "Cumulativo",
     type: "extra",
@@ -588,6 +597,51 @@ export const EFFECT_SPECIFIC_EXTRAS: Modifier[] = [
     appliesTo: ["aflicao", "leitura-mental"],
     description:
       "Graus de sucesso se somam em vez de usar apenas o resultado mais recente.",
+  },
+  {
+    id: "seletivo-ambiente",
+    name: "Seletivo",
+    type: "extra",
+    costPerRank: 1,
+    appliesTo: ["ambiente"],
+    description:
+      "Com este extra você pode variar o ambiente dentro de sua área afetada, afetando alguns enquanto não afeta outros, ou até mesmo misturando ambientes diferentes (tornando parte da área fria e outra quente, por exemplo).",
+  },
+  {
+    id: "afeta-outros-camuflagem",
+    name: "Afeta Outros",
+    type: "extra",
+    costPerRank: 1,
+    appliesTo: ["camuflagem"],
+    description:
+      "Você pode conceder Camuflagem a outros personagens através do alcance, caso também aplique o modificador A Distância.",
+  },
+  {
+    id: "area-camuflagem",
+    name: "Área",
+    type: "extra",
+    costPerRank: 1,
+    appliesTo: ["camuflagem"],
+    description:
+      "Camuflagem com Afeta Outros ou Alcance, afetando múltiplos alvo em uma área.",
+  },
+  {
+    id: "ataque-camuflagem",
+    name: "Ataque",
+    type: "extra",
+    costPerRank: 1,
+    appliesTo: ["camuflagem"],
+    description:
+      "Use este extra para um efeito Camuflagem que você pode projetar sobre outro, criando um campo de Camuflagem Visual (por exemplo). Funciona como um ataque.",
+  },
+  {
+    id: "preciso-camuflagem",
+    name: "Preciso",
+    type: "extra",
+    costPerRank: 1,
+    appliesTo: ["camuflagem"],
+    description:
+      "Você pode variar entre camuflagem total, parcial ou nenhuma, escondendo apenas algumas partes. Se afetar múltiplos sentidos, pode afetar alguns sentidos por vez.",
   },
   {
     id: "dano-mod",
@@ -732,7 +786,69 @@ export const EFFECT_SPECIFIC_EXTRAS: Modifier[] = [
 ];
 
 export const EFFECT_SPECIFIC_FLAWS: Modifier[] = [
-  // Nenhuma falha específica foi definida ainda.
+  {
+    id: "grau-limitado",
+    name: "Grau Limitado",
+    type: "falha",
+    costPerRank: -1,
+    appliesTo: ["aflicao"],
+    description:
+      "A Aflição está limitada a dois graus de efeito por aplicação deste modificador; duas aplicações limitam a um grau de efeito.",
+  },
+  {
+    id: "recuperacao-instantanea",
+    name: "Recuperação Instantânea",
+    type: "falha",
+    costPerRank: -1,
+    appliesTo: ["aflicao"],
+    description:
+      "O alvo se recupera automaticamente sem necessidade de teste no fim da rodada em que a duração do efeito termina (Aflições instantâneas duram apenas uma rodada).",
+  },
+  {
+    id: "limitado-camuflagem",
+    name: "Limitado",
+    type: "falha",
+    costPerRank: -1,
+    appliesTo: ["camuflagem"],
+    description:
+      "Sua Camuflagem funciona apenas sob certas circunstâncias, como em meio a névoa, sombras ou em áreas urbanas. Um exemplo é Limitado a Máquinas, que exige que sua Camuflagem engane apenas sentidos com um descritor tecnológico.",
+  },
+  {
+    id: "mesclar",
+    name: "Mesclar",
+    type: "falha",
+    costPerRank: -1,
+    appliesTo: ["camuflagem"],
+    description:
+      "Você se mescia com os arredores. Sua Camuflagem não funciona se você se mover mais rápido que metade de sua velocidade anterior.",
+  },
+  {
+    id: "parcial-camuflagem",
+    name: "Parcial",
+    type: "falha",
+    costPerRank: -1,
+    appliesTo: ["camuflagem"],
+    description:
+      "Seu efeito concede apenas camuflagem parcial, em vez de total.",
+  },
+  {
+    id: "passiva-camuflagem",
+    name: "Passiva",
+    type: "falha",
+    costPerRank: -1,
+    appliesTo: ["camuflagem"],
+    description:
+      "Sua camuflagem dura apenas até que você faça algo que o deixe aberto a um teste de ataque ou do efeito, quando então sua camuflagem se desfaz e você não pode tentar novamente na rodada seguinte.",
+  },
+  {
+    id: "resistivel-camuflagem",
+    name: "Resistível",
+    type: "falha",
+    costPerRank: -1,
+    appliesTo: ["camuflagem"],
+    description:
+      "Sua Camuflagem oferece um teste de salvamento para qualquer personagem que tenta penetrá-la (escolha uma defesa apropriada).",
+  },
 ];
 
 export const EFFECT_SPECIFIC_MODIFIERS: Modifier[] = [

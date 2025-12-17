@@ -112,14 +112,40 @@ export function PowerCard({
         <div className="px-3 pb-3 space-y-3 border-t border-purple-500/10">
           {/* Effect Description */}
           <div className="pt-3 space-y-1">
-            {power.effects.map((effect, idx) => (
-              <p key={idx} className="text-xs text-muted-foreground">
-                <span className="font-medium text-foreground">
-                  {effect.name}:
-                </span>{" "}
-                {effect.description}
-              </p>
-            ))}
+            {power.effects.map((effect, idx) => {
+              const opts = power.effectOptions?.[effect.id];
+
+              // humanizar subtipo de Ambiente
+              const ambientLabelMap: Record<string, string> = {
+                "calor-frio": "Calor ou Frio",
+                "impedir-movimento": "Impedir Movimento",
+                luz: "Luz",
+                visibilidade: "Visibilidade",
+              };
+
+              return (
+                <div key={idx}>
+                  <p className="text-xs text-muted-foreground">
+                    <span className="font-medium text-foreground">{effect.name}:</span>{" "}
+                    {effect.description}
+                  </p>
+                  {opts && (
+                    <div className="mt-1 text-xs text-muted-foreground flex gap-2 items-center">
+                      {opts.sub && (
+                        <span className="px-2 py-0.5 text-[10px] bg-background/30 rounded">
+                          {ambientLabelMap[opts.sub] || opts.sub}
+                        </span>
+                      )}
+                      {opts.ppCost && (
+                        <span className="px-2 py-0.5 text-[10px] bg-background/30 rounded">
+                          {opts.ppCost} PP/grad
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
 
           {/* Parameters Grid */}
