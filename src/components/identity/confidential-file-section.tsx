@@ -1,16 +1,18 @@
-import React from "react"
-import { Shield, Users, MapPin, Zap, Heart } from "lucide-react"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Tip } from "@/components/ui/tip"
-import { IdentityData } from "@/contexts/IdentityContext"
+import React from "react";
+import { Shield, Users, MapPin, Zap, Heart } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Tip } from "@/components/ui/tip";
+import { IdentityData } from "@/contexts/IdentityContext";
 
 interface ConfidentialFileSectionProps {
-  identity: IdentityData
-  onFieldChange: (field: keyof IdentityData, value: string) => void
+  identity: IdentityData;
+  onFieldChange: (field: keyof IdentityData, value: string) => void;
 }
 
-export const ConfidentialFileSection: React.FC<ConfidentialFileSectionProps> = ({ identity, onFieldChange }) => (
+export const ConfidentialFileSection: React.FC<
+  ConfidentialFileSectionProps
+> = ({ identity, onFieldChange }) => (
   <div className="bg-card rounded-xl p-6 h-full">
     <div className="flex items-center gap-2 mb-6 pb-2 border-b border-border/40">
       <Shield className="w-4 h-4 text-primary" aria-hidden="true" />
@@ -21,10 +23,21 @@ export const ConfidentialFileSection: React.FC<ConfidentialFileSectionProps> = (
 
     <div className="space-y-5">
       <div className="space-y-1.5">
-        <Tip content={<div className="max-w-xs text-xs">O grupo ou organização ao qual o herói pertence (ex: Liga da Justiça, Vingadores).</div>} side="top" align="start">
+        <Tip
+          content={
+            <div className="max-w-xs text-xs">
+              O grupo ou organização ao qual o herói pertence (ex: Liga da
+              Justiça, Vingadores).
+            </div>
+          }
+          side="top"
+          align="start"
+        >
           <label className="text-[10px] font-medium text-muted-foreground uppercase flex items-center gap-1 cursor-help w-fit">
             <Users className="w-3 h-3" aria-hidden="true" />
-            <span className="decoration-dotted underline underline-offset-2">Afiliação</span>
+            <span className="decoration-dotted underline underline-offset-2">
+              Afiliação
+            </span>
           </label>
         </Tip>
         <Input
@@ -37,10 +50,21 @@ export const ConfidentialFileSection: React.FC<ConfidentialFileSectionProps> = (
       </div>
 
       <div className="space-y-1.5">
-        <Tip content={<div className="max-w-xs text-xs">O local onde o herói opera ou vive (ex: Batcaverna, Torre dos Titãs, Cidade de Nova York).</div>} side="top" align="start">
+        <Tip
+          content={
+            <div className="max-w-xs text-xs">
+              O local onde o herói opera ou vive (ex: Batcaverna, Torre dos
+              Titãs, Cidade de Nova York).
+            </div>
+          }
+          side="top"
+          align="start"
+        >
           <label className="text-[10px] font-medium text-muted-foreground uppercase flex items-center gap-1 cursor-help w-fit">
             <MapPin className="w-3 h-3" aria-hidden="true" />
-            <span className="decoration-dotted underline underline-offset-2">Base de Operações</span>
+            <span className="decoration-dotted underline underline-offset-2">
+              Base de Operações
+            </span>
           </label>
         </Tip>
         <Input
@@ -53,10 +77,21 @@ export const ConfidentialFileSection: React.FC<ConfidentialFileSectionProps> = (
       </div>
 
       <div className="space-y-1.5">
-        <Tip content={<div className="max-w-xs text-xs">A fonte dos poderes do herói (ex: Mutante, Tecnológico, Místico, Treinamento).</div>} side="top" align="start">
+        <Tip
+          content={
+            <div className="max-w-xs text-xs">
+              A fonte dos poderes do herói (ex: Mutante, Tecnológico, Místico,
+              Treinamento).
+            </div>
+          }
+          side="top"
+          align="start"
+        >
           <label className="text-[10px] font-medium text-muted-foreground uppercase flex items-center gap-1 cursor-help w-fit">
             <Zap className="w-3 h-3" aria-hidden="true" />
-            <span className="decoration-dotted underline underline-offset-2">Origem dos Poderes</span>
+            <span className="decoration-dotted underline underline-offset-2">
+              Origem dos Poderes
+            </span>
           </label>
         </Tip>
         <Input
@@ -69,10 +104,21 @@ export const ConfidentialFileSection: React.FC<ConfidentialFileSectionProps> = (
       </div>
 
       <div className="space-y-1.5">
-        <Tip content={<div className="max-w-xs text-xs">A razão pela qual o personagem age como herói (ex: Responsabilidade, Justiça, Vingança).</div>} side="top" align="start">
+        <Tip
+          content={
+            <div className="max-w-xs text-xs">
+              A razão pela qual o personagem age como herói (ex:
+              Responsabilidade, Justiça, Vingança).
+            </div>
+          }
+          side="top"
+          align="start"
+        >
           <label className="text-[10px] font-medium text-muted-foreground uppercase flex items-center gap-1 cursor-help w-fit">
             <Heart className="w-3 h-3" aria-hidden="true" />
-            <span className="decoration-dotted underline underline-offset-2">Motivação</span>
+            <span className="decoration-dotted underline underline-offset-2">
+              Motivação
+            </span>
           </label>
         </Tip>
         <Textarea
@@ -85,4 +131,4 @@ export const ConfidentialFileSection: React.FC<ConfidentialFileSectionProps> = (
       </div>
     </div>
   </div>
-)
+);

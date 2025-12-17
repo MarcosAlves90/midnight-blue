@@ -1,12 +1,12 @@
-import type { Metadata } from "next"
-import AttributesGrid from "@/components/attributes-grid"
-import AdvancedStatus from "@/components/advanced-status"
-import SkillsList from "@/components/skills"
-import PowersSection from "@/components/powers"
+import type { Metadata } from "next";
+import AttributesGrid from "@/components/attributes-grid";
+import AdvancedStatus from "@/components/advanced-status";
+import SkillsList from "@/components/skills";
+import PowersSection from "@/components/powers";
 
 export const metadata: Metadata = {
   title: "Status",
-}
+};
 
 export default function PersonagemStatsPage() {
   return (
@@ -27,5 +27,5 @@ export default function PersonagemStatsPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

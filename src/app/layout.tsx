@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import localFont from 'next/font/local';
+import localFont from "next/font/local";
 import { ThemeProvider } from "next-themes";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -32,7 +32,8 @@ export const metadata: Metadata = {
     default: "MidNight",
     template: "%s - MidNight",
   },
-  description: "Plataforma de fichas de RPG para o sistema de The Mental World.",
+  description:
+    "Plataforma de fichas de RPG para o sistema de The Mental World.",
 };
 
 export default function RootLayout({
@@ -48,9 +49,7 @@ export default function RootLayout({
         <AppProviders>
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
             {children}
-            <ToastContainer 
-              limit={5}
-            />
+            <ToastContainer limit={5} />
           </ThemeProvider>
         </AppProviders>
       </body>

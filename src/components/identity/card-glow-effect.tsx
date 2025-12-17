@@ -1,10 +1,12 @@
-import React from "react"
+import React from "react";
 
 interface CardGlowEffectProps {
-  favoriteColor: string
+  favoriteColor: string;
 }
 
-export const CardGlowEffect: React.FC<CardGlowEffectProps> = ({ favoriteColor }) => (
+export const CardGlowEffect: React.FC<CardGlowEffectProps> = ({
+  favoriteColor,
+}) => (
   <div
     className="absolute inset-0 overflow-hidden"
     style={{
@@ -64,4 +66,4 @@ export const CardGlowEffect: React.FC<CardGlowEffectProps> = ({ favoriteColor })
       }}
     />
   </div>
-)
+);

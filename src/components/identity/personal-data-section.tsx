@@ -1,16 +1,19 @@
-import React from "react"
-import { FileText, MapPin, Briefcase } from "lucide-react"
-import { Input } from "@/components/ui/input"
-import { Tip } from "@/components/ui/tip"
-import { IdentityData } from "@/contexts/IdentityContext"
-import { ColorPickerDropdown } from "./color-picker-dropdown"
+import React from "react";
+import { FileText, MapPin, Briefcase } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Tip } from "@/components/ui/tip";
+import { IdentityData } from "@/contexts/IdentityContext";
+import { ColorPickerDropdown } from "./color-picker-dropdown";
 
 interface PersonalDataSectionProps {
-  identity: IdentityData
-  onFieldChange: (field: keyof IdentityData, value: string) => void
+  identity: IdentityData;
+  onFieldChange: (field: keyof IdentityData, value: string) => void;
 }
 
-export const PersonalDataSection: React.FC<PersonalDataSectionProps> = ({ identity, onFieldChange }) => (
+export const PersonalDataSection: React.FC<PersonalDataSectionProps> = ({
+  identity,
+  onFieldChange,
+}) => (
   <div className="bg-card rounded-xl p-6">
     <div className="flex items-center gap-2 mb-6 pb-2 border-b border-border/40">
       <FileText className="w-4 h-4 text-primary" aria-hidden="true" />
@@ -21,10 +24,20 @@ export const PersonalDataSection: React.FC<PersonalDataSectionProps> = ({ identi
 
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div className="space-y-1.5">
-        <Tip content={<div className="max-w-xs text-xs">O local onde o personagem nasceu (cidade, país, planeta, etc).</div>} side="top" align="start">
+        <Tip
+          content={
+            <div className="max-w-xs text-xs">
+              O local onde o personagem nasceu (cidade, país, planeta, etc).
+            </div>
+          }
+          side="top"
+          align="start"
+        >
           <label className="text-[10px] font-medium text-muted-foreground uppercase flex items-center gap-1 cursor-help w-fit">
             <MapPin className="w-3 h-3" aria-hidden="true" />
-            <span className="decoration-dotted underline underline-offset-2">Local de Nascimento</span>
+            <span className="decoration-dotted underline underline-offset-2">
+              Local de Nascimento
+            </span>
           </label>
         </Tip>
         <Input
@@ -36,10 +49,21 @@ export const PersonalDataSection: React.FC<PersonalDataSectionProps> = ({ identi
         />
       </div>
       <div className="space-y-1.5">
-        <Tip content={<div className="max-w-xs text-xs">A profissão ou ocupação principal do personagem quando não está atuando como herói.</div>} side="top" align="start">
+        <Tip
+          content={
+            <div className="max-w-xs text-xs">
+              A profissão ou ocupação principal do personagem quando não está
+              atuando como herói.
+            </div>
+          }
+          side="top"
+          align="start"
+        >
           <label className="text-[10px] font-medium text-muted-foreground uppercase flex items-center gap-1 cursor-help w-fit">
             <Briefcase className="w-3 h-3" aria-hidden="true" />
-            <span className="decoration-dotted underline underline-offset-2">Ocupação</span>
+            <span className="decoration-dotted underline underline-offset-2">
+              Ocupação
+            </span>
           </label>
         </Tip>
         <Input
@@ -58,4 +82,4 @@ export const PersonalDataSection: React.FC<PersonalDataSectionProps> = ({ identi
       </div>
     </div>
   </div>
-)
+);

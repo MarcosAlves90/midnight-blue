@@ -1,19 +1,22 @@
-import React, { useCallback } from "react"
-import { IdentityData } from "@/contexts/IdentityContext"
-import { ROTATION_MULTIPLIER, SCALE_MULTIPLIER } from "./constants"
-import { IdentityCardHeader } from "./identity-card-header"
-import { ImageArea } from "./image-area"
-import { IdentityCardContent } from "./identity-card-content"
-import { useIsMobile } from "@/hooks/use-mobile"
+import React, { useCallback } from "react";
+import { IdentityData } from "@/contexts/IdentityContext";
+import { ROTATION_MULTIPLIER, SCALE_MULTIPLIER } from "./constants";
+import { IdentityCardHeader } from "./identity-card-header";
+import { ImageArea } from "./image-area";
+import { IdentityCardContent } from "./identity-card-content";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface IdentityCardContainerProps {
-  identity: IdentityData
-  cardRef: React.RefObject<HTMLDivElement | null>
-  onFieldChange: <K extends keyof IdentityData>(field: K, value: IdentityData[K]) => void
-  fileInputRef: React.RefObject<HTMLInputElement | null>
-  onImageUpload: () => void
-  onFileSelect: (e: React.ChangeEvent<HTMLInputElement>) => void
-  onSave: () => void
+  identity: IdentityData;
+  cardRef: React.RefObject<HTMLDivElement | null>;
+  onFieldChange: <K extends keyof IdentityData>(
+    field: K,
+    value: IdentityData[K],
+  ) => void;
+  fileInputRef: React.RefObject<HTMLInputElement | null>;
+  onImageUpload: () => void;
+  onFileSelect: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onSave: () => void;
 }
 
 export const IdentityCardContainer: React.FC<IdentityCardContainerProps> = ({
@@ -25,44 +28,46 @@ export const IdentityCardContainer: React.FC<IdentityCardContainerProps> = ({
   onFileSelect,
   onSave,
 }) => {
-  const isMobile = useIsMobile()
+  const isMobile = useIsMobile();
 
   const handleMouseMove = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
-      if (isMobile || !cardRef.current) return
+      if (isMobile || !cardRef.current) return;
 
-      const rect = cardRef.current.getBoundingClientRect()
-      const centerX = rect.left + rect.width / 2
-      const centerY = rect.top + rect.height / 2
+      const rect = cardRef.current.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
 
-      const x = (e.clientX - centerX) / (rect.width / 2)
-      const y = (e.clientY - centerY) / (rect.height / 2)
+      const x = (e.clientX - centerX) / (rect.width / 2);
+      const y = (e.clientY - centerY) / (rect.height / 2);
 
-      const rotateX = y * ROTATION_MULTIPLIER
-      const rotateY = x * -ROTATION_MULTIPLIER
-      const scale = 1 + Math.abs(x) * SCALE_MULTIPLIER
+      const rotateX = y * ROTATION_MULTIPLIER;
+      const rotateY = x * -ROTATION_MULTIPLIER;
+      const scale = 1 + Math.abs(x) * SCALE_MULTIPLIER;
 
       requestAnimationFrame(() => {
         if (cardRef.current) {
-          cardRef.current.style.transition = 'none' // Disable transition for instant response
-          cardRef.current.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(${scale})`
+          cardRef.current.style.transition = "none"; // Disable transition for instant response
+          cardRef.current.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(${scale})`;
         }
-      })
+      });
     },
-    [isMobile, cardRef]
-  )
+    [isMobile, cardRef],
+  );
 
   const handleMouseLeave = useCallback(() => {
-    if (isMobile || !cardRef.current) return
+    if (isMobile || !cardRef.current) return;
     requestAnimationFrame(() => {
       if (cardRef.current) {
-        cardRef.current.style.transition = 'transform 0.5s ease-out' // Re-enable transition for smooth reset
-        cardRef.current.style.transform = 'none'
+        cardRef.current.style.transition = "transform 0.5s ease-out"; // Re-enable transition for smooth reset
+        cardRef.current.style.transform = "none";
       }
-    })
-  }, [isMobile, cardRef])
+    });
+  }, [isMobile, cardRef]);
 
-  const boxShadow = isMobile ? '0 4px 8px rgba(0, 0, 0, 0.2)' : '0 10px 20px rgba(0, 0, 0, 0.4)'
+  const boxShadow = isMobile
+    ? "0 4px 8px rgba(0, 0, 0, 0.2)"
+    : "0 10px 20px rgba(0, 0, 0, 0.4)";
 
   return (
     <div
@@ -75,7 +80,7 @@ export const IdentityCardContainer: React.FC<IdentityCardContainerProps> = ({
         ref={cardRef}
         onMouseMove={isMobile ? undefined : handleMouseMove}
         onMouseLeave={isMobile ? undefined : handleMouseLeave}
-        className={`relative ${isMobile ? '' : 'will-change-transform'}`}
+        className={`relative ${isMobile ? "" : "will-change-transform"}`}
         style={{
           pointerEvents: "auto",
         }}
@@ -86,10 +91,10 @@ export const IdentityCardContainer: React.FC<IdentityCardContainerProps> = ({
 
         {/* Card Border/Background */}
         <div
-          className={`${isMobile ? 'p-0.5 shadow-lg' : 'p-0.5 shadow-2xl'} relative group`}
+          className={`${isMobile ? "p-0.5 shadow-lg" : "p-0.5 shadow-2xl"} relative group`}
           style={{
             backgroundColor: `var(--identity-theme-color, ${identity.favoriteColor || "#1a1a1a"})`,
-            boxShadow: isMobile ? '0 8px 16px rgba(0, 0, 0, 0.3)' : boxShadow,
+            boxShadow: isMobile ? "0 8px 16px rgba(0, 0, 0, 0.3)" : boxShadow,
           }}
         >
           {/* Card Content Container */}
@@ -118,15 +123,19 @@ export const IdentityCardContainer: React.FC<IdentityCardContainerProps> = ({
 
             {/* Terminal Separator Line */}
             <div
-              className={`${isMobile ? 'px-2 py-1' : 'px-3 py-2'} bg-gradient-to-r border-b flex items-center gap-2 shadow-sm z-10 font-mono text-[8px]`}
+              className={`${isMobile ? "px-2 py-1" : "px-3 py-2"} bg-gradient-to-r border-b flex items-center gap-2 shadow-sm z-10 font-mono text-[8px]`}
               style={{
                 background: `linear-gradient(90deg, rgba(var(--identity-theme-rgb), 0), rgba(var(--identity-theme-rgb), 0.5), rgba(var(--identity-theme-rgb), 0))`,
                 borderColor: `rgba(var(--identity-theme-rgb), 0.3)`,
                 color: `rgba(var(--identity-theme-rgb), 0.6)`,
               }}
             >
-              <span className={`${isMobile ? 'hidden' : ''} sys-scan-line`}>├─ SYS.SCAN() </span>
-              <span className={`${isMobile ? '' : 'hidden'} sys-scan-line`}>├─ SCAN() </span>
+              <span className={`${isMobile ? "hidden" : ""} sys-scan-line`}>
+                ├─ SYS.SCAN(){" "}
+              </span>
+              <span className={`${isMobile ? "" : "hidden"} sys-scan-line`}>
+                ├─ SCAN(){" "}
+              </span>
             </div>
 
             <IdentityCardContent
@@ -162,5 +171,5 @@ export const IdentityCardContainer: React.FC<IdentityCardContainerProps> = ({
         }
       `}</style>
     </div>
-  )
-}
+  );
+};

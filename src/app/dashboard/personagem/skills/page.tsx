@@ -1,10 +1,10 @@
-import type { Metadata } from "next"
-import SkillsList from "@/components/skills"
-import AttributesGrid from "@/components/attributes-grid"
+import type { Metadata } from "next";
+import SkillsList from "@/components/skills";
+import AttributesGrid from "@/components/attributes-grid";
 
 export const metadata: Metadata = {
   title: "Skills",
-}
+};
 
 export default function PersonagemSkillsPage() {
   return (
@@ -17,5 +17,5 @@ export default function PersonagemSkillsPage() {
         <SkillsList />
       </div>
     </div>
-  )
+  );
 }

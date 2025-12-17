@@ -1,14 +1,14 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import Link from "next/link"
-import { ChevronRight, type LucideIcon } from "lucide-react"
+import * as React from "react";
+import Link from "next/link";
+import { ChevronRight, type LucideIcon } from "lucide-react";
 
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@/components/ui/collapsible"
+} from "@/components/ui/collapsible";
 import {
   SidebarGroup,
   SidebarGroupLabel,
@@ -18,36 +18,41 @@ import {
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
 
 export const NavMain = React.memo(function NavMain({
   items,
 }: {
   items: {
-    title: string
-    url: string
-    icon?: LucideIcon
-    isActive?: boolean
+    title: string;
+    url: string;
+    icon?: LucideIcon;
+    isActive?: boolean;
     items?: {
-      title: string
-      url: string
-    }[]
-  }[]
+      title: string;
+      url: string;
+    }[];
+  }[];
 }) {
   // Manter estado de abertura dos itens para evitar reset na navegação
-  const [openItems, setOpenItems] = React.useState<Record<string, boolean>>(() => {
-    const initial: Record<string, boolean> = {}
-    items.forEach(item => {
-      if (item.isActive) {
-        initial[item.title] = true
-      }
-    })
-    return initial
-  })
+  const [openItems, setOpenItems] = React.useState<Record<string, boolean>>(
+    () => {
+      const initial: Record<string, boolean> = {};
+      items.forEach((item) => {
+        if (item.isActive) {
+          initial[item.title] = true;
+        }
+      });
+      return initial;
+    },
+  );
 
-  const handleOpenChange = React.useCallback((title: string, isOpen: boolean) => {
-    setOpenItems(prev => ({ ...prev, [title]: isOpen }))
-  }, [])
+  const handleOpenChange = React.useCallback(
+    (title: string, isOpen: boolean) => {
+      setOpenItems((prev) => ({ ...prev, [title]: isOpen }));
+    },
+    [],
+  );
   return (
     <SidebarGroup>
       <SidebarGroupLabel>Ficha</SidebarGroupLabel>
@@ -86,5 +91,5 @@ export const NavMain = React.memo(function NavMain({
         ))}
       </SidebarMenu>
     </SidebarGroup>
-  )
-})
+  );
+});

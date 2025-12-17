@@ -1,13 +1,13 @@
-"use client"
+"use client";
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef } from "react";
 
 interface UseGlitchColorProps {
-  baseColor: string
-  glitchColor?: string
-  glitchChance?: number
-  glitchDuration?: number
-  intervalMs?: number
+  baseColor: string;
+  glitchColor?: string;
+  glitchChance?: number;
+  glitchDuration?: number;
+  intervalMs?: number;
 }
 
 export function useGlitchColor({
@@ -17,31 +17,31 @@ export function useGlitchColor({
   glitchDuration = 150,
   intervalMs = 200,
 }: UseGlitchColorProps): string {
-  const [currentColor, setCurrentColor] = useState(baseColor)
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null)
-  const intervalRef = useRef<NodeJS.Timeout | null>(null)
+  const [currentColor, setCurrentColor] = useState(baseColor);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    setCurrentColor(baseColor)
-  }, [baseColor])
+    setCurrentColor(baseColor);
+  }, [baseColor]);
 
   useEffect(() => {
     const cleanup = () => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current)
-      if (intervalRef.current) clearInterval(intervalRef.current)
-    }
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
 
     intervalRef.current = setInterval(() => {
       if (Math.random() < glitchChance) {
-        setCurrentColor(glitchColor)
+        setCurrentColor(glitchColor);
         timeoutRef.current = setTimeout(() => {
-          setCurrentColor(baseColor)
-        }, glitchDuration)
+          setCurrentColor(baseColor);
+        }, glitchDuration);
       }
-    }, intervalMs)
+    }, intervalMs);
 
-    return cleanup
-  }, [baseColor, glitchColor, glitchChance, glitchDuration, intervalMs])
+    return cleanup;
+  }, [baseColor, glitchColor, glitchChance, glitchDuration, intervalMs]);
 
-  return currentColor
+  return currentColor;
 }

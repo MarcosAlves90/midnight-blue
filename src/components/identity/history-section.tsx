@@ -1,14 +1,20 @@
-import React from "react"
-import { BookOpen } from "lucide-react"
-import { Textarea } from "@/components/ui/textarea"
-import { IdentityData } from "@/contexts/IdentityContext"
+import React from "react";
+import { BookOpen } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { IdentityData } from "@/contexts/IdentityContext";
 
 interface HistorySectionProps {
-  identity: IdentityData
-  onFieldChange: <K extends keyof IdentityData>(field: K, value: IdentityData[K]) => void
+  identity: IdentityData;
+  onFieldChange: <K extends keyof IdentityData>(
+    field: K,
+    value: IdentityData[K],
+  ) => void;
 }
 
-export const HistorySection: React.FC<HistorySectionProps> = ({ identity, onFieldChange }) => (
+export const HistorySection: React.FC<HistorySectionProps> = ({
+  identity,
+  onFieldChange,
+}) => (
   <div className="bg-card rounded-xl p-6">
     <div className="flex items-center gap-2 mb-6 pb-2 border-b border-border/40">
       <BookOpen className="w-4 h-4 text-primary" aria-hidden="true" />
@@ -27,4 +33,4 @@ export const HistorySection: React.FC<HistorySectionProps> = ({ identity, onFiel
       />
     </div>
   </div>
-)
+);

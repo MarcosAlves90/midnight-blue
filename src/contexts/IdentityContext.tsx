@@ -1,5 +1,11 @@
-"use client"
-import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+"use client";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+} from "react";
 
 export interface IdentityData {
   name: string;
@@ -57,15 +63,22 @@ const INITIAL_IDENTITY: IdentityData = {
 
 interface IdentityContextType {
   identity: IdentityData;
-  updateIdentity: <K extends keyof IdentityData>(field: K, value: IdentityData[K]) => void;
+  updateIdentity: <K extends keyof IdentityData>(
+    field: K,
+    value: IdentityData[K],
+  ) => void;
   setIdentity: React.Dispatch<React.SetStateAction<IdentityData>>;
 }
 
-const IdentityContext = createContext<IdentityContextType | undefined>(undefined);
+const IdentityContext = createContext<IdentityContextType | undefined>(
+  undefined,
+);
 
 const STORAGE_KEY = "midnight-identity";
 
-export const IdentityProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const IdentityProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [identity, setIdentity] = useState<IdentityData>(INITIAL_IDENTITY);
 
   useEffect(() => {
@@ -88,9 +101,12 @@ export const IdentityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   }, [identity]);
 
-  const updateIdentity = useCallback(<K extends keyof IdentityData>(field: K, value: IdentityData[K]) => {
-    setIdentity(prev => ({ ...prev, [field]: value }));
-  }, []);
+  const updateIdentity = useCallback(
+    <K extends keyof IdentityData>(field: K, value: IdentityData[K]) => {
+      setIdentity((prev) => ({ ...prev, [field]: value }));
+    },
+    [],
+  );
 
   return (
     <IdentityContext.Provider value={{ identity, updateIdentity, setIdentity }}>
@@ -102,7 +118,9 @@ export const IdentityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 export const useIdentityContext = () => {
   const context = useContext(IdentityContext);
   if (context === undefined) {
-    throw new Error("useIdentityContext must be used within a IdentityProvider");
+    throw new Error(
+      "useIdentityContext must be used within a IdentityProvider",
+    );
   }
   return context;
 };

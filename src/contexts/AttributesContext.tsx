@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { Attribute } from "../components/attributes-grid/types";
 import { INITIAL_ATTRIBUTES } from "../components/attributes-grid/constants";
@@ -9,11 +9,15 @@ interface AttributesContextType {
   resetAttributes: () => void;
 }
 
-const AttributesContext = createContext<AttributesContextType | undefined>(undefined);
+const AttributesContext = createContext<AttributesContextType | undefined>(
+  undefined,
+);
 
 const STORAGE_KEY = "midnight-attributes";
 
-export const AttributesProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const AttributesProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   // Start with server-safe initial value so SSR and first client render match.
   const [attributes, setAttributes] = useState<Attribute[]>(INITIAL_ATTRIBUTES);
 
@@ -24,9 +28,11 @@ export const AttributesProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       if (stored) {
         const parsedAttributes: Attribute[] = JSON.parse(stored);
         // Check if stored attributes match current INITIAL_ATTRIBUTES structure
-        const currentIds = new Set(INITIAL_ATTRIBUTES.map(attr => attr.id));
-        const storedIds = new Set(parsedAttributes.map(attr => attr.id));
-        const idsMatch = currentIds.size === storedIds.size && [...currentIds].every(id => storedIds.has(id));
+        const currentIds = new Set(INITIAL_ATTRIBUTES.map((attr) => attr.id));
+        const storedIds = new Set(parsedAttributes.map((attr) => attr.id));
+        const idsMatch =
+          currentIds.size === storedIds.size &&
+          [...currentIds].every((id) => storedIds.has(id));
         if (idsMatch) {
           setAttributes(parsedAttributes);
         } else {
@@ -51,7 +57,9 @@ export const AttributesProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const resetAttributes = () => setAttributes(INITIAL_ATTRIBUTES);
 
   return (
-    <AttributesContext.Provider value={{ attributes, setAttributes, resetAttributes }}>
+    <AttributesContext.Provider
+      value={{ attributes, setAttributes, resetAttributes }}
+    >
       {children}
     </AttributesContext.Provider>
   );
@@ -59,6 +67,9 @@ export const AttributesProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
 export function useAttributesContext() {
   const context = useContext(AttributesContext);
-  if (!context) throw new Error("useAttributesContext deve ser usado dentro de AttributesProvider");
+  if (!context)
+    throw new Error(
+      "useAttributesContext deve ser usado dentro de AttributesProvider",
+    );
   return context;
-} 
+}

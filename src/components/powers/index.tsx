@@ -1,59 +1,58 @@
-'use client'
+"use client";
 
-import { useState, useCallback } from 'react'
-import { Power } from './types'
-import { PowerCard } from './power-card'
-import { PowerBuilderModal } from './power-builder-modal'
-import { Plus, Edit3, Lock, AlertTriangle } from 'lucide-react'
+import { useState, useCallback } from "react";
+import { Power } from "./types";
+import { PowerCard } from "./power-card";
+import { PowerBuilderModal } from "./power-builder-modal";
+import { Plus, Edit3, Lock, AlertTriangle } from "lucide-react";
 
 interface PowersSectionProps {
-  powerLevel?: number
+  powerLevel?: number;
 }
 
-
 export default function PowersSection({ powerLevel = 10 }: PowersSectionProps) {
-  const [powers, setPowers] = useState<Power[]>([])
-  const [isEditMode, setIsEditMode] = useState(false)
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [editingPower, setEditingPower] = useState<Power | undefined>()
+  const [powers, setPowers] = useState<Power[]>([]);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingPower, setEditingPower] = useState<Power | undefined>();
 
   const toggleEditMode = useCallback(() => {
-    setIsEditMode(prev => !prev)
-  }, [])
+    setIsEditMode((prev) => !prev);
+  }, []);
 
   const handleAddPower = (power: Power) => {
     if (editingPower) {
       // Update existing power
-      setPowers(prev => prev.map(p => p.id === power.id ? power : p))
-      setEditingPower(undefined)
+      setPowers((prev) => prev.map((p) => (p.id === power.id ? power : p)));
+      setEditingPower(undefined);
     } else {
       // Add new power
-      setPowers(prev => [...prev, power])
+      setPowers((prev) => [...prev, power]);
     }
-  }
+  };
 
   const handleEditPower = useCallback((power: Power) => {
-    setEditingPower(power)
-    setIsModalOpen(true)
-  }, [])
+    setEditingPower(power);
+    setIsModalOpen(true);
+  }, []);
 
   const handleDeletePower = (id: string) => {
-    setPowers(prev => prev.filter(p => p.id !== id))
-  }
+    setPowers((prev) => prev.filter((p) => p.id !== id));
+  };
 
   const handleCloseModal = () => {
-    setIsModalOpen(false)
-    setEditingPower(undefined)
-  }
+    setIsModalOpen(false);
+    setEditingPower(undefined);
+  };
 
   // Check for powers that exceed power level limits
-  const powersExceedingLimit = powers.filter(power => {
+  const powersExceedingLimit = powers.filter((power) => {
     // Effects with attack roll: rank + attack bonus <= PL * 2
     // Effects without attack (perception/save): rank <= PL
-    const hasAttack = power.effects.some(e => e.range !== 'percepcao')
-    const maxRank = hasAttack ? powerLevel * 2 : powerLevel
-    return power.rank > maxRank
-  })
+    const hasAttack = power.effects.some((e) => e.range !== "percepcao");
+    const maxRank = hasAttack ? powerLevel * 2 : powerLevel;
+    return power.rank > maxRank;
+  });
 
   return (
     <>
@@ -76,11 +75,19 @@ export default function PowersSection({ powerLevel = 10 }: PowersSectionProps) {
                 ? "bg-primary text-primary-foreground hover:bg-primary/90"
                 : "bg-muted-foreground/20 text-muted-foreground hover:bg-muted-foreground/30"
             }`}
-            title={isEditMode ? "Desativar modo de edição" : "Ativar modo de edição"}
-            aria-label={isEditMode ? "Desativar modo de edição" : "Ativar modo de edição"}
+            title={
+              isEditMode ? "Desativar modo de edição" : "Ativar modo de edição"
+            }
+            aria-label={
+              isEditMode ? "Desativar modo de edição" : "Ativar modo de edição"
+            }
             aria-pressed={isEditMode}
           >
-            {isEditMode ? <Edit3 className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
+            {isEditMode ? (
+              <Edit3 className="w-4 h-4" />
+            ) : (
+              <Lock className="w-4 h-4" />
+            )}
           </button>
         </div>
       </div>
@@ -89,7 +96,8 @@ export default function PowersSection({ powerLevel = 10 }: PowersSectionProps) {
         <div className="mb-4 p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg flex items-start gap-2">
           <AlertTriangle className="h-4 w-4 text-amber-500 flex-shrink-0 mt-0.5" />
           <div className="text-xs text-amber-200">
-            <strong>Aviso:</strong> {powersExceedingLimit.length} poder(es) excedem o limite de NP {powerLevel}.
+            <strong>Aviso:</strong> {powersExceedingLimit.length} poder(es)
+            excedem o limite de NP {powerLevel}.
           </div>
         </div>
       )}
@@ -100,7 +108,7 @@ export default function PowersSection({ powerLevel = 10 }: PowersSectionProps) {
             Nenhum poder criado
           </div>
         ) : (
-          powers.map(power => (
+          powers.map((power) => (
             <PowerCard
               key={power.id}
               power={power}
@@ -120,5 +128,5 @@ export default function PowersSection({ powerLevel = 10 }: PowersSectionProps) {
         />
       )}
     </>
-  )
+  );
 }

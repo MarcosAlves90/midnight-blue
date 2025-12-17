@@ -9,9 +9,16 @@
  * @throws {Error} When count or faces are not positive integers
  */
 export function validateDiceParams(count: number, faces: number): void {
-    if (!Number.isInteger(count) || !Number.isInteger(faces) || count <= 0 || faces <= 0) {
-        throw new Error('Invalid parameters: count and faces must be positive integers');
-    }
+  if (
+    !Number.isInteger(count) ||
+    !Number.isInteger(faces) ||
+    count <= 0 ||
+    faces <= 0
+  ) {
+    throw new Error(
+      "Invalid parameters: count and faces must be positive integers",
+    );
+  }
 }
 
 /**
@@ -20,7 +27,7 @@ export function validateDiceParams(count: number, faces: number): void {
  * @returns Random integer between 1 and faces (inclusive)
  */
 export function rollSingleDie(faces: number): number {
-    return Math.floor(Math.random() * faces) + 1;
+  return Math.floor(Math.random() * faces) + 1;
 }
 
 /**
@@ -31,10 +38,16 @@ export function rollSingleDie(faces: number): number {
  * @param diceBonus - Additional dice to roll
  * @returns Formatted dice notation string
  */
-export function generateNotation(count: number, faces: number, bonus?: number, diceBonus?: number): string {
-    const diceBonusText = diceBonus ? `+${diceBonus}d` : '';
-    const bonusText = bonus && bonus !== 0 ? (bonus > 0 ? `+${bonus}` : `${bonus}`) : '';
-    return `${count}d${faces}${diceBonusText}${bonusText}`;
+export function generateNotation(
+  count: number,
+  faces: number,
+  bonus?: number,
+  diceBonus?: number,
+): string {
+  const diceBonusText = diceBonus ? `+${diceBonus}d` : "";
+  const bonusText =
+    bonus && bonus !== 0 ? (bonus > 0 ? `+${bonus}` : `${bonus}`) : "";
+  return `${count}d${faces}${diceBonusText}${bonusText}`;
 }
 
 /**
@@ -43,15 +56,18 @@ export function generateNotation(count: number, faces: number, bonus?: number, d
  * @param strategy - Selection strategy
  * @returns The selected value
  */
-export function calculateSelected(rolls: number[], strategy: 'highest' | 'lowest' | 'sum'): number {
-    switch (strategy) {
-        case 'highest':
-            return Math.max(...rolls);
-        case 'lowest':
-            return Math.min(...rolls);
-        case 'sum':
-            return rolls.reduce((sum, roll) => sum + roll, 0);
-        default:
-            return Math.max(...rolls);
-    }
+export function calculateSelected(
+  rolls: number[],
+  strategy: "highest" | "lowest" | "sum",
+): number {
+  switch (strategy) {
+    case "highest":
+      return Math.max(...rolls);
+    case "lowest":
+      return Math.min(...rolls);
+    case "sum":
+      return rolls.reduce((sum, roll) => sum + roll, 0);
+    default:
+      return Math.max(...rolls);
+  }
 }

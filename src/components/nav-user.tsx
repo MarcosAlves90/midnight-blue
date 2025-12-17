@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import { useTheme } from "next-themes"
+import { useTheme } from "next-themes";
 import {
   BadgeCheck,
   Bell,
@@ -10,13 +10,9 @@ import {
   Monitor,
   Moon,
   Sun,
-} from "lucide-react"
+} from "lucide-react";
 
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,35 +21,35 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
 
 export function NavUser({
   user,
 }: {
   user: {
-    name: string
-    email: string
-    avatar: string
-  }
+    name: string;
+    email: string;
+    avatar: string;
+  };
 }) {
-  const { isMobile } = useSidebar()
-  const { theme, setTheme } = useTheme()
+  const { isMobile } = useSidebar();
+  const { theme, setTheme } = useTheme();
 
   const toggleTheme = () => {
     if (theme === "light") {
-      setTheme("dark")
+      setTheme("dark");
     } else if (theme === "dark") {
-      setTheme("system")
+      setTheme("system");
     } else {
-      setTheme("light")
+      setTheme("light");
     }
-  }
+  };
 
   return (
     <SidebarMenu>
@@ -130,5 +126,5 @@ export function NavUser({
         </DropdownMenu>
       </SidebarMenuItem>
     </SidebarMenu>
-  )
+  );
 }

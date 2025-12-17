@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import { AttributesProvider } from "./AttributesContext";
 import { SkillsProvider } from "./SkillsContext";
 import { IdentityProvider } from "./IdentityContext";
@@ -14,11 +14,9 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
     <CustomDescriptorsProvider>
       <AttributesProvider>
         <SkillsProvider>
-          <IdentityProvider>
-            {children}
-          </IdentityProvider>
+          <IdentityProvider>{children}</IdentityProvider>
         </SkillsProvider>
       </AttributesProvider>
     </CustomDescriptorsProvider>
   );
-} 
+}

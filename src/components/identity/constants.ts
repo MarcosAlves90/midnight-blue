@@ -11,7 +11,7 @@ export const PREDEFINED_COLORS = [
   "#a52a2a",
   "#808080",
   "#000000",
-]
+];
 
-export const ROTATION_MULTIPLIER = 15
-export const SCALE_MULTIPLIER = 0.02
+export const ROTATION_MULTIPLIER = 15;
+export const SCALE_MULTIPLIER = 0.02;

@@ -1,24 +1,24 @@
-'use client'
+"use client";
 
-import { POWER_TIPS } from '@/lib/powers'
-import { Tip } from '@/components/ui/tip'
-import { Input } from '@/components/ui/input'
-import { memo, useState } from 'react'
-import { useCustomDescriptors } from '@/contexts/CustomDescriptorsContext'
-import { Plus, X } from 'lucide-react'
+import { POWER_TIPS } from "@/lib/powers";
+import { Tip } from "@/components/ui/tip";
+import { Input } from "@/components/ui/input";
+import { memo, useState } from "react";
+import { useCustomDescriptors } from "@/contexts/CustomDescriptorsContext";
+import { Plus, X } from "lucide-react";
 
 const TipContent = memo(({ content }: { content: string }) => (
   <div className="max-w-xs text-xs">{content}</div>
-))
-TipContent.displayName = 'TipContent'
+));
+TipContent.displayName = "TipContent";
 
 interface PowerBuilderStepDetailsProps {
-  name: string
-  onNameChange: (name: string) => void
-  selectedDescriptors: string[]
-  onToggleDescriptor: (descriptor: string) => void
-  notes: string
-  onNotesChange: (notes: string) => void
+  name: string;
+  onNameChange: (name: string) => void;
+  selectedDescriptors: string[];
+  onToggleDescriptor: (descriptor: string) => void;
+  notes: string;
+  onNotesChange: (notes: string) => void;
 }
 
 export function PowerBuilderStepDetails({
@@ -27,35 +27,42 @@ export function PowerBuilderStepDetails({
   selectedDescriptors,
   onToggleDescriptor,
   notes,
-  onNotesChange
+  onNotesChange,
 }: PowerBuilderStepDetailsProps) {
-  const { customDescriptors, addCustomDescriptor, removeCustomDescriptor } = useCustomDescriptors()
-  const [newDescriptor, setNewDescriptor] = useState('')
-  const [showNewDescriptorInput, setShowNewDescriptorInput] = useState(false)
+  const { customDescriptors, addCustomDescriptor, removeCustomDescriptor } =
+    useCustomDescriptors();
+  const [newDescriptor, setNewDescriptor] = useState("");
+  const [showNewDescriptorInput, setShowNewDescriptorInput] = useState(false);
 
   const handleAddDescriptor = () => {
     if (newDescriptor.trim()) {
-      const normalized = newDescriptor.trim().toLowerCase()
-      addCustomDescriptor(normalized)
-      onToggleDescriptor(normalized)
-      setNewDescriptor('')
-      setShowNewDescriptorInput(false)
+      const normalized = newDescriptor.trim().toLowerCase();
+      addCustomDescriptor(normalized);
+      onToggleDescriptor(normalized);
+      setNewDescriptor("");
+      setShowNewDescriptorInput(false);
     }
-  }
+  };
 
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-semibold text-foreground">Detalhes Finais</h3>
-        <p className="text-sm text-muted-foreground">Dê um nome e personalize seu poder.</p>
+        <h3 className="text-lg font-semibold text-foreground">
+          Detalhes Finais
+        </h3>
+        <p className="text-sm text-muted-foreground">
+          Dê um nome e personalize seu poder.
+        </p>
       </div>
 
       <div className="space-y-4">
         <div className="space-y-2">
-          <label className="text-sm font-medium text-foreground">Nome do Poder *</label>
+          <label className="text-sm font-medium text-foreground">
+            Nome do Poder *
+          </label>
           <Input
             value={name}
-            onChange={e => onNameChange(e.target.value)}
+            onChange={(e) => onNameChange(e.target.value)}
             placeholder="Ex: Rajada de Fogo, Escudo Mental..."
             className="bg-background/50 border-purple-500/30 text-lg"
             autoFocus
@@ -68,22 +75,22 @@ export function PowerBuilderStepDetails({
               Descritores
             </label>
           </Tip>
-          
+
           <div className="space-y-2 p-2 bg-muted/5 rounded-md border border-border/40">
-
-
             {/* Descritores Customizados */}
             {customDescriptors.length > 0 && (
               <div>
-                <p className="text-xs text-muted-foreground mb-1">Seus Descritores:</p>
+                <p className="text-xs text-muted-foreground mb-1">
+                  Seus Descritores:
+                </p>
                 <div className="flex flex-wrap gap-2">
-                  {customDescriptors.map(descriptor => (
+                  {customDescriptors.map((descriptor) => (
                     <div
                       key={descriptor}
                       className={`inline-flex items-center gap-1 px-2 py-0.5 text-[11px] rounded-md transition-colors ${
                         selectedDescriptors.includes(descriptor)
-                          ? 'bg-green-500/10 text-green-300 border border-green-500/30'
-                          : 'bg-background border border-border/20 hover:border-green-500/40'
+                          ? "bg-green-500/10 text-green-300 border border-green-500/30"
+                          : "bg-background border border-border/20 hover:border-green-500/40"
                       }`}
                     >
                       <button
@@ -94,9 +101,9 @@ export function PowerBuilderStepDetails({
                       </button>
                       <button
                         onClick={() => {
-                          removeCustomDescriptor(descriptor)
+                          removeCustomDescriptor(descriptor);
                           if (selectedDescriptors.includes(descriptor)) {
-                            onToggleDescriptor(descriptor)
+                            onToggleDescriptor(descriptor);
                           }
                         }}
                         className="hover:text-red-400 transition-colors p-0.5 ml-1"
@@ -124,10 +131,10 @@ export function PowerBuilderStepDetails({
                 <div className="flex gap-2">
                   <Input
                     value={newDescriptor}
-                    onChange={e => setNewDescriptor(e.target.value)}
-                    onKeyDown={e => {
-                      if (e.key === 'Enter') handleAddDescriptor()
-                      if (e.key === 'Escape') setShowNewDescriptorInput(false)
+                    onChange={(e) => setNewDescriptor(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") handleAddDescriptor();
+                      if (e.key === "Escape") setShowNewDescriptorInput(false);
                     }}
                     placeholder="Digite o novo descritor..."
                     className="h-7 text-sm"
@@ -142,8 +149,8 @@ export function PowerBuilderStepDetails({
                   </button>
                   <button
                     onClick={() => {
-                      setShowNewDescriptorInput(false)
-                      setNewDescriptor('')
+                      setShowNewDescriptorInput(false);
+                      setNewDescriptor("");
                     }}
                     className="px-2 py-0.5 bg-muted/50 hover:bg-muted text-muted-foreground rounded text-xs transition-colors"
                   >
@@ -156,15 +163,17 @@ export function PowerBuilderStepDetails({
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium text-foreground">Notas (opcional)</label>
+          <label className="text-sm font-medium text-foreground">
+            Notas (opcional)
+          </label>
           <textarea
             value={notes}
-            onChange={e => onNotesChange(e.target.value)}
+            onChange={(e) => onNotesChange(e.target.value)}
             placeholder="Descrição adicional, limitações narrativas..."
             className="w-full h-32 px-3 py-2 text-sm bg-background/50 border border-purple-500/30 rounded-md resize-none focus:outline-none focus:ring-1 focus:ring-purple-500"
           />
         </div>
       </div>
     </div>
-  )
+  );
 }

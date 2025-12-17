@@ -1,14 +1,25 @@
-import React from "react"
-import { Activity, User, Calendar, Ruler, Weight, Eye, Scissors } from "lucide-react"
-import { IdentityData } from "@/contexts/IdentityContext"
-import { StatField } from "./stat-field"
+import React from "react";
+import {
+  Activity,
+  User,
+  Calendar,
+  Ruler,
+  Weight,
+  Eye,
+  Scissors,
+} from "lucide-react";
+import { IdentityData } from "@/contexts/IdentityContext";
+import { StatField } from "./stat-field";
 
 interface BiometricDataSectionProps {
-  identity: IdentityData
-  onFieldChange: (field: keyof IdentityData, value: string) => void
+  identity: IdentityData;
+  onFieldChange: (field: keyof IdentityData, value: string) => void;
 }
 
-export const BiometricDataSection: React.FC<BiometricDataSectionProps> = ({ identity, onFieldChange }) => (
+export const BiometricDataSection: React.FC<BiometricDataSectionProps> = ({
+  identity,
+  onFieldChange,
+}) => (
   <div className="bg-card rounded-xl p-6">
     <div className="flex items-center gap-2 mb-6 pb-2 border-b border-border/40">
       <Activity className="w-4 h-4 text-primary" aria-hidden="true" />
@@ -68,4 +79,4 @@ export const BiometricDataSection: React.FC<BiometricDataSectionProps> = ({ iden
       />
     </div>
   </div>
-)
+);

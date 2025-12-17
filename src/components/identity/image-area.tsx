@@ -1,17 +1,17 @@
-import React from "react"
-import Image from "next/image"
-import { Camera, Upload, ChevronUp, ChevronDown } from "lucide-react"
-import { useIsMobile } from "@/hooks/use-mobile"
-import GlitchText from "@/components/glitch-text"
+import React from "react";
+import Image from "next/image";
+import { Camera, Upload, ChevronUp, ChevronDown } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
+import GlitchText from "@/components/glitch-text";
 
 interface ImageAreaProps {
-  profileImage?: string
-  imagePosition?: number
-  onPositionChange?: (position: number) => void
-  onImageUpload: () => void
-  onFileSelect: (event: React.ChangeEvent<HTMLInputElement>) => void
-  fileInputRef: React.RefObject<HTMLInputElement | null>
-  favoriteColor: string
+  profileImage?: string;
+  imagePosition?: number;
+  onPositionChange?: (position: number) => void;
+  onImageUpload: () => void;
+  onFileSelect: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  fileInputRef: React.RefObject<HTMLInputElement | null>;
+  favoriteColor: string;
 }
 
 export const ImageArea: React.FC<ImageAreaProps> = ({
@@ -23,11 +23,11 @@ export const ImageArea: React.FC<ImageAreaProps> = ({
   fileInputRef,
   favoriteColor,
 }) => {
-  const isMobile = useIsMobile()
+  const isMobile = useIsMobile();
 
   return (
     <div
-      className={`relative ${isMobile ? 'aspect-[3/2]' : 'aspect-[4/3]'} w-full bg-muted/50 border-b-4 group overflow-hidden mx-auto`}
+      className={`relative ${isMobile ? "aspect-[3/2]" : "aspect-[4/3]"} w-full bg-muted/50 border-b-4 group overflow-hidden mx-auto`}
       style={{
         borderColor: `rgba(var(--identity-theme-rgb), 0.25)`,
       }}
@@ -48,7 +48,7 @@ export const ImageArea: React.FC<ImageAreaProps> = ({
               fill
               className="w-full h-full object-cover transition-all duration-200"
               style={{
-                objectPosition: `center ${imagePosition}%`
+                objectPosition: `center ${imagePosition}%`,
               }}
             />
             {/* Favorite color overlay effect */}
@@ -66,15 +66,15 @@ export const ImageArea: React.FC<ImageAreaProps> = ({
                 boxShadow: `inset 0 0 20px rgba(var(--identity-theme-rgb), 0.12)`,
               }}
             />
-            
+
             {/* Position Controls */}
             {onPositionChange && (
               <div className="absolute right-2 top-1/2 -translate-y-1/2 flex flex-col gap-1 opacity-0 group-hover/image:opacity-100 transition-opacity z-30 hide-on-capture">
                 <div
                   role="button"
                   onClick={(e) => {
-                    e.stopPropagation()
-                    onPositionChange(Math.max(0, imagePosition - 5))
+                    e.stopPropagation();
+                    onPositionChange(Math.max(0, imagePosition - 5));
                   }}
                   className="p-1.5 bg-black/60 hover:bg-black/80 text-white rounded-t backdrop-blur-sm transition-colors border border-white/10 hover:border-white/30"
                   aria-label="Mover imagem para cima"
@@ -84,8 +84,8 @@ export const ImageArea: React.FC<ImageAreaProps> = ({
                 <div
                   role="button"
                   onClick={(e) => {
-                    e.stopPropagation()
-                    onPositionChange(Math.min(100, imagePosition + 5))
+                    e.stopPropagation();
+                    onPositionChange(Math.min(100, imagePosition + 5));
                   }}
                   className="p-1.5 bg-black/60 hover:bg-black/80 text-white rounded-b backdrop-blur-sm transition-colors border border-white/10 hover:border-white/30 border-t-0"
                   aria-label="Mover imagem para baixo"
@@ -97,8 +97,13 @@ export const ImageArea: React.FC<ImageAreaProps> = ({
           </div>
         ) : (
           <div className="flex flex-col items-center gap-2 text-muted-foreground">
-            <Camera className={`${isMobile ? 'w-6 h-6' : 'w-8 h-8'} opacity-50`} aria-hidden="true" />
-            <span className={`${isMobile ? 'text-[10px]' : 'text-xs'} font-medium uppercase tracking-wider`}>
+            <Camera
+              className={`${isMobile ? "w-6 h-6" : "w-8 h-8"} opacity-50`}
+              aria-hidden="true"
+            />
+            <span
+              className={`${isMobile ? "text-[10px]" : "text-xs"} font-medium uppercase tracking-wider`}
+            >
               <GlitchText
                 glitchChance={0.08}
                 glitchDuration={130}
@@ -115,7 +120,10 @@ export const ImageArea: React.FC<ImageAreaProps> = ({
 
         {/* Hover Overlay */}
         <div className="absolute inset-0 bg-black/60 opacity-0 group-hover/image:opacity-100 transition-opacity flex items-center justify-center z-20 hide-on-capture">
-          <Upload className={`${isMobile ? 'w-6 h-6' : 'w-8 h-8'} text-white`} aria-hidden="true" />
+          <Upload
+            className={`${isMobile ? "w-6 h-6" : "w-8 h-8"} text-white`}
+            aria-hidden="true"
+          />
         </div>
       </button>
 
@@ -128,5 +136,5 @@ export const ImageArea: React.FC<ImageAreaProps> = ({
         aria-label="Upload de arquivo de imagem"
       />
     </div>
-  )
-}
+  );
+};
