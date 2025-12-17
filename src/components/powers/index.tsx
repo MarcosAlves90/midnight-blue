@@ -10,33 +10,6 @@ interface PowersSectionProps {
   powerLevel?: number
 }
 
-function calculatePowerCost(power: Power): number {
-  const baseEffect = power.effects.reduce((acc, e) => acc + e.baseCost, 0)
-  
-  const extrasTotal = power.modifiers
-    .filter(m => m.modifier.type === 'extra' && !m.modifier.isFlat)
-    .reduce((acc, m) => acc + m.modifier.costPerRank, 0)
-  
-  const flawsTotal = power.modifiers
-    .filter(m => m.modifier.type === 'falha' && !m.modifier.isFlat)
-    .reduce((acc, m) => acc + m.modifier.costPerRank, 0)
-  
-  const flatModifiers = power.modifiers
-    .filter(m => m.modifier.isFlat)
-    .reduce((acc, m) => acc + m.modifier.costPerRank, 0)
-
-  const costPerRank = baseEffect + extrasTotal + flawsTotal
-  
-  let totalCost: number
-  if (costPerRank <= 0) {
-    const ranksPerPoint = Math.min(5, Math.abs(costPerRank - 1) + 1)
-    totalCost = Math.ceil(power.rank / ranksPerPoint)
-  } else {
-    totalCost = costPerRank * power.rank
-  }
-
-  return Math.max(1, totalCost + flatModifiers)
-}
 
 export default function PowersSection({ powerLevel = 10 }: PowersSectionProps) {
   const [powers, setPowers] = useState<Power[]>([])
@@ -72,8 +45,6 @@ export default function PowersSection({ powerLevel = 10 }: PowersSectionProps) {
     setIsModalOpen(false)
     setEditingPower(undefined)
   }
-
-  const totalPowersCost = powers.reduce((acc, power) => acc + calculatePowerCost(power), 0)
 
   // Check for powers that exceed power level limits
   const powersExceedingLimit = powers.filter(power => {

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Power } from './types'
-import { ACTION_LABELS, RANGE_LABELS, DURATION_LABELS } from './constants'
+import { ACTION_LABELS, RANGE_LABELS, DURATION_LABELS } from '@/lib/powers'
 import { Tip } from '@/components/ui/tip'
 import { ChevronDown, ChevronUp, Trash2, Sparkles, Edit3 } from 'lucide-react'
 

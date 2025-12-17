@@ -2,7 +2,7 @@
 
 import { memo } from 'react'
 import { ActionType, RangeType, DurationType } from './types'
-import { ACTION_LABELS, RANGE_LABELS, DURATION_LABELS, ACTION_DESCRIPTIONS, RANGE_DESCRIPTIONS, DURATION_DESCRIPTIONS, POWER_TIPS } from './constants'
+import { ACTION_LABELS, RANGE_LABELS, DURATION_LABELS, ACTION_DESCRIPTIONS, RANGE_DESCRIPTIONS, DURATION_DESCRIPTIONS, POWER_TIPS } from '@/lib/powers'
 import { Tip } from '@/components/ui/tip'
 import { Plus, Minus } from 'lucide-react'
 

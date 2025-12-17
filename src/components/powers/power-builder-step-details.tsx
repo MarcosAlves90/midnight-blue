@@ -1,6 +1,6 @@
 'use client'
 
-import { POWER_TIPS } from './constants'
+import { POWER_TIPS } from '@/lib/powers'
 import { Tip } from '@/components/ui/tip'
 import { Input } from '@/components/ui/input'
 import { memo, useState } from 'react'

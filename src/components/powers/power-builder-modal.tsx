@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useCallback, memo } from 'react'
 import { Power, Effect, Modifier, ModifierInstance, ActionType, RangeType, DurationType } from './types'
-import { EFFECTS, COMMON_EXTRAS, COMMON_FLAWS, EFFECT_SPECIFIC_EXTRAS, EFFECT_SPECIFIC_FLAWS } from './constants'
+import { EFFECTS, COMMON_EXTRAS, COMMON_FLAWS, EFFECT_SPECIFIC_EXTRAS, EFFECT_SPECIFIC_FLAWS } from '@/lib/powers'
 import { PowerBuilderHeader } from './power-builder-header'
 import { PowerBuilderStepEffects } from './power-builder-step-effects'
 import { PowerBuilderStepParameters } from './power-builder-step-parameters'

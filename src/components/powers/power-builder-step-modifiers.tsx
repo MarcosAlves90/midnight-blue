@@ -5,7 +5,7 @@ import { Modifier, ModifierInstance } from './types'
 import { Tip } from '@/components/ui/tip'
 import { Input } from '@/components/ui/input'
 import { Plus, Minus, Trash2, Search } from 'lucide-react'
-import { EFFECTS } from './constants'
+import { EFFECTS } from '@/lib/powers'
 
 const TipContent = memo(({ content }: { content: string }) => (
   <div className="max-w-xs text-xs">{content}</div>
