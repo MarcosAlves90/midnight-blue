@@ -11,6 +11,8 @@ interface DashboardLayoutProps {
   children: React.ReactNode;
 }
 
+import RequireAuth from "@/components/require-auth";
+
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   return (
     <SidebarProvider defaultOpen>
@@ -26,7 +28,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             <DynamicBreadcrumb />
           </div>
         </header>
-        <div className="flex flex-1 flex-col gap-4 p-4 pt-0">{children}</div>
+        <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+          <RequireAuth>{children}</RequireAuth>
+        </div>
       </SidebarInset>
     </SidebarProvider>
   );
