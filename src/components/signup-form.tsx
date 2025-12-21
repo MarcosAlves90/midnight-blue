@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -19,13 +20,64 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { authSuccess, authError } from "@/lib/toast";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { getClientAuth } from "@/lib/firebase";
 
 export function SignupForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
+  const router = useRouter();
   const [showPassword, setShowPassword] = React.useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
+
+  const [name, setName] = React.useState("");
+  const [email, setEmail] = React.useState("");
+  const [password, setPassword] = React.useState("");
+  const [confirmPassword, setConfirmPassword] = React.useState("");
+  const [loading, setLoading] = React.useState(false);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+
+    if (password.length < 8) {
+      authError("A senha deve ter pelo menos 8 caracteres.");
+      return;
+    }
+    if (password !== confirmPassword) {
+      authError("As senhas não coincidem.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const auth = getClientAuth();
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+
+      // Atualiza displayName
+      if (name) {
+        try {
+          await updateProfile(userCredential.user, { displayName: name });
+        } catch (err) {
+          console.warn("Não foi possível atualizar displayName", err);
+        }
+      }
+
+      authSuccess("Conta criada com sucesso!");
+      router.push("/dashboard");
+    } catch (err: unknown) {
+      console.error(err);
+      const message = err instanceof Error ? err.message : String(err);
+      authError(message || "Erro ao criar conta.");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
@@ -37,11 +89,18 @@ export function SignupForm({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form>
+          <form onSubmit={handleSubmit}>
             <FieldGroup>
               <Field>
-                <FieldLabel htmlFor="name">Nome Completo</FieldLabel>
-                <Input id="name" type="text" placeholder="Seu nome" required />
+                <FieldLabel htmlFor="name">Nome</FieldLabel>
+                <Input
+                  id="name"
+                  type="text"
+                  placeholder="Seu nome"
+                  required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
               </Field>
               <Field>
                 <FieldLabel htmlFor="email">E-mail</FieldLabel>
@@ -50,6 +109,8 @@ export function SignupForm({
                   type="email"
                   placeholder="midnight@exemplo.com"
                   required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                 />
               </Field>
               <Field>
@@ -62,6 +123,8 @@ export function SignupForm({
                         type={showPassword ? "text" : "password"}
                         required
                         className="pr-10"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
                       />
                       <Button
                         type="button"
@@ -91,6 +154,8 @@ export function SignupForm({
                         type={showConfirmPassword ? "text" : "password"}
                         required
                         className="pr-10"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
                       />
                       <Button
                         type="button"
@@ -120,7 +185,9 @@ export function SignupForm({
                 </FieldDescription>
               </Field>
               <Field>
-                <Button type="submit">Criar Conta</Button>
+                <Button type="submit" disabled={loading}>
+                  {loading ? "Criando..." : "Criar Conta"}
+                </Button>
                 <FieldDescription className="text-center">
                   Já tem uma conta? <Link href="/login">Entrar</Link>
                 </FieldDescription>
