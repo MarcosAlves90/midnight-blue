@@ -1,7 +1,12 @@
 "use client";
 import Link from "next/link";
+import * as React from "react";
+import { getClientAuth } from "@/lib/firebase";
+import { onAuthStateChanged } from "firebase/auth";
 
 export default function EnterButton() {
+  const [href, setHref] = React.useState<string>("/login");
+
   const playClickSound = () => {
     const audio = new Audio("/click-mainpage-button.mp3");
     audio.play().catch((error) => {
@@ -9,8 +14,16 @@ export default function EnterButton() {
     });
   };
 
+  React.useEffect(() => {
+    const auth = getClientAuth();
+    const unsub = onAuthStateChanged(auth, (user) => {
+      setHref(user ? "/dashboard" : "/login");
+    });
+    return () => unsub();
+  }, []);
+
   return (
-    <Link href="/dashboard">
+    <Link href={href}>
       <button
         onClick={playClickSound}
         className="
