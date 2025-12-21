@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import Link from "next/link"
 import { Eye, EyeOff } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -106,17 +107,13 @@ export function LoginForm({
               <Field>
                 <Button type="submit">Entrar</Button>
                 <FieldDescription className="text-center">
-                  Não tem uma conta? <a href="#">Cadastre-se</a>
+                  Não tem uma conta? <Link href="/signup">Cadastre-se</Link>
                 </FieldDescription>
               </Field>
             </FieldGroup>
           </form>
         </CardContent>
       </Card>
-      <FieldDescription className="px-6 text-center">
-        Ao clicar em continuar, você concorda com nossos <a href="#">Termos de Serviço</a>{" "}
-        e <a href="#">Política de Privacidade</a>.
-      </FieldDescription>
     </div>
   )
 }
