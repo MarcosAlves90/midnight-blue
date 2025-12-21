@@ -66,10 +66,9 @@ function PowerBuilderModalContent({
   );
   const [notes, setNotes] = useState(editingPower?.notes || "");
   // Effect-specific options (seleções que são parte do efeito, não modificadores)
-  const [effectOptions, setEffectOptions] = useState<Record<string, import("./types").EffectOptions>>(
-    editingPower?.effectOptions || {},
-  );
-
+  const [effectOptions, setEffectOptions] = useState<
+    Record<string, import("./types").EffectOptions>
+  >(editingPower?.effectOptions || {});
 
   // Filtered Lists
   const filteredEffects = useMemo(
@@ -202,6 +201,15 @@ function PowerBuilderModalContent({
     [],
   );
 
+  const updateModifierOptions = useCallback(
+    (instanceId: string, options: Record<string, unknown>) => {
+      setSelectedModifierInstances((prev) =>
+        prev.map((m) => (m.id === instanceId ? { ...m, options } : m)),
+      );
+    },
+    [],
+  );
+
   const toggleDescriptor = useCallback((descriptor: string) => {
     setSelectedDescriptors((prev) =>
       prev.includes(descriptor)
@@ -217,18 +225,31 @@ function PowerBuilderModalContent({
     // Calcular custo base dos efeitos, considerando effectOptions (ex: ppCost para Ambiente)
     const baseEffect = selectedEffects.reduce((acc, e) => {
       const opts = effectOptions[e.id];
-      const ppCost = opts?.ppCost ?? e.baseCost;
+      const ppCost =
+        typeof opts?.ppCost === "number" ? opts.ppCost : e.baseCost;
       return acc + ppCost;
     }, 0);
     const extrasTotal = selectedModifierInstances
       .filter((m) => m.modifier.type === "extra" && !m.modifier.isFlat)
-      .reduce((acc, m) => acc + m.modifier.costPerRank, 0);
+      .reduce(
+        (acc, m) =>
+          acc + ((m.options?.costPerRank as number) ?? m.modifier.costPerRank),
+        0,
+      );
     const flawsTotal = selectedModifierInstances
       .filter((m) => m.modifier.type === "falha" && !m.modifier.isFlat)
-      .reduce((acc, m) => acc + m.modifier.costPerRank, 0);
+      .reduce(
+        (acc, m) =>
+          acc + ((m.options?.costPerRank as number) ?? m.modifier.costPerRank),
+        0,
+      );
     const flatModifiers = selectedModifierInstances
       .filter((m) => m.modifier.isFlat)
-      .reduce((acc, m) => acc + m.modifier.costPerRank, 0);
+      .reduce(
+        (acc, m) =>
+          acc + ((m.options?.costPerRank as number) ?? m.modifier.costPerRank),
+        0,
+      );
 
     const costPerRank = baseEffect + extrasTotal + flawsTotal;
     let totalCost: number;
@@ -236,7 +257,7 @@ function PowerBuilderModalContent({
       const ranksPerPoint = Math.min(5, Math.abs(costPerRank - 1) + 1);
       totalCost = Math.ceil(rank / ranksPerPoint);
     } else {
-      totalCost = costPerRank * rank;
+      totalCost = Math.ceil(costPerRank * rank);
     }
     return Math.max(1, totalCost + flatModifiers);
   };
@@ -305,6 +326,7 @@ function PowerBuilderModalContent({
                     setEffectOptions((prev) => ({ ...prev, [effectId]: opts }))
                   }
                   rank={rank}
+                  onRankChange={setRank}
                 />
               )}
 
@@ -321,6 +343,7 @@ function PowerBuilderModalContent({
                   defaultAction={defaultAction}
                   defaultRange={defaultRange}
                   defaultDuration={defaultDuration}
+                  effectOptions={effectOptions}
                 />
               )}
 
@@ -330,6 +353,7 @@ function PowerBuilderModalContent({
                   onSearchChange={setSearchTerm}
                   selectedModifierInstances={selectedModifierInstances}
                   onUpdateDescription={updateModifierDescription}
+                  onUpdateOptions={updateModifierOptions}
                   onRemoveInstance={removeModifierInstance}
                   filteredExtras={filteredExtras}
                   filteredFlaws={filteredFlaws}

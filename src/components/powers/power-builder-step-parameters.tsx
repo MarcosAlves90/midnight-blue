@@ -61,6 +61,7 @@ interface PowerBuilderStepParametersProps {
   defaultAction: ActionType;
   defaultRange: RangeType;
   defaultDuration: DurationType;
+  effectOptions?: Record<string, import("./types").EffectOptions>;
 }
 
 export function PowerBuilderStepParameters({
@@ -75,7 +76,14 @@ export function PowerBuilderStepParameters({
   defaultAction,
   defaultRange,
   defaultDuration,
+  effectOptions,
 }: PowerBuilderStepParametersProps) {
+  // Calcula a graduação mínima baseada em todos os efeitos selecionados
+  const minRank = Object.values(effectOptions || {}).reduce(
+    (max, opt) => Math.max(max, (opt.minRank as number) || 1),
+    1,
+  );
+
   return (
     <div className="space-y-8">
       <div>
@@ -88,30 +96,36 @@ export function PowerBuilderStepParameters({
       </div>
 
       {/* Rank */}
-      <div className="p-6 bg-muted/10 rounded-xl border border-border/50 flex flex-col items-center gap-4">
+      <div className="p-4 sm:p-6 bg-muted/10 rounded-xl border border-border/50 flex flex-col items-center gap-3 sm:gap-4">
         <Tip content={<TipContent content={POWER_TIPS.rank} />}>
-          <label className="text-sm font-medium text-muted-foreground cursor-help underline decoration-dotted underline-offset-2">
+          <label className="text-xs sm:text-sm font-medium text-muted-foreground cursor-help underline decoration-dotted underline-offset-2">
             Graduação do Poder
           </label>
         </Tip>
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-4 sm:gap-6">
           <button
-            onClick={() => onRankChange(Math.max(1, rank - 1))}
-            className="h-12 w-12 rounded-full bg-muted/50 hover:bg-purple-500/20 hover:text-purple-400 flex items-center justify-center transition-all"
+            onClick={() => onRankChange(Math.max(minRank, rank - 1))}
+            disabled={rank <= minRank}
+            className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-muted/50 hover:bg-purple-500/20 hover:text-purple-400 flex items-center justify-center transition-all disabled:opacity-30 disabled:cursor-not-allowed"
           >
-            <Minus className="h-6 w-6" />
+            <Minus className="h-5 w-5 sm:h-6 sm:w-6" />
           </button>
-          <div className="text-5xl font-bold text-foreground w-24 text-center font-mono">
+          <div className="text-4xl sm:text-5xl font-bold text-foreground w-16 sm:w-24 text-center font-mono">
             {rank}
           </div>
           <button
             onClick={() => onRankChange(rank + 1)}
-            className="h-12 w-12 rounded-full bg-muted/50 hover:bg-purple-500/20 hover:text-purple-400 flex items-center justify-center transition-all"
+            className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-muted/50 hover:bg-purple-500/20 hover:text-purple-400 flex items-center justify-center transition-all"
           >
-            <Plus className="h-6 w-6" />
+            <Plus className="h-5 w-5 sm:h-6 sm:w-6" />
           </button>
         </div>
-        <p className="text-xs text-muted-foreground">
+        {minRank > 1 && rank === minRank && (
+          <p className="text-[9px] sm:text-[10px] text-purple-400/70 animate-pulse text-center">
+            Graduação mínima de {minRank} exigida pelo efeito Compreender.
+          </p>
+        )}
+        <p className="text-[10px] sm:text-xs text-muted-foreground">
           Nível de Poder máximo recomendado: 10-12
         </p>
       </div>

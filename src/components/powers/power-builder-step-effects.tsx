@@ -37,7 +37,11 @@ const EffectCardItem = memo(
           </span>
         </Tip>
         <span className="text-xs font-mono text-purple-400 bg-purple-500/10 px-1.5 py-0.5 rounded">
-          {effect.id === "ambiente" ? "1 - 2 PP/grad" : `${effect.baseCost} PP/grad`}
+          {effect.id === "ambiente"
+            ? "1 - 2 PP/grad"
+            : effect.id === "caracteristica-aumentada"
+              ? "Variável"
+              : `${effect.baseCost} PP/grad`}
         </span>
       </div>
     </button>
@@ -55,6 +59,7 @@ interface PowerBuilderStepEffectsProps {
   effectOptions?: Record<string, EffectOptions>;
   onUpdateEffectOptions?: (effectId: string, opts: EffectOptions) => void;
   rank: number;
+  onRankChange?: (rank: number) => void;
 }
 
 export function PowerBuilderStepEffects({
@@ -66,6 +71,7 @@ export function PowerBuilderStepEffects({
   effectOptions,
   onUpdateEffectOptions,
   rank,
+  onRankChange,
 }: PowerBuilderStepEffectsProps) {
   return (
     <div className="space-y-4">
@@ -110,6 +116,7 @@ export function PowerBuilderStepEffects({
                     onChange={(opts) =>
                       onUpdateEffectOptions && onUpdateEffectOptions(effect.id, opts)
                     }
+                    onRankChange={onRankChange}
                   />
                 </div>
               )}
