@@ -10,16 +10,14 @@ interface CompreenderOptionsProps {
   options: EffectOptions;
   rank: number;
   onChange: (opts: EffectOptions) => void;
-  onRankChange?: (rank: number) => void;
 }
 
 export const CompreenderOptions: FC<CompreenderOptionsProps> = ({
   options,
-  rank,
   onChange,
-  onRankChange,
 }) => {
   const selectedSub = options.sub || "";
+  const currentRank = (options.rank as number) || 1;
 
   const getMaxRankForSub = (subId: string) => {
     if (subId === "idiomas") return 4;
@@ -27,17 +25,18 @@ export const CompreenderOptions: FC<CompreenderOptionsProps> = ({
   };
 
   const maxRecommended = selectedSub ? getMaxRankForSub(selectedSub) : 2;
-  const isOverLimit = rank > maxRecommended;
+  const isOverLimit = currentRank > maxRecommended;
 
   // Sincronizar metadados quando o subtipo muda
   useEffect(() => {
     if (selectedSub) {
       const maxR = getMaxRankForSub(selectedSub);
-      if (options.maxRank !== maxR) {
-        onChange({ ...options, maxRank: maxR });
+      const newRank = Math.min(currentRank, maxR);
+      if (options.maxRank !== maxR || options.rank !== newRank) {
+        onChange({ ...options, maxRank: maxR, rank: newRank });
       }
     }
-  }, [selectedSub, onChange, options]);
+  }, [selectedSub, onChange, options, currentRank]);
 
   return (
     <div className="space-y-3">
@@ -50,6 +49,7 @@ export const CompreenderOptions: FC<CompreenderOptionsProps> = ({
               onChange({
                 ...options,
                 sub: s.id,
+                rank: Math.min(currentRank, getMaxRankForSub(s.id)),
               });
             }}
             className={`group p-2 text-left rounded border transition-colors ${
@@ -78,12 +78,12 @@ export const CompreenderOptions: FC<CompreenderOptionsProps> = ({
         <div className="pt-2 border-t border-border/20">
           <OptionSelector
             label="Graduação"
-            value={rank}
+            value={currentRank}
             min={1}
-            max={20}
+            max={maxRecommended}
             step={1}
             unit=" G"
-            onChange={(val) => onRankChange?.(val)}
+            onChange={(val) => onChange({ ...options, rank: val })}
             warning={
               isOverLimit
                 ? `A graduação recomendada para ${
