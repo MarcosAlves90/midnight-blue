@@ -6,6 +6,7 @@ import { PowerCard } from "./power-card";
 import { PowerBuilderModal } from "./power-builder-modal";
 import { Plus, Edit3, Lock, AlertTriangle } from "lucide-react";
 import { useStatusContext } from "@/contexts/StatusContext";
+import { checkPowerLimit } from "@/lib/powers/utils";
 
 interface PowersSectionProps {}
 
@@ -46,13 +47,7 @@ export default function PowersSection({}: PowersSectionProps) {
   };
 
   // Check for powers that exceed power level limits
-  const powersExceedingLimit = powers.filter((power) => {
-    // Effects with attack roll: rank + attack bonus <= PL * 2
-    // Effects without attack (perception/save): rank <= PL
-    const hasAttack = power.effects.some((e) => e.range !== "percepcao");
-    const maxRank = hasAttack ? powerLevel * 2 : powerLevel;
-    return power.rank > maxRank;
-  });
+  const powersExceedingLimit = powers.filter((power) => checkPowerLimit(power, powerLevel));
 
   return (
     <>
