@@ -16,13 +16,19 @@ const SelectedModifierInstance = memo(
   ({
     instance,
     onDescriptionChange,
+    onUpdateOptions,
     onRemove,
   }: {
     instance: ModifierInstance;
     onDescriptionChange: (description: string) => void;
+    onUpdateOptions: (options: Record<string, unknown>) => void;
     onRemove: () => void;
   }) => {
     const [expanded, setExpanded] = useState(false);
+    const isTipo = instance.modifierId === "tipo";
+    const currentCost =
+      (instance.options?.costPerRank as number) ??
+      instance.modifier.costPerRank;
 
     return (
       <div className="p-2 bg-muted/20 border border-border/40 rounded-md">
@@ -31,11 +37,20 @@ const SelectedModifierInstance = memo(
             <div className="flex items-center justify-between gap-3">
               <div className="truncate text-sm font-medium text-foreground">
                 {instance.modifier.name}
+                {isTipo && instance.options?.subType && (
+                  <span className="ml-2 text-[10px] text-purple-400 uppercase tracking-wider">
+                    (
+                    {instance.options.subType === "amplo"
+                      ? "Amplo"
+                      : "Limitado"}
+                    )
+                  </span>
+                )}
               </div>
               <div className="flex items-center gap-2">
                 <div className="text-xs text-muted-foreground font-mono">
                   {instance.modifier.type === "extra" ? "+" : ""}
-                  {instance.modifier.costPerRank} PP
+                  {currentCost} PP
                 </div>
                 {instance.modifier.isFlat && (
                   <div className="text-xs text-purple-400">fixo</div>
@@ -43,7 +58,7 @@ const SelectedModifierInstance = memo(
                 <button
                   onClick={() => setExpanded((v) => !v)}
                   className="p-1 hover:bg-muted/40 rounded text-muted-foreground"
-                  title={expanded ? "Fechar" : "Editar descrição"}
+                  title={expanded ? "Fechar" : "Editar detalhes"}
                 >
                   {/* simple chevron */}
                   <svg
@@ -72,12 +87,78 @@ const SelectedModifierInstance = memo(
             </div>
 
             {expanded && (
-              <textarea
-                value={instance.customDescription || ""}
-                onChange={(e) => onDescriptionChange(e.target.value)}
-                placeholder="Descrição personalizada (opcional)..."
-                className="w-full mt-2 h-12 px-2 py-1 text-xs bg-background/50 border border-border rounded resize-none focus:outline-none focus:ring-1 focus:ring-purple-500"
-              />
+              <div className="mt-2 space-y-2">
+                {isTipo && (
+                  <div className="flex flex-col gap-1.5 p-2 bg-background/40 rounded border border-border/30">
+                    <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                      Nível da Falha:
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Tip
+                        content={
+                          <div className="max-w-xs text-[10px]">
+                            Um tipo amplo de alvo (ex: elfos, caninos, aves ou
+                            criaturas marinhas).
+                          </div>
+                        }
+                      >
+                        <button
+                          onClick={() =>
+                            onUpdateOptions({
+                              ...instance.options,
+                              subType: "amplo",
+                              costPerRank: -1,
+                            })
+                          }
+                          className={`w-full px-2 py-1 text-[10px] rounded border transition-colors ${
+                            instance.options?.subType === "amplo" ||
+                            !instance.options?.subType
+                              ? "bg-purple-500/20 border-purple-500/50 text-purple-300"
+                              : "bg-muted/20 border-transparent text-muted-foreground hover:bg-muted/40"
+                          }`}
+                        >
+                          Amplo (-1)
+                        </button>
+                      </Tip>
+                      <Tip
+                        content={
+                          <div className="max-w-xs text-[10px]">
+                            Um tipo limitado de alvo (ex: cães, falcões ou
+                            golfinhos).
+                          </div>
+                        }
+                      >
+                        <button
+                          onClick={() =>
+                            onUpdateOptions({
+                              ...instance.options,
+                              subType: "limitado",
+                              costPerRank: -2,
+                            })
+                          }
+                          className={`w-full px-2 py-1 text-[10px] rounded border transition-colors ${
+                            instance.options?.subType === "limitado"
+                              ? "bg-purple-500/20 border-purple-500/50 text-purple-300"
+                              : "bg-muted/20 border-transparent text-muted-foreground hover:bg-muted/40"
+                          }`}
+                        >
+                          Limitado (-2)
+                        </button>
+                      </Tip>
+                    </div>
+                  </div>
+                )}
+                <textarea
+                  value={instance.customDescription || ""}
+                  onChange={(e) => onDescriptionChange(e.target.value)}
+                  placeholder={
+                    isTipo
+                      ? "Especifique o alvo (ex: Caninos, Cães)..."
+                      : "Descrição personalizada (opcional)..."
+                  }
+                  className="w-full h-12 px-2 py-1 text-xs bg-background/50 border border-border rounded resize-none focus:outline-none focus:ring-1 focus:ring-purple-500"
+                />
+              </div>
             )}
           </div>
         </div>
@@ -92,6 +173,10 @@ interface PowerBuilderStepModifiersProps {
   onSearchChange: (term: string) => void;
   selectedModifierInstances: ModifierInstance[];
   onUpdateDescription: (instanceId: string, description: string) => void;
+  onUpdateOptions: (
+    instanceId: string,
+    options: Record<string, unknown>,
+  ) => void;
   onRemoveInstance: (instanceId: string) => void;
   filteredExtras: Modifier[];
   filteredFlaws: Modifier[];
@@ -103,6 +188,7 @@ export function PowerBuilderStepModifiers({
   onSearchChange,
   selectedModifierInstances,
   onUpdateDescription,
+  onUpdateOptions,
   onRemoveInstance,
   filteredExtras,
   filteredFlaws,
@@ -142,6 +228,7 @@ export function PowerBuilderStepModifiers({
               onDescriptionChange={(desc) =>
                 onUpdateDescription(instance.id, desc)
               }
+              onUpdateOptions={(opts) => onUpdateOptions(instance.id, opts)}
               onRemove={() => onRemoveInstance(instance.id)}
             />
           ))}

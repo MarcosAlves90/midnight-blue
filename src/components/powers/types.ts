@@ -32,6 +32,7 @@ export interface ModifierInstance {
   modifierId: string; // referência ao modifier original
   modifier: Modifier;
   customDescription?: string; // descrição personalizada para esta instância
+  options?: Record<string, unknown>; // opções específicas para esta instância
 }
 
 export type EffectCategory =

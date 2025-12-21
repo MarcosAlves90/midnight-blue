@@ -14,19 +14,35 @@ interface PowerCardProps {
 }
 
 function calculatePowerCost(power: Power): number {
-  const baseEffect = power.effects.reduce((acc, e) => acc + e.baseCost, 0);
+  const baseEffect = power.effects.reduce((acc, e) => {
+    const opts = power.effectOptions?.[e.id];
+    const ppCost = typeof opts?.ppCost === "number" ? opts.ppCost : e.baseCost;
+    return acc + ppCost;
+  }, 0);
 
   const extrasTotal = power.modifiers
     .filter((m) => m.modifier.type === "extra" && !m.modifier.isFlat)
-    .reduce((acc, m) => acc + m.modifier.costPerRank, 0);
+    .reduce(
+      (acc, m) =>
+        acc + ((m.options?.costPerRank as number) ?? m.modifier.costPerRank),
+      0,
+    );
 
   const flawsTotal = power.modifiers
     .filter((m) => m.modifier.type === "falha" && !m.modifier.isFlat)
-    .reduce((acc, m) => acc + m.modifier.costPerRank, 0);
+    .reduce(
+      (acc, m) =>
+        acc + ((m.options?.costPerRank as number) ?? m.modifier.costPerRank),
+      0,
+    );
 
   const flatModifiers = power.modifiers
     .filter((m) => m.modifier.isFlat)
-    .reduce((acc, m) => acc + m.modifier.costPerRank, 0);
+    .reduce(
+      (acc, m) =>
+        acc + ((m.options?.costPerRank as number) ?? m.modifier.costPerRank),
+      0,
+    );
 
   const costPerRank = baseEffect + extrasTotal + flawsTotal;
 
@@ -36,7 +52,7 @@ function calculatePowerCost(power: Power): number {
     const ranksPerPoint = Math.min(5, Math.abs(costPerRank - 1) + 1);
     totalCost = Math.ceil(power.rank / ranksPerPoint);
   } else {
-    totalCost = costPerRank * power.rank;
+    totalCost = Math.ceil(costPerRank * power.rank);
   }
 
   return Math.max(1, totalCost + flatModifiers);
@@ -115,25 +131,65 @@ export function PowerCard({
             {power.effects.map((effect, idx) => {
               const opts = power.effectOptions?.[effect.id];
 
-              // humanizar subtipo de Ambiente
-              const ambientLabelMap: Record<string, string> = {
+              // humanizar subtipo de Ambiente e Característica
+              const subLabelMap: Record<string, string> = {
+                // Ambiente
                 "calor-frio": "Calor ou Frio",
                 "impedir-movimento": "Impedir Movimento",
                 luz: "Luz",
                 visibilidade: "Visibilidade",
+                // Habilidades
+                FOR: "Força",
+                VIG: "Vigor",
+                AGI: "Agilidade",
+                DES: "Destreza",
+                LUT: "Luta",
+                INT: "Intelecto",
+                PRO: "Prontidão",
+                PRE: "Presença",
+                // Defesas
+                ESQUIVA: "Esquiva",
+                APARAR: "Aparar",
+                FORTITUDE: "Fortitude",
+                VONTADE: "Vontade",
+                INICIATIVA: "Iniciativa",
+                // Perícias
+                ACRO: "Acrobacia",
+                ATLETISMO: "Atletismo",
+                COMBATE_DISTANCIA: "Combate à Distância",
+                COMBATE_CORPO_A_CORPO: "Combate Corpo-a-Corpo",
+                ENGANACAO: "Enganação",
+                ESPECIALIDADE: "Especialidade",
+                FURTIVIDADE: "Furtividade",
+                INTIMIDACAO: "Intimidação",
+                INTUICAO: "Intuição",
+                INVESTIGACAO: "Investigação",
+                PERCEPCAO: "Percepção",
+                PERSUASAO: "Persuasão",
+                PRESTIDIGITACAO: "Prestidigitação",
+                TECNOLOGIA: "Tecnologia",
+                TRATAMENTO: "Tratamento",
+                VEICULOS: "Veículos",
+                // Vantagens
+                combate: "Vantagens de Combate",
+                pericia: "Vantagens de Perícia",
+                sorte: "Vantagens de Sorte",
+                gerais: "Vantagens Gerais",
               };
 
               return (
                 <div key={idx}>
                   <p className="text-xs text-muted-foreground">
-                    <span className="font-medium text-foreground">{effect.name}:</span>{" "}
+                    <span className="font-medium text-foreground">
+                      {effect.name}:
+                    </span>{" "}
                     {effect.description}
                   </p>
                   {opts && (
                     <div className="mt-1 text-xs text-muted-foreground flex gap-2 items-center">
                       {opts.sub && (
-                        <span className="px-2 py-0.5 text-[10px] bg-background/30 rounded">
-                          {ambientLabelMap[opts.sub] || opts.sub}
+                        <span className="px-2 py-0.5 text-[10px] bg-purple-500/10 text-purple-300 rounded border border-purple-500/20">
+                          {subLabelMap[opts.sub] || opts.sub}
                         </span>
                       )}
                       {opts.ppCost && (
@@ -211,7 +267,9 @@ export function PowerCard({
                       >
                         <span className="px-2 py-0.5 text-[10px] bg-green-500/10 text-green-300 rounded cursor-help">
                           {instance.modifier.name} (+
-                          {instance.modifier.costPerRank})
+                          {(instance.options?.costPerRank as number) ??
+                            instance.modifier.costPerRank}
+                          )
                         </span>
                       </Tip>
                     ))}
@@ -235,8 +293,21 @@ export function PowerCard({
                         }
                       >
                         <span className="px-2 py-0.5 text-[10px] bg-red-500/10 text-red-300 rounded cursor-help">
-                          {instance.modifier.name} (
-                          {instance.modifier.costPerRank})
+                          {instance.modifier.name}
+                          {instance.modifierId === "tipo" &&
+                            instance.options?.subType && (
+                              <span className="opacity-70 ml-1">
+                                (
+                                {instance.options.subType === "amplo"
+                                  ? "Amplo"
+                                  : "Limitado"}
+                                )
+                              </span>
+                            )}{" "}
+                          (
+                          {(instance.options?.costPerRank as number) ??
+                            instance.modifier.costPerRank}
+                          )
                         </span>
                       </Tip>
                     ))}
