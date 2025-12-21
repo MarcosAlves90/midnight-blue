@@ -1,7 +1,7 @@
 "use client";
 
 import { memo } from "react";
-import { ActionType, RangeType, DurationType } from "./types";
+import { ActionType, RangeType, DurationType, EffectOptions } from "./types";
 import {
   ACTION_LABELS,
   RANGE_LABELS,
@@ -61,10 +61,10 @@ interface PowerBuilderStepParametersProps {
   defaultAction: ActionType;
   defaultRange: RangeType;
   defaultDuration: DurationType;
-  effectOptions?: Record<string, import("./types").EffectOptions>;
+  effectOptions?: Record<string, EffectOptions>;
 }
 
-export function PowerBuilderStepParameters({
+export const PowerBuilderStepParameters = memo(({
   rank,
   onRankChange,
   customAction,
@@ -77,12 +77,13 @@ export function PowerBuilderStepParameters({
   defaultRange,
   defaultDuration,
   effectOptions,
-}: PowerBuilderStepParametersProps) {
-  // Calcula a graduação mínima baseada em todos os efeitos selecionados
-  const minRank = Object.values(effectOptions || {}).reduce(
-    (max, opt) => Math.max(max, (opt.minRank as number) || 1),
-    1,
-  );
+}: PowerBuilderStepParametersProps) => {
+  // Calcula a graduação mínima baseada na soma de todos os seletores de graduação
+  const minRank =
+    Object.values(effectOptions || {}).reduce(
+      (sum, opt) => sum + ((opt.rank as number) || 0),
+      0,
+    ) || 1;
 
   return (
     <div className="space-y-8">
@@ -218,4 +219,6 @@ export function PowerBuilderStepParameters({
       </div>
     </div>
   );
-}
+});
+
+PowerBuilderStepParameters.displayName = "PowerBuilderStepParameters";
