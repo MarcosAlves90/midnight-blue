@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { Power, ModifierInstance, Effect } from "./types";
 import { PowerCard } from "./power-card";
 import { Sparkles } from "lucide-react";
@@ -11,12 +12,12 @@ interface PowerBuilderPreviewProps {
   selectedEffects: Effect[];
 }
 
-export function PowerBuilderPreview({
+export const PowerBuilderPreview = memo(({
   power,
   calculateCost,
   selectedModifierInstances,
   selectedEffects,
-}: PowerBuilderPreviewProps) {
+}: PowerBuilderPreviewProps) => {
   return (
     <div className="hidden lg:flex flex-col bg-muted/5 p-6 border-l border-border/50">
       <div className="sticky top-6 space-y-6">
@@ -102,4 +103,6 @@ export function PowerBuilderPreview({
       </div>
     </div>
   );
-}
+});
+
+PowerBuilderPreview.displayName = "PowerBuilderPreview";
