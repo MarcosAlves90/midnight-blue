@@ -75,7 +75,7 @@ export const EFFECTS: Effect[] = [
     name: "Característica",
     baseCost: 1,
     description:
-      "Concede uma característica ou benefício menor que tem impacto no jogo, funcionando como uma habilidade menor.",
+      "Concede uma característica menor — um efeito que concede uma habilidade útil de vez em quando — por graduação. Na prática, é uma versão do Benefício, mas como um poder. Se algo tem efeito de jogo, é uma Característica; se não, é apenas um descritor. Pode ter duração sustentada sem mudança no custo.",
     category: "geral",
     action: "nenhuma",
     range: "pessoal",
@@ -86,7 +86,7 @@ export const EFFECTS: Effect[] = [
     name: "Característica Aumentada",
     baseCost: 1,
     description:
-      "Aumenta temporariamente uma característica (habilidade, defesa, etc.) na quantidade de graduações do efeito, custando o mesmo que a característica básica.",
+      "Melhora uma de suas características (habilidade, defesa, etc.). Enquanto o efeito estiver ativo, você aumenta a característica escolhida em sua graduação. O custo por graduação é igual ao da característica afetada. Por ser um efeito de poder, pode ser combinada com esforço extra e outros efeitos, mas ainda está sujeita aos limites do nível de poder.",
     category: "geral",
     action: "livre",
     range: "pessoal",
