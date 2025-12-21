@@ -8,8 +8,11 @@ import { useSkillsContext } from "@/contexts/SkillsContext";
 import { useStatusContext } from "@/contexts/StatusContext";
 import { OptionSelector } from "./shared-components";
 
+// TODO: corrigir limites de caracteristicas
+
 interface CaracteristicaOptionsProps {
   options: EffectOptions;
+  rank: number;
   onChange: (opts: EffectOptions) => void;
 }
 
@@ -28,14 +31,17 @@ export const CaracteristicaOptions: FC<CaracteristicaOptionsProps> = ({
     return found?.id || CARACTERISTICA_CATEGORIES[0].id;
   });
 
+  const currentCategory = useMemo(
+    () => CARACTERISTICA_CATEGORIES.find((c) => c.id === activeCategory),
+    [activeCategory],
+  );
+  const costPerBonus = currentCategory?.cost || 1;
+
   // Sincronizar custo apenas quando a categoria MUDA
   useEffect(() => {
-    const category = CARACTERISTICA_CATEGORIES.find(
-      (c) => c.id === activeCategory,
-    );
-    if (category) {
-      // Conforme solicitado, o custo inicial é 1 PP (que equivale a 1 graduação)
-      onChange({ ...options, ppCost: 1 });
+    if (currentCategory) {
+      const initialStep = currentCategory.cost >= 1 ? currentCategory.cost : 1;
+      onChange({ ...options, ppCost: initialStep });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeCategory]);
@@ -85,28 +91,43 @@ export const CaracteristicaOptions: FC<CaracteristicaOptionsProps> = ({
 
   const naturalValue = options.sub ? getTraitValue(options.sub) : 0;
 
-  // Cálculo do máximo de PP baseado nas regras de NP: (NP * 2) - Valor Base
-  const maxPP = useMemo(() => {
-    if (!options.sub) return 10;
+  // Cálculo do máximo de bônus permitido (NP * 2)
+  const maxBonus = useMemo(() => {
+    if (!options.sub) return 20;
     const maxTotal = powerLevel * 2;
-    return Math.max(1, maxTotal - naturalValue);
+    return Math.max(0, maxTotal - naturalValue);
   }, [options.sub, powerLevel, naturalValue]);
 
-  const ppCost = options.ppCost ?? 1;
+  // O passo do slider depende do custo
+  // Se custo > 1 (ex: 2), o passo é o próprio custo para garantir bônus inteiros
+  // Se custo < 1 (ex: 0.5), o passo é 1 PP (que dá 2 bônus)
+  const step = costPerBonus >= 1 ? costPerBonus : 1;
 
-  // Garantir que o custo atual não exceda o máximo permitido
+  // Cálculo do máximo de PP baseado no bônus máximo e no passo
+  const maxPP = useMemo(() => {
+    const rawMaxPP = maxBonus * costPerBonus;
+    if (costPerBonus >= 1) {
+      // Se o custo é >= 1, o maxPP deve ser múltiplo do custo para não exceder o bônus
+      return Math.max(step, Math.floor(rawMaxPP / step) * step);
+    }
+    // Se o custo é < 1, 1 PP dá múltiplos bônus.
+    return Math.max(step, Math.floor(rawMaxPP));
+  }, [maxBonus, costPerBonus, step]);
+
+  const ppCost = options.ppCost ?? step;
+
+  // Garantir que o custo atual não exceda o máximo permitido e respeite o step
   useEffect(() => {
     if (ppCost > maxPP) {
       onChange({ ...options, ppCost: maxPP });
+    } else if (ppCost % step !== 0) {
+      onChange({ ...options, ppCost: Math.floor(ppCost / step) * step });
     }
-  }, [ppCost, maxPP, onChange, options]);
+  }, [ppCost, maxPP, step, onChange, options]);
   
-  // O bônus é igual ao custo de PP (1 PP = 1 Graduação)
-  const bonus = ppCost;
+  // O bônus é calculado a partir do custo de PP
+  const bonus = Math.floor(ppCost / costPerBonus);
   const finalValue = naturalValue + bonus;
-
-  // O passo é sempre 1, pois 1 PP = 1 Graduação
-  const step = 1;
 
   return (
     <div className="space-y-3">
@@ -117,7 +138,8 @@ export const CaracteristicaOptions: FC<CaracteristicaOptionsProps> = ({
             onClick={() => {
               if (activeCategory !== cat.id) {
                 setActiveCategory(cat.id);
-                onChange({ ...options, sub: "", ppCost: 1 });
+                const initialStep = cat.cost >= 1 ? cat.cost : 1;
+                onChange({ ...options, sub: "", ppCost: initialStep });
               }
             }}
             className={`px-2 py-1 text-[10px] uppercase tracking-wider font-semibold rounded border transition-all ${
@@ -138,7 +160,7 @@ export const CaracteristicaOptions: FC<CaracteristicaOptionsProps> = ({
             onChange({
               ...options,
               sub: e.target.value,
-              ppCost: 1,
+              ppCost: step,
             });
           }}
           className="w-full bg-background/40 border border-border/30 rounded-md px-3 py-2 text-xs text-foreground appearance-none focus:outline-none focus:ring-1 focus:ring-purple-500/50"
@@ -192,11 +214,11 @@ export const CaracteristicaOptions: FC<CaracteristicaOptionsProps> = ({
           />
 
           <div className="flex items-center justify-between px-1 text-[9px] text-muted-foreground uppercase tracking-wider border-t border-border/10 pt-1.5">
-            <span>Bônus Atual:</span>
-            <span className="text-purple-400 font-bold">+{bonus} Graduações (grad)</span>
-            <span className="mx-1">|</span>
-            <span>Total:</span>
-            <span className="text-green-400 font-bold">+{finalValue}</span>
+            <div className="flex gap-2">
+              <span>Bônus: <span className="text-purple-400 font-bold">+{bonus} grad</span></span>
+              <span className="text-muted-foreground/50">({costPerBonus} PP/grad)</span>
+            </div>
+            <span>Total: <span className="text-green-400 font-bold">+{finalValue}</span></span>
           </div>
         </div>
       )}
