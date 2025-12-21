@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { Check, ArrowRight, ArrowLeft } from "lucide-react";
 
 interface PowerBuilderFooterProps {
@@ -12,7 +13,7 @@ interface PowerBuilderFooterProps {
   onClose: () => void;
 }
 
-export function PowerBuilderFooter({
+export const PowerBuilderFooter = memo(({
   step,
   isEditing,
   canProceed,
@@ -20,7 +21,7 @@ export function PowerBuilderFooter({
   onNext,
   onSave,
   onClose,
-}: PowerBuilderFooterProps) {
+}: PowerBuilderFooterProps) => {
   return (
     <div className="p-4 border-t border-border/50 bg-background/50 flex items-center justify-between">
       <button
@@ -57,4 +58,6 @@ export function PowerBuilderFooter({
       </div>
     </div>
   );
-}
+});
+
+PowerBuilderFooter.displayName = "PowerBuilderFooter";
