@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { X, Sparkles } from "lucide-react";
 
 interface PowerBuilderHeaderProps {
@@ -8,11 +9,11 @@ interface PowerBuilderHeaderProps {
   onClose: () => void;
 }
 
-export function PowerBuilderHeader({
+export const PowerBuilderHeader = memo(({
   isEditing,
   step,
   onClose,
-}: PowerBuilderHeaderProps) {
+}: PowerBuilderHeaderProps) => {
   return (
     <div className="p-4 border-b border-border/50 flex items-center justify-between bg-purple-500/5">
       <div className="flex items-center gap-3">
@@ -50,4 +51,6 @@ export function PowerBuilderHeader({
       </button>
     </div>
   );
-}
+});
+
+PowerBuilderHeader.displayName = "PowerBuilderHeader";
