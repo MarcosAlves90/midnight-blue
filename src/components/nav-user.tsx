@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import {
   BadgeCheck,
@@ -29,17 +30,22 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 
+import { useAuth } from "@/contexts/AuthContext";
+import { authInfo, authError } from "@/lib/toast";
+
 export function NavUser({
   user,
 }: {
-  user: {
-    name: string;
-    email: string;
-    avatar: string;
+  user?: {
+    name?: string;
+    email?: string;
+    avatar?: string;
   };
 }) {
   const { isMobile } = useSidebar();
   const { theme, setTheme } = useTheme();
+  const { signOut } = useAuth();
+  const router = useRouter();
 
   const toggleTheme = () => {
     if (theme === "light") {
@@ -51,6 +57,17 @@ export function NavUser({
     }
   };
 
+  async function handleSignOut() {
+    try {
+      await signOut();
+      authInfo("Desconectado");
+      router.push("/");
+    } catch (err) {
+      console.error(err);
+      authError("Erro ao desconectar");
+    }
+  }
+
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -61,12 +78,12 @@ export function NavUser({
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground cursor-pointer"
             >
               <Avatar className="h-8 w-8 rounded-lg">
-                <AvatarImage src={user.avatar} alt={user.name} />
-                <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                <AvatarImage src={user?.avatar} alt={user?.name} />
+                <AvatarFallback className="rounded-lg">{(user?.name || "").split(" ").map((n) => n?.[0]).filter(Boolean).slice(0,2).join("").toUpperCase() || "CN"}</AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{user.name}</span>
-                <span className="truncate text-xs">{user.email}</span>
+                <span className="truncate font-medium">{user?.name || "Convidado"}</span>
+                <span className="truncate text-xs">{user?.email || ""}</span>
               </div>
               <ChevronsUpDown className="ml-auto size-4" />
             </SidebarMenuButton>
@@ -80,12 +97,12 @@ export function NavUser({
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
-                  <AvatarImage src={user.avatar} alt={user.name} />
-                  <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                  <AvatarImage src={user?.avatar} alt={user?.name} />
+                  <AvatarFallback className="rounded-lg">{(user?.name || "").split(" ").map((n) => n?.[0]).filter(Boolean).slice(0,2).join("").toUpperCase() || "CN"}</AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">{user.name}</span>
-                  <span className="truncate text-xs">{user.email}</span>
+                  <span className="truncate font-medium">{user?.name || "Convidado"}</span>
+                  <span className="truncate text-xs">{user?.email || ""}</span>
                 </div>
               </div>
             </DropdownMenuLabel>
@@ -104,7 +121,7 @@ export function NavUser({
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => router.push("/dashboard/conta")}>
                 <BadgeCheck />
                 Conta
               </DropdownMenuItem>
@@ -118,7 +135,7 @@ export function NavUser({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={handleSignOut}>
               <LogOut />
               Sair
             </DropdownMenuItem>
