@@ -1,11 +1,11 @@
-import Link from "next/link"
-import { ChevronLeft } from "lucide-react"
-import ParallaxBackground from "@/components/parallax-background"
-import { Button } from "@/components/ui/button"
-import { FieldDescription } from "@/components/ui/field"
+import Link from "next/link";
+import { ChevronLeft } from "lucide-react";
+import ParallaxBackground from "@/components/parallax-background";
+import { Button } from "@/components/ui/button";
+import { FieldDescription } from "@/components/ui/field";
 
 interface AuthPageWrapperProps {
-  children: React.ReactNode
+  children: React.ReactNode;
 }
 
 export function AuthPageWrapper({ children }: AuthPageWrapperProps) {
@@ -40,10 +40,17 @@ export function AuthPageWrapper({ children }: AuthPageWrapperProps) {
         </Link>
         {children}
         <FieldDescription className="px-6 text-center text-white/50">
-          Ao clicar em continuar, você concorda com nossos <a href="#" className="underline hover:text-white transition-colors">Termos de Serviço</a>{" "}
-          e <a href="#" className="underline hover:text-white transition-colors">Política de Privacidade</a>.
+          Ao clicar em continuar, você concorda com nossos{" "}
+          <a href="#" className="underline hover:text-white transition-colors">
+            Termos de Serviço
+          </a>{" "}
+          e{" "}
+          <a href="#" className="underline hover:text-white transition-colors">
+            Política de Privacidade
+          </a>
+          .
         </FieldDescription>
       </div>
     </div>
-  )
+  );
 }

@@ -1,31 +1,31 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import Link from "next/link"
-import { Eye, EyeOff } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import * as React from "react";
+import Link from "next/link";
+import { Eye, EyeOff } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
+} from "@/components/ui/card";
 import {
   Field,
   FieldDescription,
   FieldGroup,
   FieldLabel,
-} from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
+} from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
 
 export function SignupForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
-  const [showPassword, setShowPassword] = React.useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = React.useState(false)
+  const [showPassword, setShowPassword] = React.useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
@@ -69,7 +69,9 @@ export function SignupForm({
                         size="icon"
                         className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent rounded-l-none"
                         onClick={() => setShowPassword(!showPassword)}
-                        aria-label={showPassword ? "Esconder senha" : "Mostrar senha"}
+                        aria-label={
+                          showPassword ? "Esconder senha" : "Mostrar senha"
+                        }
                       >
                         {showPassword ? (
                           <EyeOff className="h-4 w-4 text-muted-foreground" />
@@ -95,8 +97,14 @@ export function SignupForm({
                         variant="ghost"
                         size="icon"
                         className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent rounded-l-none"
-                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                        aria-label={showConfirmPassword ? "Esconder senha" : "Mostrar senha"}
+                        onClick={() =>
+                          setShowConfirmPassword(!showConfirmPassword)
+                        }
+                        aria-label={
+                          showConfirmPassword
+                            ? "Esconder senha"
+                            : "Mostrar senha"
+                        }
                       >
                         {showConfirmPassword ? (
                           <EyeOff className="h-4 w-4 text-muted-foreground" />
@@ -122,5 +130,5 @@ export function SignupForm({
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
