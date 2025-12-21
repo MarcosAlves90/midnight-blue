@@ -2,52 +2,10 @@
 
 import { memo } from "react";
 import { Effect, EffectOptions } from "./types";
-import { Tip } from "@/components/ui/tip";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import EffectSpecificOptions from "./effect-specific-options";
-
-const TipContent = memo(({ content }: { content: string }) => (
-  <div className="max-w-xs text-xs">{content}</div>
-));
-TipContent.displayName = "TipContent";
-
-const EffectCardItem = memo(
-  ({
-    effect,
-    isSelected,
-    onToggle,
-  }: {
-    effect: Effect;
-    isSelected: boolean;
-    onToggle: () => void;
-  }) => (
-    <button
-      onClick={onToggle}
-      className={`block w-full p-3 text-left rounded-lg border transition-all group relative overflow-hidden ${
-        isSelected
-          ? "border-purple-500 bg-purple-500/10"
-          : "border-border/50 hover:border-purple-500/30 hover:bg-muted/30"
-      }`}
-    >
-      <div className="flex items-center justify-between mb-1">
-        <Tip content={<TipContent content={effect.description} />} side="right">
-          <span className="font-medium text-foreground group-hover:text-purple-400 transition-colors cursor-help underline decoration-dotted underline-offset-2">
-            {effect.name}
-          </span>
-        </Tip>
-        <span className="text-xs font-mono text-purple-400 bg-purple-500/10 px-1.5 py-0.5 rounded">
-          {effect.id === "ambiente"
-            ? "1 - 2 PP/grad"
-            : effect.id === "caracteristica-aumentada"
-              ? "Variável"
-              : `${effect.baseCost} PP/grad`}
-        </span>
-      </div>
-    </button>
-  ),
-);
-EffectCardItem.displayName = "EffectCardItem";
+import { EffectCardItem } from "./effect-card-item";
 
 interface PowerBuilderStepEffectsProps {
   searchTerm: string;
@@ -59,10 +17,9 @@ interface PowerBuilderStepEffectsProps {
   effectOptions?: Record<string, EffectOptions>;
   onUpdateEffectOptions?: (effectId: string, opts: EffectOptions) => void;
   rank: number;
-  onRankChange?: (rank: number) => void;
 }
 
-export function PowerBuilderStepEffects({
+export const PowerBuilderStepEffects = memo(({
   searchTerm,
   onSearchChange,
   filteredEffects,
@@ -71,8 +28,7 @@ export function PowerBuilderStepEffects({
   effectOptions,
   onUpdateEffectOptions,
   rank,
-  onRankChange,
-}: PowerBuilderStepEffectsProps) {
+}: PowerBuilderStepEffectsProps) => {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -116,7 +72,6 @@ export function PowerBuilderStepEffects({
                     onChange={(opts) =>
                       onUpdateEffectOptions && onUpdateEffectOptions(effect.id, opts)
                     }
-                    onRankChange={onRankChange}
                   />
                 </div>
               )}
@@ -126,4 +81,6 @@ export function PowerBuilderStepEffects({
       </div>
     </div>
   );
-}
+});
+
+PowerBuilderStepEffects.displayName = "PowerBuilderStepEffects";
