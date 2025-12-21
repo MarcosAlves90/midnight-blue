@@ -122,7 +122,8 @@ function useEditableNumber(initial: number, min: number = 0) {
 export default function AdvancedStatus() {
   const { attributes } = useAttributesContext();
   const { skills } = useSkillsContext();
-  const { powerLevel, setPowerLevel, extraPoints, setExtraPoints } = useStatusContext();
+  const { powerLevel, setPowerLevel, extraPoints, setExtraPoints } =
+    useStatusContext();
 
   const [isEditMode, setIsEditMode] = useState(false);
 

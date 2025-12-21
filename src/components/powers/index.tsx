@@ -47,7 +47,9 @@ export default function PowersSection({}: PowersSectionProps) {
   };
 
   // Check for powers that exceed power level limits
-  const powersExceedingLimit = powers.filter((power) => checkPowerLimit(power, powerLevel));
+  const powersExceedingLimit = powers.filter((power) =>
+    checkPowerLimit(power, powerLevel),
+  );
 
   return (
     <>

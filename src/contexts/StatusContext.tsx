@@ -1,5 +1,11 @@
 "use client";
-import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+} from "react";
 
 interface StatusContextType {
   powerLevel: number;
@@ -12,7 +18,9 @@ const StatusContext = createContext<StatusContextType | undefined>(undefined);
 
 const STORAGE_KEY = "midnight-status";
 
-export const StatusProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const StatusProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [powerLevel, setPowerLevelState] = useState(10);
   const [extraPoints, setExtraPointsState] = useState(0);
 
@@ -22,8 +30,10 @@ export const StatusProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
         const parsed = JSON.parse(stored);
-        if (typeof parsed.powerLevel === "number") setPowerLevelState(parsed.powerLevel);
-        if (typeof parsed.extraPoints === "number") setExtraPointsState(parsed.extraPoints);
+        if (typeof parsed.powerLevel === "number")
+          setPowerLevelState(parsed.powerLevel);
+        if (typeof parsed.extraPoints === "number")
+          setExtraPointsState(parsed.extraPoints);
       }
     } catch (e) {
       console.error("Failed to load status from localStorage", e);
@@ -33,7 +43,10 @@ export const StatusProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   // Save to localStorage
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ powerLevel, extraPoints }));
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({ powerLevel, extraPoints }),
+      );
     } catch (e) {
       console.error("Failed to save status to localStorage", e);
     }
@@ -48,7 +61,9 @@ export const StatusProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   }, []);
 
   return (
-    <StatusContext.Provider value={{ powerLevel, setPowerLevel, extraPoints, setExtraPoints }}>
+    <StatusContext.Provider
+      value={{ powerLevel, setPowerLevel, extraPoints, setExtraPoints }}
+    >
       {children}
     </StatusContext.Provider>
   );

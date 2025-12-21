@@ -183,236 +183,238 @@ interface PowerBuilderStepModifiersProps {
   onAddModifier: (modifier: Modifier) => void;
 }
 
-export const PowerBuilderStepModifiers = memo(({
-  searchTerm,
-  onSearchChange,
-  selectedModifierInstances,
-  onUpdateDescription,
-  onUpdateOptions,
-  onRemoveInstance,
-  filteredExtras,
-  filteredFlaws,
-  onAddModifier,
-}: PowerBuilderStepModifiersProps) => {
-  // Separe em específicos (aplicam-se a efeitos) e comuns (aplicáveis a qualquer efeito)
-  const specificExtras = filteredExtras.filter(
-    (m) => m.appliesTo && m.appliesTo.length > 0,
-  );
-  const commonExtras = filteredExtras.filter(
-    (m) => !m.appliesTo || m.appliesTo.length === 0,
-  );
-  const specificFlaws = filteredFlaws.filter(
-    (m) => m.appliesTo && m.appliesTo.length > 0,
-  );
-  const commonFlaws = filteredFlaws.filter(
-    (m) => !m.appliesTo || m.appliesTo.length === 0,
-  );
+export const PowerBuilderStepModifiers = memo(
+  ({
+    searchTerm,
+    onSearchChange,
+    selectedModifierInstances,
+    onUpdateDescription,
+    onUpdateOptions,
+    onRemoveInstance,
+    filteredExtras,
+    filteredFlaws,
+    onAddModifier,
+  }: PowerBuilderStepModifiersProps) => {
+    // Separe em específicos (aplicam-se a efeitos) e comuns (aplicáveis a qualquer efeito)
+    const specificExtras = filteredExtras.filter(
+      (m) => m.appliesTo && m.appliesTo.length > 0,
+    );
+    const commonExtras = filteredExtras.filter(
+      (m) => !m.appliesTo || m.appliesTo.length === 0,
+    );
+    const specificFlaws = filteredFlaws.filter(
+      (m) => m.appliesTo && m.appliesTo.length > 0,
+    );
+    const commonFlaws = filteredFlaws.filter(
+      (m) => !m.appliesTo || m.appliesTo.length === 0,
+    );
 
-  return (
-    <div className="space-y-6">
-      <div>
-        <h3 className="text-lg font-semibold text-foreground">
-          Modificadores Selecionados
-        </h3>
-        <p className="text-sm text-muted-foreground">
-          {selectedModifierInstances.length} modificador(es) adicionado(s)
-        </p>
-      </div>
-
-      {selectedModifierInstances.length > 0 && (
-        <div className="space-y-3 p-4 bg-muted/10 rounded-lg border border-border/50">
-          {selectedModifierInstances.map((instance) => (
-            <SelectedModifierInstance
-              key={instance.id}
-              instance={instance}
-              onDescriptionChange={(desc) =>
-                onUpdateDescription(instance.id, desc)
-              }
-              onUpdateOptions={(opts) => onUpdateOptions(instance.id, opts)}
-              onRemove={() => onRemoveInstance(instance.id)}
-            />
-          ))}
+    return (
+      <div className="space-y-6">
+        <div>
+          <h3 className="text-lg font-semibold text-foreground">
+            Modificadores Selecionados
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            {selectedModifierInstances.length} modificador(es) adicionado(s)
+          </p>
         </div>
-      )}
 
-      <div className="space-y-4 pt-4 border-t border-border/50">
-        <div className="flex items-center justify-between">
-          <h4 className="text-sm font-semibold text-foreground">
-            Adicionar Novo Modificador
-          </h4>
-          <div className="relative w-64">
-            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Buscar modificadores..."
-              value={searchTerm}
-              onChange={(e) => onSearchChange(e.target.value)}
-              className="pl-8 bg-background/50"
-            />
+        {selectedModifierInstances.length > 0 && (
+          <div className="space-y-3 p-4 bg-muted/10 rounded-lg border border-border/50">
+            {selectedModifierInstances.map((instance) => (
+              <SelectedModifierInstance
+                key={instance.id}
+                instance={instance}
+                onDescriptionChange={(desc) =>
+                  onUpdateDescription(instance.id, desc)
+                }
+                onUpdateOptions={(opts) => onUpdateOptions(instance.id, opts)}
+                onRemove={() => onRemoveInstance(instance.id)}
+              />
+            ))}
           </div>
-        </div>
+        )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Extras */}
-          <div className="space-y-3">
-            <h4 className="text-sm font-medium text-green-400 flex items-center gap-2">
-              <Plus className="h-4 w-4" /> Extras (Aumentam Custo)
+        <div className="space-y-4 pt-4 border-t border-border/50">
+          <div className="flex items-center justify-between">
+            <h4 className="text-sm font-semibold text-foreground">
+              Adicionar Novo Modificador
             </h4>
-            <div className="space-y-2">
-              {specificExtras.length > 0 && (
-                <div className="space-y-2">
-                  <p className="text-xs text-muted-foreground">
-                    Específicos (requer efeito selecionado):
-                  </p>
-                  <div className="space-y-1">
-                    {specificExtras.map((modifier) => (
-                      <button
-                        key={modifier.id}
-                        onClick={() => onAddModifier(modifier)}
-                        className="w-full p-2 text-left text-sm rounded-md border transition-all flex items-center justify-between bg-muted/10 border-yellow-700/5 hover:bg-yellow-700/5 hover:border-yellow-700/10 text-muted-foreground"
-                      >
-                        <div className="flex items-center gap-2">
-                          <Tip
-                            content={
-                              <TipContent content={modifier.description} />
-                            }
-                            side="right"
-                          >
-                            <span className="cursor-help underline decoration-dotted underline-offset-2">
-                              {modifier.name}
-                            </span>
-                          </Tip>
-                          <span className="text-[10px] text-muted-foreground bg-muted/20 px-1.5 py-0.5 rounded ml-1">
-                            {modifier.appliesTo
-                              ?.map(
-                                (a) => EFFECTS.find((e) => e.id === a)?.name,
-                              )
-                              .filter(Boolean)
-                              .join(", ")}
-                          </span>
-                        </div>
-                        <span className="text-xs opacity-70">
-                          +{modifier.costPerRank}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {commonExtras.length > 0 && (
-                <div className="space-y-2">
-                  <p className="text-xs text-muted-foreground">Comuns:</p>
-                  <div className="space-y-1">
-                    {commonExtras.map((modifier) => (
-                      <button
-                        key={modifier.id}
-                        onClick={() => onAddModifier(modifier)}
-                        className="w-full p-2 text-left text-sm rounded-md border transition-all flex items-center justify-between bg-muted/10 border-transparent hover:bg-green-500/10 hover:border-green-500/50 text-muted-foreground hover:text-green-300"
-                      >
-                        <div className="flex items-center gap-2">
-                          <Tip
-                            content={
-                              <TipContent content={modifier.description} />
-                            }
-                            side="right"
-                          >
-                            <span className="cursor-help underline decoration-dotted underline-offset-2">
-                              {modifier.name}
-                            </span>
-                          </Tip>
-                        </div>
-                        <span className="text-xs opacity-70">
-                          +{modifier.costPerRank}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
+            <div className="relative w-64">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar modificadores..."
+                value={searchTerm}
+                onChange={(e) => onSearchChange(e.target.value)}
+                className="pl-8 bg-background/50"
+              />
             </div>
           </div>
 
-          {/* Flaws */}
-          <div className="space-y-3">
-            <h4 className="text-sm font-medium text-red-400 flex items-center gap-2">
-              <Minus className="h-4 w-4" /> Falhas (Reduzem Custo)
-            </h4>
-            <div className="space-y-2">
-              {specificFlaws.length > 0 && (
-                <div className="space-y-2">
-                  <p className="text-xs text-muted-foreground">
-                    Específicas (requer efeito selecionado):
-                  </p>
-                  <div className="space-y-1">
-                    {specificFlaws.map((modifier) => (
-                      <button
-                        key={modifier.id}
-                        onClick={() => onAddModifier(modifier)}
-                        className="w-full p-2 text-left text-sm rounded-md border transition-all flex items-center justify-between bg-muted/10 border-yellow-700/5 hover:bg-yellow-700/5 hover:border-yellow-700/10 text-muted-foreground"
-                      >
-                        <div className="flex items-center gap-2">
-                          <Tip
-                            content={
-                              <TipContent content={modifier.description} />
-                            }
-                            side="right"
-                          >
-                            <span className="cursor-help underline decoration-dotted underline-offset-2">
-                              {modifier.name}
-                            </span>
-                          </Tip>
-                          <span className="text-[10px] text-muted-foreground bg-muted/20 px-1.5 py-0.5 rounded ml-1">
-                            {modifier.appliesTo
-                              ?.map(
-                                (a) => EFFECTS.find((e) => e.id === a)?.name,
-                              )
-                              .filter(Boolean)
-                              .join(", ")}
-                          </span>
-                        </div>
-                        <span className="text-xs opacity-70">
-                          {modifier.costPerRank}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {commonFlaws.length > 0 && (
-                <div className="space-y-2">
-                  <p className="text-xs text-muted-foreground">Comuns:</p>
-                  <div className="space-y-1">
-                    {commonFlaws.map((modifier) => (
-                      <button
-                        key={modifier.id}
-                        onClick={() => onAddModifier(modifier)}
-                        className="w-full p-2 text-left text-sm rounded-md border transition-all flex items-center justify-between bg-muted/10 border-transparent hover:bg-red-500/10 hover:border-red-500/50 text-muted-foreground hover:text-red-300"
-                      >
-                        <Tip
-                          content={
-                            <TipContent content={modifier.description} />
-                          }
-                          side="right"
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Extras */}
+            <div className="space-y-3">
+              <h4 className="text-sm font-medium text-green-400 flex items-center gap-2">
+                <Plus className="h-4 w-4" /> Extras (Aumentam Custo)
+              </h4>
+              <div className="space-y-2">
+                {specificExtras.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-xs text-muted-foreground">
+                      Específicos (requer efeito selecionado):
+                    </p>
+                    <div className="space-y-1">
+                      {specificExtras.map((modifier) => (
+                        <button
+                          key={modifier.id}
+                          onClick={() => onAddModifier(modifier)}
+                          className="w-full p-2 text-left text-sm rounded-md border transition-all flex items-center justify-between bg-muted/10 border-yellow-700/5 hover:bg-yellow-700/5 hover:border-yellow-700/10 text-muted-foreground"
                         >
-                          <span className="cursor-help underline decoration-dotted underline-offset-2">
-                            {modifier.name}
+                          <div className="flex items-center gap-2">
+                            <Tip
+                              content={
+                                <TipContent content={modifier.description} />
+                              }
+                              side="right"
+                            >
+                              <span className="cursor-help underline decoration-dotted underline-offset-2">
+                                {modifier.name}
+                              </span>
+                            </Tip>
+                            <span className="text-[10px] text-muted-foreground bg-muted/20 px-1.5 py-0.5 rounded ml-1">
+                              {modifier.appliesTo
+                                ?.map(
+                                  (a) => EFFECTS.find((e) => e.id === a)?.name,
+                                )
+                                .filter(Boolean)
+                                .join(", ")}
+                            </span>
+                          </div>
+                          <span className="text-xs opacity-70">
+                            +{modifier.costPerRank}
                           </span>
-                        </Tip>
-                        <span className="text-xs opacity-70">
-                          {modifier.costPerRank}
-                        </span>
-                      </button>
-                    ))}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+
+                {commonExtras.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-xs text-muted-foreground">Comuns:</p>
+                    <div className="space-y-1">
+                      {commonExtras.map((modifier) => (
+                        <button
+                          key={modifier.id}
+                          onClick={() => onAddModifier(modifier)}
+                          className="w-full p-2 text-left text-sm rounded-md border transition-all flex items-center justify-between bg-muted/10 border-transparent hover:bg-green-500/10 hover:border-green-500/50 text-muted-foreground hover:text-green-300"
+                        >
+                          <div className="flex items-center gap-2">
+                            <Tip
+                              content={
+                                <TipContent content={modifier.description} />
+                              }
+                              side="right"
+                            >
+                              <span className="cursor-help underline decoration-dotted underline-offset-2">
+                                {modifier.name}
+                              </span>
+                            </Tip>
+                          </div>
+                          <span className="text-xs opacity-70">
+                            +{modifier.costPerRank}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Flaws */}
+            <div className="space-y-3">
+              <h4 className="text-sm font-medium text-red-400 flex items-center gap-2">
+                <Minus className="h-4 w-4" /> Falhas (Reduzem Custo)
+              </h4>
+              <div className="space-y-2">
+                {specificFlaws.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-xs text-muted-foreground">
+                      Específicas (requer efeito selecionado):
+                    </p>
+                    <div className="space-y-1">
+                      {specificFlaws.map((modifier) => (
+                        <button
+                          key={modifier.id}
+                          onClick={() => onAddModifier(modifier)}
+                          className="w-full p-2 text-left text-sm rounded-md border transition-all flex items-center justify-between bg-muted/10 border-yellow-700/5 hover:bg-yellow-700/5 hover:border-yellow-700/10 text-muted-foreground"
+                        >
+                          <div className="flex items-center gap-2">
+                            <Tip
+                              content={
+                                <TipContent content={modifier.description} />
+                              }
+                              side="right"
+                            >
+                              <span className="cursor-help underline decoration-dotted underline-offset-2">
+                                {modifier.name}
+                              </span>
+                            </Tip>
+                            <span className="text-[10px] text-muted-foreground bg-muted/20 px-1.5 py-0.5 rounded ml-1">
+                              {modifier.appliesTo
+                                ?.map(
+                                  (a) => EFFECTS.find((e) => e.id === a)?.name,
+                                )
+                                .filter(Boolean)
+                                .join(", ")}
+                            </span>
+                          </div>
+                          <span className="text-xs opacity-70">
+                            {modifier.costPerRank}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {commonFlaws.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-xs text-muted-foreground">Comuns:</p>
+                    <div className="space-y-1">
+                      {commonFlaws.map((modifier) => (
+                        <button
+                          key={modifier.id}
+                          onClick={() => onAddModifier(modifier)}
+                          className="w-full p-2 text-left text-sm rounded-md border transition-all flex items-center justify-between bg-muted/10 border-transparent hover:bg-red-500/10 hover:border-red-500/50 text-muted-foreground hover:text-red-300"
+                        >
+                          <Tip
+                            content={
+                              <TipContent content={modifier.description} />
+                            }
+                            side="right"
+                          >
+                            <span className="cursor-help underline decoration-dotted underline-offset-2">
+                              {modifier.name}
+                            </span>
+                          </Tip>
+                          <span className="text-xs opacity-70">
+                            {modifier.costPerRank}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
-  );
-});
+    );
+  },
+);
 
 PowerBuilderStepModifiers.displayName = "PowerBuilderStepModifiers";

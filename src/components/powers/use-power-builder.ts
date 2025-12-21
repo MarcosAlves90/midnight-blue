@@ -25,35 +25,35 @@ export function usePowerBuilder(editingPower?: Power) {
   // Form State
   const [name, setName] = useState(editingPower?.name || "");
   const [selectedEffects, setSelectedEffects] = useState<Effect[]>(
-    editingPower?.effects || []
+    editingPower?.effects || [],
   );
   const [rank, setRank] = useState(editingPower?.rank || 1);
   const [selectedModifierInstances, setSelectedModifierInstances] = useState<
     ModifierInstance[]
   >(editingPower?.modifiers || []);
   const [selectedDescriptors, setSelectedDescriptors] = useState<string[]>(
-    editingPower?.descriptors || []
+    editingPower?.descriptors || [],
   );
   const [customAction, setCustomAction] = useState<ActionType | null>(
-    editingPower?.customAction || null
+    editingPower?.customAction || null,
   );
   const [customRange, setCustomRange] = useState<RangeType | null>(
-    editingPower?.customRange || null
+    editingPower?.customRange || null,
   );
   const [customDuration, setCustomDuration] = useState<DurationType | null>(
-    editingPower?.customDuration || null
+    editingPower?.customDuration || null,
   );
   const [notes, setNotes] = useState(editingPower?.notes || "");
-  const [effectOptions, setEffectOptions] = useState<Record<string, EffectOptions>>(
-    editingPower?.effectOptions || {}
-  );
+  const [effectOptions, setEffectOptions] = useState<
+    Record<string, EffectOptions>
+  >(editingPower?.effectOptions || {});
 
   // Calcula a graduação mínima baseada na soma de todos os seletores de graduação
   const minRank = useMemo(() => {
     return (
       Object.values(effectOptions || {}).reduce(
         (sum, opt) => sum + ((opt.rank as number) || 0),
-        0
+        0,
       ) || 1
     );
   }, [effectOptions]);
@@ -71,9 +71,9 @@ export function usePowerBuilder(editingPower?: Power) {
       EFFECTS.filter(
         (e) =>
           e.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          e.description.toLowerCase().includes(searchTerm.toLowerCase())
+          e.description.toLowerCase().includes(searchTerm.toLowerCase()),
       ),
-    [searchTerm]
+    [searchTerm],
   );
 
   const filteredExtras = useMemo(() => {
@@ -81,7 +81,7 @@ export function usePowerBuilder(editingPower?: Power) {
     const specific = filterModifiers(
       EFFECT_SPECIFIC_EXTRAS || [],
       searchTerm,
-      selectedEffects
+      selectedEffects,
     );
 
     const map = new Map<string, Modifier>();
@@ -94,7 +94,7 @@ export function usePowerBuilder(editingPower?: Power) {
     const specific = filterModifiers(
       EFFECT_SPECIFIC_FLAWS || [],
       searchTerm,
-      selectedEffects
+      selectedEffects,
     );
 
     const map = new Map<string, Modifier>();
@@ -116,9 +116,9 @@ export function usePowerBuilder(editingPower?: Power) {
           const applies = inst.modifier.appliesTo;
           if (!applies || applies.length === 0) return true;
           return applies.some((effectId) =>
-            next.some((e) => e.id === effectId)
+            next.some((e) => e.id === effectId),
           );
-        })
+        }),
       );
 
       return next;
@@ -137,7 +137,7 @@ export function usePowerBuilder(editingPower?: Power) {
 
   const removeModifierInstance = useCallback((instanceId: string) => {
     setSelectedModifierInstances((prev) =>
-      prev.filter((m) => m.id !== instanceId)
+      prev.filter((m) => m.id !== instanceId),
     );
   }, []);
 
@@ -147,51 +147,74 @@ export function usePowerBuilder(editingPower?: Power) {
         prev.map((m) =>
           m.id === instanceId
             ? { ...m, customDescription: description || undefined }
-            : m
-        )
+            : m,
+        ),
       );
     },
-    []
+    [],
   );
 
   const updateModifierOptions = useCallback(
     (instanceId: string, options: Record<string, unknown>) => {
       setSelectedModifierInstances((prev) =>
-        prev.map((m) => (m.id === instanceId ? { ...m, options } : m))
+        prev.map((m) => (m.id === instanceId ? { ...m, options } : m)),
       );
     },
-    []
+    [],
   );
 
   const toggleDescriptor = useCallback((descriptor: string) => {
     setSelectedDescriptors((prev) =>
       prev.includes(descriptor)
         ? prev.filter((d) => d !== descriptor)
-        : [...prev, descriptor]
+        : [...prev, descriptor],
     );
   }, []);
 
-  const updateEffectOptions = useCallback((effectId: string, opts: EffectOptions) => {
-    setEffectOptions((prev) => ({ ...prev, [effectId]: opts }));
-  }, []);
+  const updateEffectOptions = useCallback(
+    (effectId: string, opts: EffectOptions) => {
+      setEffectOptions((prev) => ({ ...prev, [effectId]: opts }));
+    },
+    [],
+  );
 
   const calculateCost = useCallback(() => {
-    return calculatePowerCost(rank, selectedEffects, selectedModifierInstances, effectOptions);
+    return calculatePowerCost(
+      rank,
+      selectedEffects,
+      selectedModifierInstances,
+      effectOptions,
+    );
   }, [rank, selectedEffects, selectedModifierInstances, effectOptions]);
 
-  const previewPower: Power = useMemo(() => ({
-    id: editingPower?.id || "preview",
-    name: name.trim() || "Novo Poder",
-    effects: selectedEffects,
-    rank,
-    descriptors: selectedDescriptors,
-    modifiers: selectedModifierInstances,
-    customAction: customAction || undefined,
-    customRange: customRange || undefined,
-    customDuration: customDuration || undefined,
-    notes: notes.trim() || undefined,
-    effectOptions,
-  }), [editingPower?.id, name, selectedEffects, rank, selectedDescriptors, selectedModifierInstances, customAction, customRange, customDuration, notes, effectOptions]);
+  const previewPower: Power = useMemo(
+    () => ({
+      id: editingPower?.id || "preview",
+      name: name.trim() || "Novo Poder",
+      effects: selectedEffects,
+      rank,
+      descriptors: selectedDescriptors,
+      modifiers: selectedModifierInstances,
+      customAction: customAction || undefined,
+      customRange: customRange || undefined,
+      customDuration: customDuration || undefined,
+      notes: notes.trim() || undefined,
+      effectOptions,
+    }),
+    [
+      editingPower?.id,
+      name,
+      selectedEffects,
+      rank,
+      selectedDescriptors,
+      selectedModifierInstances,
+      customAction,
+      customRange,
+      customDuration,
+      notes,
+      effectOptions,
+    ],
+  );
 
   const canProceed = useCallback(() => {
     if (step === 1) return selectedEffects.length > 0;

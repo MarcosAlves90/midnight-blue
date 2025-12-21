@@ -40,6 +40,6 @@ export const EffectCardItem = memo(
         </span>
       </div>
     </button>
-  )
+  ),
 );
 EffectCardItem.displayName = "EffectCardItem";

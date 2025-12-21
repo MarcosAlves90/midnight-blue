@@ -30,7 +30,8 @@ export const OptionSelector: FC<SelectorProps> = ({
           {label}:
         </span>
         <span className="text-[11px] font-mono text-purple-400 bg-purple-500/10 px-1.5 py-0.5 rounded whitespace-nowrap">
-          {value}{unit}
+          {value}
+          {unit}
         </span>
       </div>
       <div className="flex items-center gap-2 min-w-0">

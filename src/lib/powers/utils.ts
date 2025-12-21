@@ -1,10 +1,16 @@
-import { Effect, Modifier, ModifierInstance, Power, EffectOptions } from "@/components/powers/types";
+import {
+  Effect,
+  Modifier,
+  ModifierInstance,
+  Power,
+  EffectOptions,
+} from "@/components/powers/types";
 
 export const calculatePowerCost = (
   rank: number,
   selectedEffects: Effect[],
   selectedModifierInstances: ModifierInstance[],
-  effectOptions: Record<string, EffectOptions>
+  effectOptions: Record<string, EffectOptions>,
 ): number => {
   if (selectedEffects.length === 0) return 0;
 
@@ -20,7 +26,7 @@ export const calculatePowerCost = (
     .reduce(
       (acc, m) =>
         acc + ((m.options?.costPerRank as number) ?? m.modifier.costPerRank),
-      0
+      0,
     );
 
   const flawsTotal = selectedModifierInstances
@@ -28,7 +34,7 @@ export const calculatePowerCost = (
     .reduce(
       (acc, m) =>
         acc + ((m.options?.costPerRank as number) ?? m.modifier.costPerRank),
-      0
+      0,
     );
 
   const flatModifiers = selectedModifierInstances
@@ -36,7 +42,7 @@ export const calculatePowerCost = (
     .reduce(
       (acc, m) =>
         acc + ((m.options?.costPerRank as number) ?? m.modifier.costPerRank),
-      0
+      0,
     );
 
   const costPerRank = baseEffect + extrasTotal + flawsTotal;
@@ -55,7 +61,7 @@ export const calculatePowerCost = (
 export const filterModifiers = (
   modifiers: Modifier[],
   searchTerm: string,
-  selectedEffects: Effect[]
+  selectedEffects: Effect[],
 ): Modifier[] => {
   const q = searchTerm.toLowerCase();
   return modifiers.filter((m) => {
@@ -65,7 +71,7 @@ export const filterModifiers = (
     const appliesOk =
       !m.appliesTo ||
       m.appliesTo.some((effectId) =>
-        selectedEffects.some((e) => e.id === effectId)
+        selectedEffects.some((e) => e.id === effectId),
       );
     return matchesQuery && appliesOk;
   });

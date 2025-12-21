@@ -23,7 +23,7 @@ export const CaracteristicaOptions: FC<CaracteristicaOptionsProps> = ({
   const { attributes } = useAttributesContext();
   const { skills } = useSkillsContext();
   const { powerLevel } = useStatusContext();
-  
+
   const [activeCategory, setActiveCategory] = useState(() => {
     const found = CARACTERISTICA_CATEGORIES.find((cat) =>
       cat.items.some((item) => item.id === options.sub),
@@ -124,7 +124,7 @@ export const CaracteristicaOptions: FC<CaracteristicaOptionsProps> = ({
       onChange({ ...options, ppCost: Math.floor(ppCost / step) * step });
     }
   }, [ppCost, maxPP, step, onChange, options]);
-  
+
   // O bônus é calculado a partir do custo de PP
   const bonus = Math.floor(ppCost / costPerBonus);
   const finalValue = naturalValue + bonus;
@@ -215,10 +215,18 @@ export const CaracteristicaOptions: FC<CaracteristicaOptionsProps> = ({
 
           <div className="flex items-center justify-between px-1 text-[9px] text-muted-foreground uppercase tracking-wider border-t border-border/10 pt-1.5">
             <div className="flex gap-2">
-              <span>Bônus: <span className="text-purple-400 font-bold">+{bonus} grad</span></span>
-              <span className="text-muted-foreground/50">({costPerBonus} PP/grad)</span>
+              <span>
+                Bônus:{" "}
+                <span className="text-purple-400 font-bold">+{bonus} grad</span>
+              </span>
+              <span className="text-muted-foreground/50">
+                ({costPerBonus} PP/grad)
+              </span>
             </div>
-            <span>Total: <span className="text-green-400 font-bold">+{finalValue}</span></span>
+            <span>
+              Total:{" "}
+              <span className="text-green-400 font-bold">+{finalValue}</span>
+            </span>
           </div>
         </div>
       )}
