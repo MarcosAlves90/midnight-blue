@@ -395,6 +395,15 @@ export const COMMON_FLAWS: Modifier[] = [
     description: "O efeito funciona apenas em certas situações.",
   },
   {
+    id: "tipo",
+    name: "Tipo",
+    type: "falha",
+    costPerRank: -1,
+    appliesTo: ["compreender"],
+    description:
+      "Você só é capaz de compreender um tipo amplo de alvo (-1 por graduação) ou um tipo limitado (-2 por graduação).",
+  },
+  {
     id: "peculiaridade",
     name: "Peculiaridade",
     type: "falha",
@@ -786,6 +795,25 @@ export const EFFECT_SPECIFIC_EXTRAS: Modifier[] = [
 ];
 
 export const EFFECT_SPECIFIC_FLAWS: Modifier[] = [
+  {
+    id: "caracteristica-diminuida",
+    name: "Característica Diminuída",
+    type: "falha",
+    costPerRank: -1,
+    isFlat: true,
+    appliesTo: ["caracteristica-aumentada"],
+    description:
+      "Uma ou mais de suas características é diminuída enquanto outras são aumentadas. Esta falha vale tantos pontos quanto a redução na(s) característica(s) afetada(s). Por exemplo, se você perder Intelecto enquanto ganha Força, o valor da falha é igual à perda de Intelecto. O efeito deve custar pelo menos 1 ponto.",
+  },
+  {
+    id: "limitado-aumentada",
+    name: "Limitado",
+    type: "falha",
+    costPerRank: -1,
+    appliesTo: ["caracteristica-aumentada"],
+    description:
+      "Características Aumentadas normalmente são Limitadas, como Apenas Noturnas (ou Diurnas), Enquanto Irritado (ou em qualquer outro estado emocional), Submarina (ou em algum outro tipo de ambiente), e assim por diante. Uma limitação que raramente apareça deve ser tratada como uma complicação.",
+  },
   {
     id: "grau-limitado",
     name: "Grau Limitado",
