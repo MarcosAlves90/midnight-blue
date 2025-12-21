@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useCallback, memo } from "react";
+import { useStatusContext } from "@/contexts/StatusContext";
 import {
   Power,
   Effect,
@@ -36,6 +37,8 @@ function PowerBuilderModalContent({
   onSave,
   editingPower,
 }: PowerBuilderModalProps) {
+  const { powerLevel } = useStatusContext();
+  
   const isEditing = !!editingPower;
   const [step, setStep] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");

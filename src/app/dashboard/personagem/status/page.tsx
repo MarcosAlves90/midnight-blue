@@ -22,7 +22,7 @@ export default function PersonagemStatsPage() {
             <SkillsList />
           </div>
           <div className="bg-card flex-1 rounded-xl p-6 h-fit">
-            <PowersSection powerLevel={10} />
+            <PowersSection />
           </div>
         </div>
       </div>

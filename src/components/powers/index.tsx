@@ -5,12 +5,12 @@ import { Power } from "./types";
 import { PowerCard } from "./power-card";
 import { PowerBuilderModal } from "./power-builder-modal";
 import { Plus, Edit3, Lock, AlertTriangle } from "lucide-react";
+import { useStatusContext } from "@/contexts/StatusContext";
 
-interface PowersSectionProps {
-  powerLevel?: number;
-}
+interface PowersSectionProps {}
 
-export default function PowersSection({ powerLevel = 10 }: PowersSectionProps) {
+export default function PowersSection({}: PowersSectionProps) {
+  const { powerLevel } = useStatusContext();
   const [powers, setPowers] = useState<Power[]>([]);
   const [isEditMode, setIsEditMode] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);

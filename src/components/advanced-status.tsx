@@ -1,9 +1,10 @@
 "use client";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Tip } from "@/components/ui/tip";
 import { useAttributesContext } from "@/contexts/AttributesContext";
 import { useSkillsContext } from "@/contexts/SkillsContext";
+import { useStatusContext } from "@/contexts/StatusContext";
 import {
   Shield,
   Star,
@@ -121,31 +122,31 @@ function useEditableNumber(initial: number, min: number = 0) {
 export default function AdvancedStatus() {
   const { attributes } = useAttributesContext();
   const { skills } = useSkillsContext();
+  const { powerLevel, setPowerLevel, extraPoints, setExtraPoints } = useStatusContext();
 
   const [isEditMode, setIsEditMode] = useState(false);
-  const [extraPoints, setExtraPoints] = useState(0);
 
   // Editable values
-  const nivel = useEditableNumber(1, 1);
+  const nivelInput = powerLevel.toString();
   const deslocamento = useEditableNumber(9);
 
   const handleAddPoint = () => {
     if (extraPoints >= 14) {
       setExtraPoints(0);
-      nivel.update((nivel.value + 1).toString());
+      setPowerLevel(powerLevel + 1);
     } else {
-      setExtraPoints((prev) => prev + 1);
+      setExtraPoints(extraPoints + 1);
     }
   };
 
   const handleRemovePoint = () => {
     if (extraPoints <= 0) {
-      if (nivel.value > 1) {
+      if (powerLevel > 1) {
         setExtraPoints(14);
-        nivel.update((nivel.value - 1).toString());
+        setPowerLevel(powerLevel - 1);
       }
     } else {
-      setExtraPoints((prev) => prev - 1);
+      setExtraPoints(extraPoints - 1);
     }
   };
 
@@ -153,7 +154,7 @@ export default function AdvancedStatus() {
     setExtraPoints(0);
   };
 
-  const totalPowerPoints = nivel.value * 15 + extraPoints;
+  const totalPowerPoints = powerLevel * 15 + extraPoints;
 
   // Defense points
   const apararPoints = useEditableNumber(0);
@@ -271,8 +272,8 @@ export default function AdvancedStatus() {
           <Input
             type="number"
             min={1}
-            value={nivel.input}
-            onChange={(e) => nivel.update(e.target.value)}
+            value={nivelInput}
+            onChange={(e) => setPowerLevel(Number(e.target.value) || 1)}
             disabled={!isEditMode}
             className="text-center text-sm font-mono bg-primary/10 rounded-md focus:bg-primary/15 border-0 outline-none transition-colors h-8 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
           />
