@@ -21,14 +21,14 @@ interface PowerBuilderStepDetailsProps {
   onNotesChange: (notes: string) => void;
 }
 
-export function PowerBuilderStepDetails({
+export const PowerBuilderStepDetails = memo(({
   name,
   onNameChange,
   selectedDescriptors,
   onToggleDescriptor,
   notes,
   onNotesChange,
-}: PowerBuilderStepDetailsProps) {
+}: PowerBuilderStepDetailsProps) => {
   const { customDescriptors, addCustomDescriptor, removeCustomDescriptor } =
     useCustomDescriptors();
   const [newDescriptor, setNewDescriptor] = useState("");
@@ -176,4 +176,6 @@ export function PowerBuilderStepDetails({
       </div>
     </div>
   );
-}
+});
+
+PowerBuilderStepDetails.displayName = "PowerBuilderStepDetails";
