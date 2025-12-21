@@ -4,6 +4,7 @@ import { SkillsProvider } from "./SkillsContext";
 import { IdentityProvider } from "./IdentityContext";
 import { CustomDescriptorsProvider } from "./CustomDescriptorsContext";
 import { StatusProvider } from "./StatusContext";
+import { AuthProvider } from "./AuthContext";
 
 /**
  * Componente que agrupa todos os provedores de contexto da aplicação.
@@ -12,14 +13,16 @@ import { StatusProvider } from "./StatusContext";
  */
 export function AppProviders({ children }: { children: React.ReactNode }) {
   return (
-    <CustomDescriptorsProvider>
-      <StatusProvider>
-        <AttributesProvider>
-          <SkillsProvider>
-            <IdentityProvider>{children}</IdentityProvider>
-          </SkillsProvider>
-        </AttributesProvider>
-      </StatusProvider>
-    </CustomDescriptorsProvider>
+    <AuthProvider>
+      <CustomDescriptorsProvider>
+        <StatusProvider>
+          <AttributesProvider>
+            <SkillsProvider>
+              <IdentityProvider>{children}</IdentityProvider>
+            </SkillsProvider>
+          </AttributesProvider>
+        </StatusProvider>
+      </CustomDescriptorsProvider>
+    </AuthProvider>
   );
 }
