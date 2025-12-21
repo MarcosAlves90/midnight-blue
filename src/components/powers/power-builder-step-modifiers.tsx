@@ -183,7 +183,7 @@ interface PowerBuilderStepModifiersProps {
   onAddModifier: (modifier: Modifier) => void;
 }
 
-export function PowerBuilderStepModifiers({
+export const PowerBuilderStepModifiers = memo(({
   searchTerm,
   onSearchChange,
   selectedModifierInstances,
@@ -193,7 +193,7 @@ export function PowerBuilderStepModifiers({
   filteredExtras,
   filteredFlaws,
   onAddModifier,
-}: PowerBuilderStepModifiersProps) {
+}: PowerBuilderStepModifiersProps) => {
   // Separe em específicos (aplicam-se a efeitos) e comuns (aplicáveis a qualquer efeito)
   const specificExtras = filteredExtras.filter(
     (m) => m.appliesTo && m.appliesTo.length > 0,
@@ -413,4 +413,6 @@ export function PowerBuilderStepModifiers({
       </div>
     </div>
   );
-}
+});
+
+PowerBuilderStepModifiers.displayName = "PowerBuilderStepModifiers";
