@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useState, useEffect } from "react";
+import { buildImageUrl } from "@/lib/cloudinary";
 
 // Global mouse position state
 let globalMousePosition = { x: 0, y: 0 };
@@ -65,6 +66,8 @@ export default function ParallaxBackground({
       ? "absolute inset-0 bg-gradient-to-br from-slate-900/40 via-blue-900/30 to-indigo-900/40"
       : "absolute inset-0 bg-gradient-to-br from-black/80 via-black/60 to-gray-900/80";
 
+  const finalSrc = /^https?:\/\//.test(src) ? src : buildImageUrl(src);
+
   return (
     <div
       className="absolute inset-0 transition-transform duration-700 ease-out"
@@ -73,7 +76,7 @@ export default function ParallaxBackground({
       }}
     >
       <Image
-        src={src}
+        src={finalSrc}
         alt={alt}
         fill
         className="object-cover"
@@ -81,6 +84,7 @@ export default function ParallaxBackground({
         priority
         sizes="100vw"
         quality={85}
+        unoptimized={src.endsWith('.gif')}
       />
 
       <div className="absolute inset-0 bg-black/60 backdrop-blur-[5px]"></div>

@@ -9,7 +9,7 @@ export default function Home() {
       {/* Hero */}
       <div className="relative flex flex-col items-center justify-center min-h-screen px-6 text-center overflow-hidden">
         <ParallaxBackground
-          src="https://res.cloudinary.com/dflvo098t/image/upload/midnight-main-menu_bafpwg.gif"
+          src="midnight-main-menu_bafpwg.gif"
           alt="Midnight Blue Background"
           intensity={8}
         />
@@ -55,7 +55,7 @@ export default function Home() {
       {/* Main Content */}
       <div className="relative backdrop-blur-sm overflow-hidden border-t border-white/10">
         <ParallaxBackground
-          src="https://res.cloudinary.com/dflvo098t/image/upload/landing-page_vgw7yx.gif"
+          src="landing-page_vgw7yx.gif"
           alt="Midnight Blue Background"
           intensity={8}
           overlayType="black"
