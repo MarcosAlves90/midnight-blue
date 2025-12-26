@@ -1,8 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { Mail, Shield, AlertTriangle, Download, Copy, Eye, EyeOff, Trash2 } from "lucide-react";
+import { Mail, Shield, AlertTriangle, Download, Copy, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetFooter, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import {
@@ -35,8 +36,6 @@ export function AccountSettingsForm() {
   const [currentPassword, setCurrentPassword] = React.useState("");
   const [newPassword, setNewPassword] = React.useState("");
   const [confirmPassword, setConfirmPassword] = React.useState("");
-  const [showNewPassword, setShowNewPassword] = React.useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
 
   // Deleção de conta
   const [deleteOpen, setDeleteOpen] = React.useState(false);
@@ -117,10 +116,10 @@ export function AccountSettingsForm() {
   }
 
   return (
-    <div className="grid gap-6 md:grid-cols-[320px_1fr]">
+    <div className="grid gap-4 md:grid-cols-[320px_1fr]">
       {/* Left column: profile summary */}
-      <div className="space-y-6">
-        <Card>
+      <div className="space-y-4">
+        <Card className="border-0 shadow-none">
           <CardHeader>
             <CardTitle>Perfil</CardTitle>
             <CardDescription>Visão rápida do seu perfil</CardDescription>
@@ -134,7 +133,7 @@ export function AccountSettingsForm() {
                   <AvatarFallback className="text-3xl">{name?.charAt(0)?.toUpperCase() || "U"}</AvatarFallback>
                 )}
               </Avatar>
-              <div className="absolute -bottom-1 right-0 bg-background rounded-md p-1 shadow-sm">
+              <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-background rounded-md p-1 shadow-sm min-w-max whitespace-nowrap">
                 <Label className="text-xs">{user?.emailVerified ? "Verificado" : "Não verificado"}</Label>
               </div>
             </div>
@@ -163,7 +162,7 @@ export function AccountSettingsForm() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-0 shadow-none">
           <CardHeader>
             <CardTitle>Quick Actions</CardTitle>
             <CardDescription>Utilitários rápidos</CardDescription>
@@ -186,8 +185,8 @@ export function AccountSettingsForm() {
       </div>
 
       {/* Right column: settings */}
-      <div className="space-y-6">
-        <Card>
+      <div className="space-y-4">
+        <Card className="border-0 shadow-none">
           <CardHeader>
             <CardTitle>Contato</CardTitle>
             <CardDescription>Gerencie seu e-mail e verificações</CardDescription>
@@ -212,7 +211,7 @@ export function AccountSettingsForm() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-0 shadow-none">
           <CardHeader>
             <CardTitle>Segurança</CardTitle>
             <CardDescription>Atualize sua senha e medidas de segurança</CardDescription>
@@ -222,34 +221,27 @@ export function AccountSettingsForm() {
               <Label htmlFor="current-password">Senha Atual</Label>
               <div className="relative">
                 <Shield className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input id="current-password" type="password" className="pl-8" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} />
+                <Input id="current-password" type="password" className="pl-8 pr-10" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} />
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="new-password">Nova Senha</Label>
-                <div className="relative">
-                  <Input id="new-password" type={showNewPassword ? "text" : "password"} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
-                  <button type="button" className="absolute right-2 top-2" onClick={() => setShowNewPassword(!showNewPassword)}>
-                    {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
-                </div>
-                <div className="h-1 bg-border rounded-md overflow-hidden">
-                  <div style={{ width: `${(strength / 4) * 100}%` }} className={`h-1 ${strength <= 1 ? "bg-red-500" : strength === 2 ? "bg-yellow-400" : "bg-green-400"}`} />
-                </div>
-                <p className="text-xs text-muted-foreground">Força: {strength}/4</p>
+                <PasswordInput id="new-password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
               </div>
 
               <div className="grid gap-2">
                 <Label htmlFor="confirm-password">Confirmar Nova Senha</Label>
-                <div className="relative">
-                  <Input id="confirm-password" type={showConfirmPassword ? "text" : "password"} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
-                  <button type="button" className="absolute right-2 top-2" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
-                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
-                </div>
+                <PasswordInput id="confirm-password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
               </div>
+            </div>
+
+            <div className="grid gap-2">
+              <div className="h-1 bg-border rounded-md overflow-hidden">
+                <div style={{ width: `${(strength / 4) * 100}%` }} className={`h-1 ${strength <= 1 ? "bg-red-500" : strength === 2 ? "bg-yellow-400" : "bg-green-400"}`} />
+              </div>
+              <p className="text-xs text-muted-foreground">Força: {strength}/4</p>
             </div>
           </CardContent>
           <CardFooter className="border-t px-6 py-4 flex gap-2">
@@ -258,7 +250,7 @@ export function AccountSettingsForm() {
           </CardFooter>
         </Card>
 
-        <Card className="border-destructive/50">
+        <Card className="border-0 shadow-none">
           <CardHeader>
             <CardTitle className="text-destructive flex items-center gap-2"><AlertTriangle className="h-5 w-5" /> Zona de Perigo</CardTitle>
             <CardDescription>Ações irreversíveis para sua conta.</CardDescription>
