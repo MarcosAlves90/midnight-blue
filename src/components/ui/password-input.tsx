@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Eye, EyeOff } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { FormInput } from "@/components/ui/form-input";
 import { Button } from "@/components/ui/button";
 
 const PasswordInput = React.forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>(
@@ -9,10 +9,9 @@ const PasswordInput = React.forwardRef<HTMLInputElement, React.InputHTMLAttribut
 
     return (
       <div className="relative">
-        <Input
+        <FormInput
           ref={ref}
           type={showPassword ? "text" : "password"}
-          className="pr-10"
           {...props}
         />
         <Button

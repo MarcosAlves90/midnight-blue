@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo } from "react";
-import { Input } from "@/components/ui/input";
+import { FormInput } from "@/components/ui/form-input";
 import { Tip } from "@/components/ui/tip";
 import { getColorClasses } from "@/lib/colors";
 import { useAttributesContext } from "@/contexts/AttributesContext";
@@ -106,7 +106,7 @@ export function SkillCard({
       </td>
 
       <td className="px-1 py-1 align-middle text-center">
-        <Input
+        <FormInput
           value={valueState.inputValue}
           onChange={(e) => valueState.handleChange(e.target.value)}
           onBlur={valueState.handleBlur}
@@ -118,7 +118,7 @@ export function SkillCard({
       </td>
 
       <td className="px-1 py-1 align-middle text-center">
-        <Input
+        <FormInput
           value={othersState.inputValue}
           onChange={(e) => othersState.handleChange(e.target.value)}
           onBlur={othersState.handleBlur}

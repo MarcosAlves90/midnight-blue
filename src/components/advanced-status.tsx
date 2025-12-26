@@ -1,6 +1,6 @@
 "use client";
 import { useState, useCallback, useEffect } from "react";
-import { Input } from "@/components/ui/input";
+import { FormInput } from "@/components/ui/form-input";
 import { Tip } from "@/components/ui/tip";
 import { useAttributesContext } from "@/contexts/AttributesContext";
 import { useSkillsContext } from "@/contexts/SkillsContext";
@@ -85,7 +85,7 @@ function DefenseCard({
           </span>
         </div>
         <div className="h-3 w-px bg-border/50" />
-        <Input
+        <FormInput
           type="number"
           value={inputValue}
           onChange={(e) => onInputChange(e.target.value)}
@@ -270,7 +270,7 @@ export default function AdvancedStatus() {
               </label>
             </Tip>
           </div>
-          <Input
+          <FormInput
             type="number"
             min={1}
             value={nivelInput}
@@ -287,7 +287,7 @@ export default function AdvancedStatus() {
               Deslocamento
             </label>
           </div>
-          <Input
+          <FormInput
             type="number"
             min={0}
             value={deslocamento.input}

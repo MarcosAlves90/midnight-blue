@@ -1,5 +1,5 @@
 import React from "react";
-import { Input } from "@/components/ui/input";
+import { FormInput } from "@/components/ui/form-input";
 import { Tip } from "@/components/ui/tip";
 import { Download } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -64,7 +64,7 @@ export const IdentityCardHeader: React.FC<IdentityCardHeaderProps> = ({
         </span>
       </div>
       <div className="flex items-center gap-1">
-        <Input
+        <FormInput
           value={name}
           onChange={(e) => onChange(e.target.value)}
           className={`font-mono h-7 px-2 w-auto ${isMobile ? "max-w-[120px] text-xs" : "max-w-[150px] text-xs"} text-right bg-background/50 border-border/50 focus-visible:ring-1 focus-visible:ring-primary`}

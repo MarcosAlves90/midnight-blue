@@ -9,7 +9,7 @@ import {
   Check,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { FormInput } from "@/components/ui/form-input";
 import { Tip } from "@/components/ui/tip";
 import { IdentityData, Complication } from "@/contexts/IdentityContext";
 import { cn } from "@/lib/utils";
@@ -216,7 +216,7 @@ export const ComplicationsSection: React.FC<ComplicationsSectionProps> = ({
             <label className="text-[10px] font-medium text-muted-foreground uppercase mb-1 block">
               Descrição
             </label>
-            <Input
+            <FormInput
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder={

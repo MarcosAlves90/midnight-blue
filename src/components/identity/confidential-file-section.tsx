@@ -1,6 +1,6 @@
 import React from "react";
 import { Shield, Users, MapPin, Zap, Heart } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { FormInput } from "@/components/ui/form-input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tip } from "@/components/ui/tip";
 import { IdentityData } from "@/contexts/IdentityContext";
@@ -40,10 +40,9 @@ export const ConfidentialFileSection: React.FC<
             </span>
           </label>
         </Tip>
-        <Input
+        <FormInput
           value={identity.groupAffiliation}
           onChange={(e) => onFieldChange("groupAffiliation", e.target.value)}
-          className="bg-muted/20 border-transparent focus:bg-background"
           placeholder="Ex: Liga da Justiça..."
           aria-label="Afiliação ou grupo do personagem"
         />
@@ -67,10 +66,9 @@ export const ConfidentialFileSection: React.FC<
             </span>
           </label>
         </Tip>
-        <Input
+        <FormInput
           value={identity.baseOfOperations}
           onChange={(e) => onFieldChange("baseOfOperations", e.target.value)}
-          className="bg-muted/20 border-transparent focus:bg-background"
           placeholder="Ex: Batcaverna..."
           aria-label="Base de operações do personagem"
         />
@@ -94,10 +92,9 @@ export const ConfidentialFileSection: React.FC<
             </span>
           </label>
         </Tip>
-        <Input
+        <FormInput
           value={identity.powerOrigin}
           onChange={(e) => onFieldChange("powerOrigin", e.target.value)}
-          className="bg-muted/20 border-transparent focus:bg-background"
           placeholder="Ex: Acidente Químico..."
           aria-label="Origem dos poderes do personagem"
         />

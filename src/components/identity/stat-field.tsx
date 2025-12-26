@@ -1,5 +1,5 @@
 import React from "react";
-import { Input } from "@/components/ui/input";
+import { FormInput } from "@/components/ui/form-input";
 import { Tip } from "@/components/ui/tip";
 
 interface StatFieldProps {
@@ -53,7 +53,7 @@ export const StatField: React.FC<StatFieldProps> = ({
         </span>
       </label>
     )}
-    <Input
+    <FormInput
       value={value}
       onChange={(e) => onChange(e.target.value)}
       className="h-9 text-sm bg-muted/20 border-transparent focus:bg-background transition-all text-center font-medium"

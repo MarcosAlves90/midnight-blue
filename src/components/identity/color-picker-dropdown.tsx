@@ -6,7 +6,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
+import { FormInput } from "@/components/ui/form-input";
 import { PREDEFINED_COLORS } from "./constants";
 import { hexToRgb } from "@/lib/colors";
 
@@ -122,7 +122,7 @@ export const ColorPickerDropdown: React.FC<ColorPickerDropdownProps> = ({
                       }}
                     />
                   </div>
-                  <Input
+                  <FormInput
                     type="text"
                     value={localColor}
                     onChange={(e) => handleColorChange(e.target.value)}

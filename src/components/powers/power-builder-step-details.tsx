@@ -2,7 +2,7 @@
 
 import { POWER_TIPS } from "@/lib/powers";
 import { Tip } from "@/components/ui/tip";
-import { Input } from "@/components/ui/input";
+import { FormInput } from "@/components/ui/form-input";
 import { memo, useState } from "react";
 import { useCustomDescriptors } from "@/contexts/CustomDescriptorsContext";
 import { Plus, X } from "lucide-react";
@@ -61,7 +61,7 @@ export const PowerBuilderStepDetails = memo(
             <label className="text-sm font-medium text-foreground">
               Nome do Poder *
             </label>
-            <Input
+            <FormInput
               value={name}
               onChange={(e) => onNameChange(e.target.value)}
               placeholder="Ex: Rajada de Fogo, Escudo Mental..."
@@ -130,7 +130,7 @@ export const PowerBuilderStepDetails = memo(
                   </button>
                 ) : (
                   <div className="flex gap-2">
-                    <Input
+                    <FormInput
                       value={newDescriptor}
                       onChange={(e) => setNewDescriptor(e.target.value)}
                       onKeyDown={(e) => {

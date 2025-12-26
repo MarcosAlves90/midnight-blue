@@ -2,8 +2,8 @@
 
 import { memo } from "react";
 import { Effect, EffectOptions } from "./types";
-import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
+import { FormInput } from "@/components/ui/form-input";
 import EffectSpecificOptions from "./effect-specific-options";
 import { EffectCardItem } from "./effect-card-item";
 
@@ -43,7 +43,7 @@ export const PowerBuilderStepEffects = memo(
           </div>
           <div className="relative w-64">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
+            <FormInput
               placeholder="Buscar efeitos..."
               value={searchTerm}
               onChange={(e) => onSearchChange(e.target.value)}

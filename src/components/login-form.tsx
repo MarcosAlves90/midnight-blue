@@ -20,7 +20,7 @@ import {
   FieldLabel,
   FieldSeparator,
 } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
+import { FormInput } from "@/components/ui/form-input";
 import { authSuccess, authError } from "@/lib/toast";
 import { getFirebaseErrorMessage } from "@/lib/firebase-errors";
 import {
@@ -97,7 +97,7 @@ export function LoginForm({
               </FieldSeparator>
               <Field>
                 <FieldLabel htmlFor="email">E-mail</FieldLabel>
-                <Input
+                <FormInput
                   id="email"
                   type="email"
                   placeholder="midnight@exemplo.com"

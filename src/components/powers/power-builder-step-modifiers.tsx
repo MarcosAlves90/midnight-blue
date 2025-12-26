@@ -3,7 +3,7 @@
 import { memo, useState } from "react";
 import { Modifier, ModifierInstance } from "./types";
 import { Tip } from "@/components/ui/tip";
-import { Input } from "@/components/ui/input";
+import { FormInput } from "@/components/ui/form-input";
 import { Plus, Minus, Trash2, Search } from "lucide-react";
 import { EFFECTS } from "@/lib/powers";
 
@@ -243,7 +243,7 @@ export const PowerBuilderStepModifiers = memo(
             </h4>
             <div className="relative w-64">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
+              <FormInput
                 placeholder="Buscar modificadores..."
                 value={searchTerm}
                 onChange={(e) => onSearchChange(e.target.value)}

@@ -1,6 +1,6 @@
 import React from "react";
 import { FileText, MapPin, Briefcase } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { FormInput } from "@/components/ui/form-input";
 import { Tip } from "@/components/ui/tip";
 import { IdentityData } from "@/contexts/IdentityContext";
 import { ColorPickerDropdown } from "./color-picker-dropdown";
@@ -40,10 +40,9 @@ export const PersonalDataSection: React.FC<PersonalDataSectionProps> = ({
             </span>
           </label>
         </Tip>
-        <Input
+        <FormInput
           value={identity.placeOfBirth}
           onChange={(e) => onFieldChange("placeOfBirth", e.target.value)}
-          className="bg-muted/20 border-transparent focus:bg-background"
           placeholder="Ex: São Paulo"
           aria-label="Local de nascimento do personagem"
         />
@@ -66,10 +65,9 @@ export const PersonalDataSection: React.FC<PersonalDataSectionProps> = ({
             </span>
           </label>
         </Tip>
-        <Input
+        <FormInput
           value={identity.occupation}
           onChange={(e) => onFieldChange("occupation", e.target.value)}
-          className="bg-muted/20 border-transparent focus:bg-background"
           placeholder="Ex: Professor"
           aria-label="Ocupação do personagem"
         />

@@ -1,5 +1,5 @@
 import React from "react";
-import { Input } from "@/components/ui/input";
+import { FormInput } from "@/components/ui/form-input";
 import { Tip } from "@/components/ui/tip";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useGlitchColor } from "@/hooks/use-glitch-color";
@@ -66,7 +66,7 @@ export const IdentityCardContent: React.FC<IdentityCardContentProps> = ({
             </span>
           </Tip>
           <span style={{ color: glitchColor }}>=</span>
-          <Input
+          <FormInput
             value={alternateIdentity}
             onChange={(e) => onChange(e.target.value)}
             className="font-mono text-xs h-7 px-2 bg-background/50 border-border/50 focus-visible:ring-1 focus-visible:ring-primary flex-1"

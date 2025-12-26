@@ -19,7 +19,7 @@ import {
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
+import { FormInput } from "@/components/ui/form-input";
 import { authSuccess, authError } from "@/lib/toast";
 import { getFirebaseErrorMessage } from "@/lib/firebase-errors";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
@@ -91,7 +91,7 @@ export function SignupForm({
             <FieldGroup>
               <Field>
                 <FieldLabel htmlFor="name">Nome</FieldLabel>
-                <Input
+                <FormInput
                   id="name"
                   type="text"
                   placeholder="Seu nome"
@@ -102,7 +102,7 @@ export function SignupForm({
               </Field>
               <Field>
                 <FieldLabel htmlFor="email">E-mail</FieldLabel>
-                <Input
+                <FormInput
                   id="email"
                   type="email"
                   placeholder="midnight@exemplo.com"

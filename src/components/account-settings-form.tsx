@@ -14,7 +14,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { FormInput } from "@/components/ui/form-input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/AuthContext";
@@ -197,7 +197,7 @@ export function AccountSettingsForm() {
               <div className="flex gap-2 items-center">
                 <div className="relative flex-1">
                   <Mail className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input id="email" type="email" className="pl-8" value={email} disabled />
+                  <FormInput id="email" type="email" className="pl-8" value={email} disabled />
                 </div>
                 <Button variant="outline" onClick={copyEmail}>Copiar</Button>
                 {user?.emailVerified ? (
@@ -221,7 +221,7 @@ export function AccountSettingsForm() {
               <Label htmlFor="current-password">Senha Atual</Label>
               <div className="relative">
                 <Shield className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input id="current-password" type="password" className="pl-8 pr-10" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} />
+                <FormInput id="current-password" type="password" className="pl-8 pr-10" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} />
               </div>
             </div>
 
@@ -269,7 +269,7 @@ export function AccountSettingsForm() {
                 </SheetHeader>
 
                 <div className="p-4">
-                  <Input placeholder="Digite EXCLUIR para confirmar" value={deleteConfirm} onChange={(e) => setDeleteConfirm(e.target.value)} />
+                  <FormInput placeholder="Digite EXCLUIR para confirmar" value={deleteConfirm} onChange={(e) => setDeleteConfirm(e.target.value)} />
                 </div>
 
                 <SheetFooter>
