@@ -9,6 +9,7 @@ type AuthContextValue = {
   user: User | null;
   loading: boolean;
   signOut: () => Promise<void>;
+  refreshUser: () => void;
 };
 
 const AuthContext = React.createContext<AuthContextValue | undefined>(
@@ -33,8 +34,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await firebaseSignOut(auth);
   }
 
+  function refreshUser() {
+    const auth = getClientAuth();
+    const current = auth.currentUser;
+    // Forçar nova referência para garantir que React detecte a mudança
+    setUser(current ? ({ ...current } as User) : null);
+  }
+
   return (
-    <AuthContext.Provider value={{ user, loading, signOut }}>
+    <AuthContext.Provider value={{ user, loading, signOut, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

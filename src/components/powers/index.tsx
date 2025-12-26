@@ -8,9 +8,7 @@ import { Plus, Edit3, Lock, AlertTriangle } from "lucide-react";
 import { useStatusContext } from "@/contexts/StatusContext";
 import { checkPowerLimit } from "@/lib/powers/utils";
 
-interface PowersSectionProps {}
-
-export default function PowersSection({}: PowersSectionProps) {
+export default function PowersSection() {
   const { powerLevel } = useStatusContext();
   const [powers, setPowers] = useState<Power[]>([]);
   const [isEditMode, setIsEditMode] = useState(false);

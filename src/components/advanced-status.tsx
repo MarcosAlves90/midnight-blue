@@ -1,5 +1,5 @@
 "use client";
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 import { FormInput } from "@/components/ui/form-input";
 import { Tip } from "@/components/ui/tip";
 import { useAttributesContext } from "@/contexts/AttributesContext";

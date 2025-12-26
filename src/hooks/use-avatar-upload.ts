@@ -37,7 +37,7 @@ const AVATAR_FOLDER = "midnight-blue/avatars";
  * Integrado com Firebase para salvar metadata e photoURL
  */
 export function useAvatarUpload(): UseAvatarUploadReturn {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -172,6 +172,13 @@ export function useAvatarUpload(): UseAvatarUploadReturn {
           throw new Error("Erro ao salvar avatar no Firebase");
         }
 
+        // Atualizar o usuário no contexto para refletir novo photoURL imediatamente
+        try {
+          refreshUser?.();
+        } catch (e) {
+          console.warn("refreshUser falhou:", e);
+        }
+
         authSuccess("Avatar atualizado com sucesso!");
         return data.result as AvatarUploadResult;
       } catch (err) {
@@ -184,7 +191,7 @@ export function useAvatarUpload(): UseAvatarUploadReturn {
         setUploading(false);
       }
     },
-    [validateFile, fileToBase64, deletePreviousAvatar, user?.uid],
+    [validateFile, fileToBase64, deletePreviousAvatar, user?.uid, refreshUser],
   );
 
   return { uploading, error, uploadAvatar };
