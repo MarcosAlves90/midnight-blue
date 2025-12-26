@@ -1,6 +1,6 @@
 import React from "react";
 import Image from "next/image";
-import { normalizeCloudinarySrc } from "@/lib/cloudinary"; 
+import { normalizeCloudinarySrc } from "@/lib/cloudinary";
 import { Camera, Upload, ChevronUp, ChevronDown } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import GlitchText from "@/components/glitch-text";
@@ -44,7 +44,11 @@ export const ImageArea: React.FC<ImageAreaProps> = ({
         {profileImage ? (
           <div className="relative w-full h-full">
             <Image
-              src={profileImage && profileImage.startsWith('data:') ? profileImage : normalizeCloudinarySrc(profileImage) || profileImage}
+              src={
+                profileImage && profileImage.startsWith("data:")
+                  ? profileImage
+                  : normalizeCloudinarySrc(profileImage) || profileImage
+              }
               alt="Imagem de perfil do personagem"
               fill
               className="w-full h-full object-cover transition-all duration-200"

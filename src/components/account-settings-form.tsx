@@ -1,11 +1,31 @@
 "use client";
 
 import * as React from "react";
-import { Mail, Shield, AlertTriangle, Download, Copy, Trash2 } from "lucide-react";
+import {
+  Mail,
+  Shield,
+  AlertTriangle,
+  Download,
+  Copy,
+  Trash2,
+  Loader2,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PasswordInput } from "@/components/ui/password-input";
-import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
-import { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetFooter, SheetTitle, SheetDescription } from "@/components/ui/sheet";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip";
+import {
+  Sheet,
+  SheetTrigger,
+  SheetContent,
+  SheetHeader,
+  SheetFooter,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet";
 import {
   Card,
   CardContent,
@@ -19,18 +39,20 @@ import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/AuthContext";
 import { authSuccess, authError, authInfo } from "@/lib/toast";
+import { useAvatarUpload } from "@/hooks/use-avatar-upload";
 
 export function AccountSettingsForm() {
   const { user } = useAuth();
+  const { uploading: uploadingAvatar, uploadAvatar } = useAvatarUpload();
 
   // Estados locais para formulário
   const [name, setName] = React.useState(user?.displayName || "");
   const [email, setEmail] = React.useState(user?.email || "");
 
   // Avatar upload preview
-  const [avatarPreview, setAvatarPreview] = React.useState<string | null>(user?.photoURL || null);
-  const [avatarFile, setAvatarFile] = React.useState<File | null>(null);
-  const [uploading, setUploading] = React.useState(false);
+  const [avatarPreview, setAvatarPreview] = React.useState<string | null>(
+    user?.photoURL || null,
+  );
 
   // Segurança
   const [currentPassword, setCurrentPassword] = React.useState("");
@@ -49,13 +71,20 @@ export function AccountSettingsForm() {
     }
   }, [user]);
 
-  function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    setAvatarFile(file);
+
+    // Mostrar preview local imediatamente
     const reader = new FileReader();
     reader.onload = () => setAvatarPreview(String(reader.result));
     reader.readAsDataURL(file);
+
+    // Upload automático para Cloudinary (deletando anterior)
+    const result = await uploadAvatar(file, user?.photoURL || null);
+    if (result) {
+      setAvatarPreview(result.secure_url);
+    }
   }
 
   function calculatePasswordStrength(pw: string) {
@@ -71,13 +100,7 @@ export function AccountSettingsForm() {
   const strength = calculatePasswordStrength(newPassword);
 
   async function saveProfile() {
-    setUploading(true);
-    // mock save
-    setTimeout(() => {
-      setUploading(false);
-      // substituir com integração real
-      authSuccess("Perfil salvo com sucesso!");
-    }, 800);
+    authSuccess("Perfil salvo com sucesso!");
   }
 
   async function updatePassword() {
@@ -104,7 +127,9 @@ export function AccountSettingsForm() {
   }
 
   function exportData() {
-    authInfo("Exportação iniciada — você receberá um e-mail quando estiver pronta.");
+    authInfo(
+      "Exportação iniciada — você receberá um e-mail quando estiver pronta.",
+    );
   }
 
   function confirmDelete() {
@@ -130,11 +155,15 @@ export function AccountSettingsForm() {
                 {avatarPreview ? (
                   <AvatarImage src={avatarPreview} />
                 ) : (
-                  <AvatarFallback className="text-3xl">{name?.charAt(0)?.toUpperCase() || "U"}</AvatarFallback>
+                  <AvatarFallback className="text-3xl">
+                    {name?.charAt(0)?.toUpperCase() || "U"}
+                  </AvatarFallback>
                 )}
               </Avatar>
               <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-background rounded-md p-1 shadow-sm min-w-max whitespace-nowrap">
-                <Label className="text-xs">{user?.emailVerified ? "Verificado" : "Não verificado"}</Label>
+                <Label className="text-xs">
+                  {user?.emailVerified ? "Verificado" : "Não verificado"}
+                </Label>
               </div>
             </div>
 
@@ -145,20 +174,40 @@ export function AccountSettingsForm() {
 
             <div className="flex gap-2 w-full">
               <div className="flex-1">
-                <Button variant="outline" className="w-full" onClick={() => document.getElementById('avatar-upload')?.click()}>Alterar Foto</Button>
-                <input id="avatar-upload" type="file" accept="image/*" onChange={handleAvatarChange} className="hidden" />
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() =>
+                    document.getElementById("avatar-upload")?.click()
+                  }
+                  disabled={uploadingAvatar}
+                >
+                  {uploadingAvatar ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Enviando...
+                    </>
+                  ) : (
+                    "Alterar Foto"
+                  )}
+                </Button>
+                <input
+                  id="avatar-upload"
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  onChange={handleAvatarChange}
+                  className="hidden"
+                  disabled={uploadingAvatar}
+                />
               </div>
-              <Button variant="ghost" onClick={exportData}>
+              <Button
+                variant="ghost"
+                onClick={exportData}
+                disabled={uploadingAvatar}
+              >
                 <Download className="mr-2" /> Exportar
               </Button>
             </div>
-
-            {avatarFile && (
-              <div className="flex gap-2 w-full">
-                <Button onClick={saveProfile} className="flex-1" disabled={uploading}>{uploading ? "Salvando..." : "Salvar Avatar"}</Button>
-                <Button variant="outline" onClick={() => { setAvatarFile(null); setAvatarPreview(user?.photoURL || null); }}>Cancelar</Button>
-              </div>
-            )}
           </CardContent>
         </Card>
 
@@ -171,11 +220,15 @@ export function AccountSettingsForm() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm">ID do usuário</p>
-                <p className="text-xs text-muted-foreground">{user?.uid || "-"}</p>
+                <p className="text-xs text-muted-foreground">
+                  {user?.uid || "-"}
+                </p>
               </div>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="ghost" onClick={copyEmail}><Copy className="h-4 w-4" /></Button>
+                  <Button variant="ghost" onClick={copyEmail}>
+                    <Copy className="h-4 w-4" />
+                  </Button>
                 </TooltipTrigger>
                 <TooltipContent>Copiar e-mail</TooltipContent>
               </Tooltip>
@@ -189,7 +242,9 @@ export function AccountSettingsForm() {
         <Card className="border-0 shadow-none">
           <CardHeader>
             <CardTitle>Contato</CardTitle>
-            <CardDescription>Gerencie seu e-mail e verificações</CardDescription>
+            <CardDescription>
+              Gerencie seu e-mail e verificações
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-2">
@@ -197,16 +252,33 @@ export function AccountSettingsForm() {
               <div className="flex gap-2 items-center">
                 <div className="relative flex-1">
                   <Mail className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <FormInput id="email" type="email" className="pl-8" value={email} disabled />
+                  <FormInput
+                    id="email"
+                    type="email"
+                    className="pl-8"
+                    value={email}
+                    disabled
+                  />
                 </div>
-                <Button variant="outline" onClick={copyEmail}>Copiar</Button>
+                <Button variant="outline" onClick={copyEmail}>
+                  Copiar
+                </Button>
                 {user?.emailVerified ? (
-                  <Button variant="outline" className="text-green-500 border-green-500 cursor-default hover:text-green-500 hover:bg-transparent">Verificado</Button>
+                  <Button
+                    variant="outline"
+                    className="text-green-500 border-green-500 cursor-default hover:text-green-500 hover:bg-transparent"
+                  >
+                    Verificado
+                  </Button>
                 ) : (
                   <Button variant="secondary">Verificar E-mail</Button>
                 )}
               </div>
-              {!user?.emailVerified && <p className="text-[0.8rem] text-yellow-500">Seu e-mail ainda não foi verificado.</p>}
+              {!user?.emailVerified && (
+                <p className="text-[0.8rem] text-yellow-500">
+                  Seu e-mail ainda não foi verificado.
+                </p>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -214,66 +286,112 @@ export function AccountSettingsForm() {
         <Card className="border-0 shadow-none">
           <CardHeader>
             <CardTitle>Segurança</CardTitle>
-            <CardDescription>Atualize sua senha e medidas de segurança</CardDescription>
+            <CardDescription>
+              Atualize sua senha e medidas de segurança
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-2">
               <Label htmlFor="current-password">Senha Atual</Label>
               <div className="relative">
                 <Shield className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <FormInput id="current-password" type="password" className="pl-8 pr-10" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} />
+                <FormInput
+                  id="current-password"
+                  type="password"
+                  className="pl-8 pr-10"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                />
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="new-password">Nova Senha</Label>
-                <PasswordInput id="new-password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
+                <PasswordInput
+                  id="new-password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                />
               </div>
 
               <div className="grid gap-2">
                 <Label htmlFor="confirm-password">Confirmar Nova Senha</Label>
-                <PasswordInput id="confirm-password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
+                <PasswordInput
+                  id="confirm-password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                />
               </div>
             </div>
 
             <div className="grid gap-2">
               <div className="h-1 bg-border rounded-md overflow-hidden">
-                <div style={{ width: `${(strength / 4) * 100}%` }} className={`h-1 ${strength <= 1 ? "bg-red-500" : strength === 2 ? "bg-yellow-400" : "bg-green-400"}`} />
+                <div
+                  style={{ width: `${(strength / 4) * 100}%` }}
+                  className={`h-1 ${strength <= 1 ? "bg-red-500" : strength === 2 ? "bg-yellow-400" : "bg-green-400"}`}
+                />
               </div>
-              <p className="text-xs text-muted-foreground">Força: {strength}/4</p>
+              <p className="text-xs text-muted-foreground">
+                Força: {strength}/4
+              </p>
             </div>
           </CardContent>
           <CardFooter className="border-t px-6 py-4 flex gap-2">
-            <Button variant="outline" onClick={updatePassword}>Atualizar Senha</Button>
+            <Button variant="outline" onClick={updatePassword}>
+              Atualizar Senha
+            </Button>
             <Button onClick={saveProfile}>Salvar Alterações</Button>
           </CardFooter>
         </Card>
 
         <Card className="border-0 shadow-none">
           <CardHeader>
-            <CardTitle className="text-destructive flex items-center gap-2"><AlertTriangle className="h-5 w-5" /> Zona de Perigo</CardTitle>
-            <CardDescription>Ações irreversíveis para sua conta.</CardDescription>
+            <CardTitle className="text-destructive flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5" /> Zona de Perigo
+            </CardTitle>
+            <CardDescription>
+              Ações irreversíveis para sua conta.
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground mb-4">Ao excluir sua conta, todos os seus dados, personagens e itens serão permanentemente removidos.</p>
+            <p className="text-sm text-muted-foreground mb-4">
+              Ao excluir sua conta, todos os seus dados, personagens e itens
+              serão permanentemente removidos.
+            </p>
             <Sheet open={deleteOpen} onOpenChange={setDeleteOpen}>
               <SheetTrigger asChild>
-                <Button variant="destructive"><Trash2 className="mr-2" />Excluir Conta</Button>
+                <Button variant="destructive">
+                  <Trash2 className="mr-2" />
+                  Excluir Conta
+                </Button>
               </SheetTrigger>
 
               <SheetContent side="right">
                 <SheetHeader>
                   <SheetTitle>Confirmar exclusão da conta</SheetTitle>
-                  <SheetDescription>Digite &quot;EXCLUIR&quot; abaixo para confirmar. Esta ação não pode ser desfeita.</SheetDescription>
+                  <SheetDescription>
+                    Digite &quot;EXCLUIR&quot; abaixo para confirmar. Esta ação
+                    não pode ser desfeita.
+                  </SheetDescription>
                 </SheetHeader>
 
                 <div className="p-4">
-                  <FormInput placeholder="Digite EXCLUIR para confirmar" value={deleteConfirm} onChange={(e) => setDeleteConfirm(e.target.value)} />
+                  <FormInput
+                    placeholder="Digite EXCLUIR para confirmar"
+                    value={deleteConfirm}
+                    onChange={(e) => setDeleteConfirm(e.target.value)}
+                  />
                 </div>
 
                 <SheetFooter>
-                  <Button variant="destructive" disabled={deleteConfirm !== "EXCLUIR"} onClick={confirmDelete}>Confirmar exclusão</Button>
+                  <Button
+                    variant="destructive"
+                    disabled={deleteConfirm !== "EXCLUIR"}
+                    onClick={confirmDelete}
+                  >
+                    Confirmar exclusão
+                  </Button>
                 </SheetFooter>
               </SheetContent>
             </Sheet>

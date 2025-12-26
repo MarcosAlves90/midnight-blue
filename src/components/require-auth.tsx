@@ -5,7 +5,11 @@ import { useRouter } from "next/navigation";
 import { getClientAuth } from "@/lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 
-export default function RequireAuth({ children }: { children: React.ReactNode }) {
+export default function RequireAuth({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const router = useRouter();
   const [checking, setChecking] = React.useState(true);
 

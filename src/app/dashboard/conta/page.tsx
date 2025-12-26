@@ -12,4 +12,4 @@ export default function AccountPage() {
       <AccountSettingsForm />
     </div>
   );
-} 
+}

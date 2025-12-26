@@ -84,7 +84,7 @@ export default function ParallaxBackground({
         priority
         sizes="100vw"
         quality={85}
-        unoptimized={src.endsWith('.gif')}
+        unoptimized={src.endsWith(".gif")}
       />
 
       <div className="absolute inset-0 bg-black/60 backdrop-blur-[5px]"></div>

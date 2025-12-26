@@ -12,7 +12,7 @@ type AuthContextValue = {
 };
 
 const AuthContext = React.createContext<AuthContextValue | undefined>(
-  undefined
+  undefined,
 );
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
