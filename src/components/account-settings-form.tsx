@@ -37,12 +37,14 @@ import {
 import { FormInput } from "@/components/ui/form-input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { getClientAuth } from "@/lib/firebase";
+import { sendEmailVerification } from "firebase/auth";
 import { useAuth } from "@/contexts/AuthContext";
 import { authSuccess, authError, authInfo } from "@/lib/toast";
 import { useAvatarUpload } from "@/hooks/use-avatar-upload";
 
 export function AccountSettingsForm() {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const { uploading: uploadingAvatar, uploadAvatar } = useAvatarUpload();
 
   // Estados locais para formulário
@@ -63,6 +65,9 @@ export function AccountSettingsForm() {
   const [deleteOpen, setDeleteOpen] = React.useState(false);
   const [deleteConfirm, setDeleteConfirm] = React.useState("");
 
+  const [sendingVerification, setSendingVerification] = React.useState(false);
+  const [checkingVerification, setCheckingVerification] = React.useState(false);
+
   React.useEffect(() => {
     if (user) {
       setName(user.displayName || "");
@@ -70,6 +75,51 @@ export function AccountSettingsForm() {
       setAvatarPreview(user.photoURL || null);
     }
   }, [user]);
+
+  const sendVerificationEmail = React.useCallback(async () => {
+    if (!user || !user.email) return authError("Usuário não autenticado");
+    if (user.emailVerified) return authInfo("E-mail já verificado");
+
+    try {
+      setSendingVerification(true);
+      const auth = getClientAuth();
+      const current = auth.currentUser;
+      if (!current) return authError("Usuário não autenticado");
+
+      await sendEmailVerification(current);
+      authSuccess("E-mail de verificação enviado. Verifique sua caixa de entrada.");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      authError("Erro ao enviar e-mail de verificação: " + message);
+    } finally {
+      setSendingVerification(false);
+    }
+  }, [user]);
+
+  const checkVerificationStatus = React.useCallback(async () => {
+    if (!user) return authError("Usuário não autenticado");
+
+    try {
+      setCheckingVerification(true);
+      const auth = getClientAuth();
+      const current = auth.currentUser;
+      if (!current) return authError("Usuário não autenticado");
+
+      await current.reload();
+      refreshUser?.();
+
+      if (auth.currentUser?.emailVerified) {
+        authSuccess("E-mail verificado com sucesso!");
+      } else {
+        authInfo("E-mail ainda não verificado. Verifique sua caixa de entrada e confirme o link.");
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      authError("Erro ao checar verificação: " + message);
+    } finally {
+      setCheckingVerification(false);
+    }
+  }, [user, refreshUser]);
 
   async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -126,10 +176,66 @@ export function AccountSettingsForm() {
     authInfo("E-mail copiado para a área de transferência");
   }
 
-  function exportData() {
-    authInfo(
-      "Exportação iniciada — você receberá um e-mail quando estiver pronta.",
-    );
+  async function exportData() {
+    const url = avatarPreview || user?.photoURL;
+    if (!url) return authError("Nenhuma imagem disponível para download");
+
+    try {
+      let blob: Blob | null = null;
+
+      if (url.startsWith("data:")) {
+        // Converter data URL para Blob
+        const parts = url.split(",");
+        const meta = parts[0];
+        const base64 = parts[1] || "";
+        const mimeMatch = meta.match(/data:(.*);base64/);
+        const mime = mimeMatch?.[1] || "image/png";
+        const binary = atob(base64);
+        const len = binary.length;
+        const u8 = new Uint8Array(len);
+        for (let i = 0; i < len; i++) {
+          u8[i] = binary.charCodeAt(i);
+        }
+        blob = new Blob([u8], { type: mime });
+      } else {
+        // Tentar baixar remotamente (padrão Cloudinary)
+        try {
+          const res = await fetch(url);
+          if (!res.ok) throw new Error("Falha ao baixar imagem");
+          blob = await res.blob();
+        } catch (fetchErr) {
+          console.warn("Falha ao baixar imagem via fetch:", fetchErr);
+          // Fallback: se fetch falhar por CORS, tentar download direto via <a>
+          const a = document.createElement("a");
+          a.href = url;
+          a.target = "_blank";
+          a.rel = "noreferrer noopener";
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          authInfo("Abrindo imagem em nova aba para download (CORS pode impedir download automático)");
+          return;
+        }
+      }
+
+      // Criar URL e forçar download
+      if (blob) {
+        const objectUrl = URL.createObjectURL(blob);
+        const ext = (blob.type.split("/")[1] || "png").split("+")[0];
+        const filename = `avatar-${user?.uid || "user"}.${ext}`;
+        const a = document.createElement("a");
+        a.href = objectUrl;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(objectUrl);
+        authSuccess("Download iniciado");
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      authError("Erro ao baixar imagem: " + message);
+    }
   }
 
   function confirmDelete() {
@@ -271,7 +377,22 @@ export function AccountSettingsForm() {
                     Verificado
                   </Button>
                 ) : (
-                  <Button variant="secondary">Verificar E-mail</Button>
+                  <>
+                    <Button
+                      variant="secondary"
+                      onClick={sendVerificationEmail}
+                      disabled={sendingVerification}
+                    >
+                      {sendingVerification ? "Enviando..." : "Verificar E-mail"}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      onClick={checkVerificationStatus}
+                      disabled={checkingVerification}
+                    >
+                      {checkingVerification ? "Checando..." : "Checar"}
+                    </Button>
+                  </>
                 )}
               </div>
               {!user?.emailVerified && (
