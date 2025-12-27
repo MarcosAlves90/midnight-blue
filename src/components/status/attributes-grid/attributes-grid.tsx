@@ -2,6 +2,7 @@
 
 import { memo, useState, useEffect, useCallback } from "react";
 import { Edit3, Lock } from "lucide-react";
+import { Tip } from "@/components/ui/tip";
 import { AttributeCard } from "./attribute-card";
 import { AttributesGridProps, Attribute } from "./types";
 import {
@@ -94,7 +95,17 @@ export const AttributesGrid = memo(function AttributesGrid({
   return (
     <div className="bg-muted/50 rounded-xl p-6">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold">Atributos</h3>
+        <Tip
+          content={
+            <div className="max-w-xs text-xs">
+              Todo mundo tem certas habilidades básicas, que dizem o quão forte, rápido e esperto você é. Essas habilidades influenciavam a maioria das coisas que você pode fazer. Personagens mais fortes podem erguer mais peso, personagens mais ágeis se equilibram melhor, personagens mais durões conseguem absorver mais dano e assim por diante.
+            </div>
+          }
+          side="top"
+          align="start"
+        >
+          <h3 className="text-lg font-semibold cursor-help decoration-dotted underline underline-offset-2">Atributos</h3>
+        </Tip>
         <button
           onClick={toggleEditMode}
           className={`p-2 rounded cursor-pointer transition-all duration-200 ${

@@ -5,9 +5,11 @@ import { FormInput } from "@/components/ui/form-input";
 import { Tip } from "@/components/ui/tip";
 import { getColorClasses } from "@/lib/colors";
 import { useAttributesContext } from "@/contexts/AttributesContext";
+import { useStatusContext } from "@/contexts/StatusContext";
 import { rollDice } from "@/lib/dice-system";
 import { DiceIcon } from "@/components/ui/icons/dice-icon";
 import { useEditableValue } from "../attributes-grid/use-editable-value";
+import SkillWarning from "@/components/ui/custom/warning-icon";
 import type { Skill } from "./types";
 
 interface SkillCardProps extends Skill {
@@ -39,8 +41,8 @@ export function SkillCard({
   );
 
   const { attributes } = useAttributesContext();
+  const { powerLevel } = useStatusContext();
 
-  // Try to find the attribute object and use its color if available
   const attributeColor =
     attributes.find((a) => a.id === attribute)?.color ?? "gray";
   const colorClasses = useMemo(
@@ -48,11 +50,18 @@ export function SkillCard({
     [attributeColor],
   );
 
-  // Role de perícia: d20 + graduações + modificador de habilidade + outros
-  const handleRollSkill = () => {
-    const attributeObj = attributes.find((a) => a.id === attribute);
-    const attrValue = attributeObj?.value ?? 0;
+  const attributeObj = attributes.find((a) => a.id === attribute);
+  const attrValue = attributeObj?.value ?? 0;
+  const totalBonus = attrValue + valueState.value + othersState.value;
+  const skillLimit = powerLevel + 10;
+  const isCombatSkill =
+    id === "COMBATE_CORPO_A_CORPO" || id === "COMBATE_DISTANCIA";
 
+  const exceedsLimit = totalBonus > skillLimit;
+  const combatLimitExceeded =
+    isCombatSkill && totalBonus > 2 * powerLevel;
+
+  const handleRollSkill = () => {
     const modifiers = [attrValue, valueState.value];
     if (othersState.value !== 0) modifiers.push(othersState.value);
 
@@ -80,23 +89,42 @@ export function SkillCard({
           >
             <DiceIcon className="w-3.5 h-3.5 text-muted-foreground hover:text-foreground" />
           </button>
-          <div className="flex flex-col items-start">
-            {description ? (
-              <Tip
-                content={<div className="max-w-xs text-xs">{description}</div>}
-                side="top"
-                align="start"
-              >
-                <span className="text-xs font-medium leading-none cursor-help decoration-dotted underline underline-offset-2">
-                  {name}
-                </span>
-              </Tip>
-            ) : (
-              <span className="text-xs font-medium leading-none">{name}</span>
+          <div className="flex items-center gap-1">
+            {exceedsLimit && (
+              <SkillWarning
+                type="skill-limit"
+                label={name}
+                total={totalBonus}
+                limit={skillLimit}
+                excess={totalBonus - skillLimit}
+              />
             )}
-            <span className="text-[9px] text-muted-foreground sm:hidden mt-0.5 font-mono">
-              {attribute}
-            </span>
+            {combatLimitExceeded && (
+              <SkillWarning
+                type="skill-combat"
+                label={name}
+                total={totalBonus}
+                limit={skillLimit}
+              />
+            )}
+            <div className="flex flex-col items-start">
+              {description ? (
+                <Tip
+                  content={<div className="max-w-xs text-xs">{description}</div>}
+                  side="top"
+                  align="start"
+                >
+                  <span className="text-xs font-medium leading-none cursor-help decoration-dotted underline underline-offset-2">
+                    {name}
+                  </span>
+                </Tip>
+              ) : (
+                <span className="text-xs font-medium leading-none">{name}</span>
+              )}
+              <span className="text-[9px] text-muted-foreground sm:hidden mt-0.5 font-mono">
+                {attribute}
+              </span>
+            </div>
           </div>
         </div>
       </td>

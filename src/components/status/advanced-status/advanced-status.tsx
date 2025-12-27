@@ -16,7 +16,7 @@ import {
   Minus,
   RotateCcw,
 } from "lucide-react";
-import DefenseWarning from "./defense-warning";
+import DefenseWarning from "@/components/ui/custom/warning-icon";
 import { rollDice } from "@/lib/dice-system";
 import { DiceIcon } from "@/components/ui/icons/dice-icon";
 
@@ -91,16 +91,16 @@ function DefenseCard({
         <div className="flex items-center gap-2">
           {/* aggregate limit warnings */}
           {limitWarnings && limitWarnings.length > 0 ? (
-            <DefenseWarning type="limit" items={limitWarnings} />
+            <DefenseWarning type="defense-limit" items={limitWarnings.map(w => ({ label: w.pair, exceed: w.exceed }))} />
           ) : isLimitExceeded ? (
-            <DefenseWarning type="limit" pair={defensePair} exceed={exceedValue} />
+            <DefenseWarning type="defense-limit" label={defensePair} excess={exceedValue} />
           ) : null}
 
           {/* aggregate disparity warnings */}
           {disparityWarnings && disparityWarnings.length > 0 ? (
-            <DefenseWarning type="disparity" items={disparityWarnings} />
+            <DefenseWarning type="defense-disparity" items={disparityWarnings.map(w => ({ label: w.pair, percent: w.percent }))} />
           ) : hasDisparity ? (
-            <DefenseWarning type="disparity" pair={defensePair} percent={disparityPercent} />
+            <DefenseWarning type="defense-disparity" label={defensePair} percent={disparityPercent} />
           ) : null}
         </div>
 
