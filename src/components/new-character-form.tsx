@@ -67,12 +67,11 @@ export function NewCharacterForm({ onSuccess, onCancel }: NewCharacterFormProps)
       const newCharacterData: CharacterData = {
         userId: user.uid,
         name: formData.name.trim(),
-        heroName: formData.heroName.trim(),
         createdAt: new Date(),
         updatedAt: new Date(),
         identity: {
           name: formData.name.trim(),
-          player: user.displayName || "", // Usar nome do usuário autenticado
+          heroName: formData.heroName.trim(),
           alternateIdentity: "",
           identityStatus: "Secret",
           gender: "",

@@ -167,7 +167,7 @@ function CharacterCard({
         <div>
           <h3 className="font-semibold text-base">{character.name}</h3>
           <p className="text-xs text-muted-foreground">
-            Herói: {character.heroName}
+            Herói: {character.identity?.heroName || ""}
           </p>
         </div>
 

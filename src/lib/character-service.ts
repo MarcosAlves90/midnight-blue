@@ -39,11 +39,10 @@ export interface SavedSkill {
 export interface CharacterDocument {
   id: string;
   userId: string;
-  name: string;
-  heroName: string;
+  name: string; // Individual name
   createdAt: Date;
   updatedAt: Date;
-  identity: IdentityData;
+  identity: IdentityData; // now contains heroName
   attributes: SavedAttribute[];
   skills: SavedSkill[];
   powers: Power[];
@@ -129,14 +128,19 @@ export async function saveCharacter(
     const docRef = doc(db, "users", userId, "characters", newId);
 
     // Otimizar dados antes de salvar
+    // Ensure heroName is stored inside identity for consistency
+    const identityForStorage: IdentityData = {
+      ...data.identity,
+      heroName: (data.identity && (data.identity as any).heroName) || (data as any).heroName || "",
+    } as IdentityData;
+
     const optimizedData = {
       id: newId,
       userId: data.userId,
       name: data.name,
-      heroName: data.heroName,
       createdAt: data.createdAt,
       updatedAt: new Date(),
-      identity: data.identity,
+      identity: identityForStorage,
       attributes: optimizeAttributesForStorage(data.attributes as Attribute[]),
       skills: optimizeSkillsForStorage(data.skills as Skill[]),
       powers: data.powers,
@@ -175,14 +179,16 @@ export async function getCharacter(
     const hydratedAttributes = hydrateAttributes(data.attributes || []);
     const hydratedSkills = hydrateSkills(data.skills || []);
 
+    // If older documents still have heroName top-level, migrate to identity.heroName
+    const hero = data.identity?.heroName || data.heroName || "";
+
     return {
       id: characterId,
       userId: data.userId,
       name: data.name,
-      heroName: data.heroName,
       createdAt: data.createdAt?.toDate() || new Date(),
       updatedAt: data.updatedAt?.toDate() || new Date(),
-      identity: data.identity,
+      identity: { ...(data.identity || {}), heroName: hero },
       attributes: hydratedAttributes,
       skills: hydratedSkills,
       powers: data.powers || [],
@@ -213,14 +219,15 @@ export async function listCharacters(
       const hydratedAttributes = hydrateAttributes(data.attributes || []);
       const hydratedSkills = hydrateSkills(data.skills || []);
 
+      const hero = data.identity?.heroName || data.heroName || "";
+
       return {
         id: docSnap.id,
         userId: data.userId,
         name: data.name,
-        heroName: data.heroName,
         createdAt: data.createdAt?.toDate() || new Date(),
         updatedAt: data.updatedAt?.toDate() || new Date(),
-        identity: data.identity,
+        identity: { ...(data.identity || {}), heroName: hero },
         attributes: hydratedAttributes,
         skills: hydratedSkills,
         powers: data.powers || [],
@@ -270,8 +277,16 @@ export async function updateCharacter(
     if (updates.name) {
       optimizedUpdates.name = updates.name;
     }
-    if (updates.heroName) {
-      optimizedUpdates.heroName = updates.heroName;
+    // Suporte a atualização do nome do herói (mover para identity)
+    if ((updates as any).heroName) {
+      const existingIdentity = (optimizedUpdates.identity as any) || (updates.identity as any) || {};
+      optimizedUpdates.identity = { ...existingIdentity, heroName: (updates as any).heroName };
+    }
+
+    // Se identity for fornecida e contiver heroName, mesclar
+    if (updates.identity && (updates.identity as any).heroName) {
+      const existingIdentity = (optimizedUpdates.identity as any) || {};
+      optimizedUpdates.identity = { ...existingIdentity, ...(updates.identity as any) };
     }
 
     await updateDoc(docRef, optimizedUpdates);

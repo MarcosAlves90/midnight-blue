@@ -11,7 +11,7 @@ import { useCharacterPersistence } from "@/hooks/use-character-persistence";
 
 export interface IdentityData {
   name: string;
-  player: string;
+  heroName: string;
   alternateIdentity: string;
   identityStatus: string; // Public, Secret
   gender: string;
@@ -41,7 +41,7 @@ export interface Complication {
 
 const INITIAL_IDENTITY: IdentityData = {
   name: "",
-  player: "",
+  heroName: "",
   alternateIdentity: "",
   identityStatus: "Secret",
   gender: "",

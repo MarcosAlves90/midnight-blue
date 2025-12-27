@@ -25,14 +25,14 @@ import type { CharacterDocument } from "@/lib/character-service";
 
 // Componente para item de personagem (DRY: elimina duplicação)
 function CharacterDropdownItem({ character, onClick }: { character: CharacterDocument; onClick: () => void }) {
+  const hero = character.identity?.heroName || "";
   return (
     <DropdownMenuItem key={character.id} onClick={onClick} className="gap-2 p-2">
       <div className="flex size-6 items-center justify-center rounded-md border bg-muted/50">
-        <span className="text-xs font-bold">{character.heroName.charAt(0).toUpperCase()}</span>
+        <span className="text-xs font-bold">{hero.charAt(0).toUpperCase()}</span>
       </div>
       <div className="flex flex-col flex-1">
-        <span className="text-sm font-medium">{character.heroName}</span>
-        <span className="text-xs text-muted-foreground">Herói</span>
+        <span className="text-sm font-medium">{hero}</span>
       </div>
     </DropdownMenuItem>
   );
@@ -145,7 +145,7 @@ export function CharacterSwitcher() {
     return <InitialCharacterButton onCreate={handleCreateNewCharacter} />;
   }
 
-  const selectedCharacterName = selectedCharacter?.heroName || "Selecionar Ficha";
+  const selectedCharacterName = selectedCharacter?.identity?.heroName || "Selecionar Ficha";
   const selectedCharacterPlayer = "Herói";
 
   return (
