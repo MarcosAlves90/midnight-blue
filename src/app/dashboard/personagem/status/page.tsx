@@ -18,10 +18,10 @@ export default function PersonagemStatsPage() {
           <AdvancedStatus />
         </div>
         <div className="flex gap-4 flex-1 max-xl:flex-col">
-          <div className="bg-card flex-1 rounded-xl p-6 h-fit">
+          <div className="bg-muted/50 flex-1 rounded-xl p-6 h-fit">
             <SkillsList />
           </div>
-          <div className="bg-card flex-1 rounded-xl p-6 h-fit">
+          <div className="bg-muted/50 flex-1 rounded-xl p-6 h-fit">
             <PowersSection />
           </div>
         </div>

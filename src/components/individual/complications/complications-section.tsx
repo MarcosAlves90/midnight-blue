@@ -161,7 +161,7 @@ export const ComplicationsSection: React.FC<ComplicationsSectionProps> = ({
   const hasMinCount = complications.length >= 2;
 
   return (
-    <div className="bg-card rounded-xl p-4">
+    <div className="bg-muted/50 rounded-xl p-4">
       <div className="flex items-center gap-2 mb-4 pb-2 border-b border-border/40">
         <AlertTriangle className="w-4 h-4 text-primary" aria-hidden="true" />
         <Tip

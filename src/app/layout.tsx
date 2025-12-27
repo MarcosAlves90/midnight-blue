@@ -47,7 +47,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${brevis.variable} ${futuraProBook.variable} antialiased`}
       >
         <AppProviders>
-          <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <ThemeProvider attribute="class" defaultTheme="dark" themes={["dark", "black"]} enableSystem={false}>
             {children}
             <ToastContainer limit={5} />
           </ThemeProvider>

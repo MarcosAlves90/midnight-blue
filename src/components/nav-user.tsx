@@ -10,7 +10,6 @@ import {
   LogOut,
   Monitor,
   Moon,
-  Sun,
 } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -48,12 +47,10 @@ export function NavUser({
   const router = useRouter();
 
   const toggleTheme = () => {
-    if (theme === "light") {
+    if (theme === "black") {
       setTheme("dark");
-    } else if (theme === "dark") {
-      setTheme("system");
     } else {
-      setTheme("light");
+      setTheme("black");
     }
   };
 
@@ -129,12 +126,10 @@ export function NavUser({
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuItem onClick={toggleTheme}>
-                {theme === "light" ? (
-                  <Sun />
-                ) : theme === "dark" ? (
-                  <Moon />
-                ) : (
+                {theme === "black" ? (
                   <Monitor />
+                ) : (
+                  <Moon />
                 )}
                 Trocar tema
               </DropdownMenuItem>

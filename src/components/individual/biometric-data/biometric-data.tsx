@@ -20,7 +20,7 @@ export const BiometricData: React.FC<BiometricDataSectionProps> = ({
   identity,
   onFieldChange,
 }) => (
-  <div className="bg-card rounded-xl p-6">
+  <div className="bg-muted/50 rounded-xl p-6">
     <div className="flex items-center gap-2 mb-6 pb-2 border-b border-border/40">
       <Activity className="w-4 h-4 text-primary" aria-hidden="true" />
       <h3 className="text-sm font-bold uppercase tracking-wider">
