@@ -1,7 +1,7 @@
 "use client";
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { Skill } from "../components/skills/types";
-import { INITIAL_SKILLS } from "../components/skills/constants";
+import { Skill } from "../components/status/skills/types";
+import { INITIAL_SKILLS } from "../components/status/skills/constants";
 
 interface SkillsContextType {
   skills: Skill[];

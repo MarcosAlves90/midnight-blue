@@ -1,14 +1,44 @@
+"use client";
+
 import Link from "next/link";
+import * as React from "react";
+import { useRouter } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
 import ParallaxBackground from "@/components/parallax-background";
 import { Button } from "@/components/ui/button";
 import { FieldDescription } from "@/components/ui/field";
+import { getClientAuth } from "@/lib/firebase";
+import { onAuthStateChanged } from "firebase/auth";
 
 interface AuthPageWrapperProps {
   children: React.ReactNode;
 }
 
 export function AuthPageWrapper({ children }: AuthPageWrapperProps) {
+  const router = useRouter();
+  const [checking, setChecking] = React.useState(true);
+
+  React.useEffect(() => {
+    const auth = getClientAuth();
+    const unsub = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        router.replace("/dashboard");
+      } else {
+        setChecking(false);
+      }
+    });
+
+    return () => unsub();
+  }, [router]);
+
+  if (checking) {
+    return (
+      <div className="flex h-full w-full items-center justify-center">
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-t-transparent border-primary" />
+      </div>
+    );
+  }
+
   return (
     <div className="relative flex min-h-svh flex-col items-center justify-center gap-6 p-6 md:p-10 overflow-hidden">
       <ParallaxBackground

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import SkillsList from "@/components/skills";
-import AttributesGrid from "@/components/attributes-grid";
+import SkillsList from "@/components/status/skills";
+import AttributesGrid from "@/components/status/attributes-grid/attributes-grid";
 
 export const metadata: Metadata = {
   title: "Skills",

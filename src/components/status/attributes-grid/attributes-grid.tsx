@@ -2,12 +2,12 @@
 
 import { memo, useState, useEffect, useCallback } from "react";
 import { Edit3, Lock } from "lucide-react";
-import { AttributeCard } from "./attributes-grid/attribute-card";
-import { AttributesGridProps, Attribute } from "./attributes-grid/types";
+import { AttributeCard } from "./attribute-card";
+import { AttributesGridProps, Attribute } from "./types";
 import {
   DEFAULT_INPUT_LIMITS,
   INITIAL_ATTRIBUTES,
-} from "./attributes-grid/constants";
+} from "./constants";
 import { useAttributesContext } from "@/contexts/AttributesContext";
 
 export const AttributesGrid = memo(function AttributesGrid({

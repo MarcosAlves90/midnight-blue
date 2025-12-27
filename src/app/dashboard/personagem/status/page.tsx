@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import AttributesGrid from "@/components/attributes-grid";
-import AdvancedStatus from "@/components/advanced-status";
-import SkillsList from "@/components/skills";
-import PowersSection from "@/components/powers";
+import AttributesGrid from "@/components/status/attributes-grid";
+import AdvancedStatus from "@/components/status/advanced-status";
+import SkillsList from "@/components/status/skills";
+import PowersSection from "@/components/status/powers";
 
 export const metadata: Metadata = {
   title: "Status",

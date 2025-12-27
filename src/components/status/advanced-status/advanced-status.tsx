@@ -16,8 +16,12 @@ import {
   Minus,
   RotateCcw,
 } from "lucide-react";
+import DefenseWarning from "@/components/status/advanced-status/defense-warning";
 import { rollDice } from "@/lib/dice-system";
 import { DiceIcon } from "@/components/dice-icon";
+
+interface SingleLimitWarning { pair: string; exceed: number }
+interface SingleDisparityWarning { pair: string; percent: number }
 
 interface DefenseCardProps {
   title: string;
@@ -29,6 +33,15 @@ interface DefenseCardProps {
   total: number;
   isEditMode: boolean;
   onInputChange: (value: string) => void;
+  // Backwards-compatible single flags (kept for convenience)
+  isLimitExceeded?: boolean;
+  hasDisparity?: boolean;
+  exceedValue?: number;
+  disparityPercent?: number;
+  defensePair?: string;
+  // New: support multiple warnings
+  limitWarnings?: SingleLimitWarning[];
+  disparityWarnings?: SingleDisparityWarning[];
 }
 
 function DefenseCard({
@@ -41,6 +54,13 @@ function DefenseCard({
   total,
   isEditMode,
   onInputChange,
+  isLimitExceeded = false,
+  hasDisparity = false,
+  exceedValue = 0,
+  disparityPercent = 0,
+  defensePair = "",
+  limitWarnings = [],
+  disparityWarnings = [],
 }: DefenseCardProps) {
   const handleRollDefense = () => {
     const points = Number(inputValue) || 0;
@@ -54,6 +74,8 @@ function DefenseCard({
     });
   };
 
+
+
   return (
     <div className="bg-background/30 p-2 border border-muted/20 flex items-center justify-between">
       <div className="flex items-center gap-2">
@@ -64,6 +86,28 @@ function DefenseCard({
         >
           <DiceIcon className="w-3.5 h-3.5 text-muted-foreground hover:text-foreground" />
         </button>
+        
+        {/* Warning icons (componentized) */}
+        <div className="flex items-center gap-0.5">
+          {/* multiple limit warnings */}
+          {limitWarnings && limitWarnings.length > 0
+            ? limitWarnings.map((w: SingleLimitWarning) => (
+                <DefenseWarning key={`limit-${w.pair}`} type="limit" pair={w.pair} exceed={w.exceed} />
+              ))
+            : isLimitExceeded && (
+                <DefenseWarning type="limit" pair={defensePair} exceed={exceedValue} />
+              )}
+
+          {/* multiple disparity warnings */}
+          {disparityWarnings && disparityWarnings.length > 0
+            ? disparityWarnings.map((w: SingleDisparityWarning) => (
+                <DefenseWarning key={`disp-${w.pair}`} type="disparity" pair={w.pair} percent={w.percent} />
+              ))
+            : hasDisparity && (
+                <DefenseWarning type="disparity" pair={defensePair} percent={disparityPercent} />
+              )}
+        </div>
+
         {description ? (
           <Tip
             content={<div className="max-w-xs text-xs">{description}</div>}
@@ -211,6 +255,36 @@ export default function AdvancedStatus() {
   );
   const totalSpent = attributesSpent + defensesSpent + skillsSpent;
   const isOverLimit = totalSpent > totalPowerPoints;
+
+  // Defense pair limits validation (each pair cannot exceed 2 × powerLevel)
+  const defenseLimit = powerLevel * 2;
+
+  const esquivaResistenciaTotal = esquivaTotal + resistenciaTotal;
+  const apararResistenciaTotal = apararTotal + resistenciaTotal;
+  const fortitudeVontadeTotal = fortitudeTotal + vontadeTotal;
+
+  const isEsquivaResistenciaExceeded = esquivaResistenciaTotal > defenseLimit;
+  const isApararResistenciaExceeded = apararResistenciaTotal > defenseLimit;
+  const isFortitudeVontadeExceeded = fortitudeVontadeTotal > defenseLimit;
+
+  // Check for 50% disparity within pairs
+  const getDisparity = (value1: number, value2: number) => {
+    const max = Math.max(value1, value2);
+    const min = Math.min(value1, value2);
+    if (max === 0) return 0;
+    return ((max - min) / max) * 100;
+  };
+
+  const esquivaResistenciaDisparity = getDisparity(
+    esquivaTotal,
+    resistenciaTotal,
+  );
+  const apararResistenciaDisparity = getDisparity(apararTotal, resistenciaTotal);
+  const fortitudeVontadeDisparity = getDisparity(fortitudeTotal, vontadeTotal);
+
+  const hasEsquivaResistenciaDisparity = esquivaResistenciaDisparity > 50;
+  const hasApararResistenciaDisparity = apararResistenciaDisparity > 50;
+  const hasFortitudeVontadeDisparity = fortitudeVontadeDisparity > 50;
 
   return (
     <div className="bg-muted/50 rounded-xl p-6 space-y-4">
@@ -395,6 +469,11 @@ export default function AdvancedStatus() {
             total={apararTotal}
             isEditMode={isEditMode}
             onInputChange={apararPoints.update}
+            isLimitExceeded={isApararResistenciaExceeded}
+            hasDisparity={hasApararResistenciaDisparity}
+            exceedValue={Math.max(0, apararResistenciaTotal - defenseLimit)}
+            disparityPercent={apararResistenciaDisparity}
+            defensePair="Aparar + Resistência"
           />
           <DefenseCard
             title="Esquiva"
@@ -406,6 +485,11 @@ export default function AdvancedStatus() {
             total={esquivaTotal}
             isEditMode={isEditMode}
             onInputChange={esquivaPoints.update}
+            isLimitExceeded={isEsquivaResistenciaExceeded}
+            hasDisparity={hasEsquivaResistenciaDisparity}
+            exceedValue={Math.max(0, esquivaResistenciaTotal - defenseLimit)}
+            disparityPercent={esquivaResistenciaDisparity}
+            defensePair="Esquiva + Resistência"
           />
           <DefenseCard
             title="Fortitude"
@@ -417,6 +501,11 @@ export default function AdvancedStatus() {
             total={fortitudeTotal}
             isEditMode={isEditMode}
             onInputChange={fortitudePoints.update}
+            isLimitExceeded={isFortitudeVontadeExceeded}
+            hasDisparity={hasFortitudeVontadeDisparity}
+            exceedValue={Math.max(0, fortitudeVontadeTotal - defenseLimit)}
+            disparityPercent={fortitudeVontadeDisparity}
+            defensePair="Fortitude + Vontade"
           />
           <DefenseCard
             title="Resistência"
@@ -428,6 +517,16 @@ export default function AdvancedStatus() {
             total={resistenciaTotal}
             isEditMode={isEditMode}
             onInputChange={resistenciaPoints.update}
+            // pass arrays so both pairs show if needed
+            limitWarnings={[
+              ...(isEsquivaResistenciaExceeded ? [{ pair: "Esquiva + Resistência", exceed: esquivaResistenciaTotal - defenseLimit }] : []),
+              ...(isApararResistenciaExceeded ? [{ pair: "Aparar + Resistência", exceed: apararResistenciaTotal - defenseLimit }] : []),
+            ]}
+            disparityWarnings={[
+              ...(hasEsquivaResistenciaDisparity ? [{ pair: "Esquiva + Resistência", percent: esquivaResistenciaDisparity }] : []),
+              ...(hasApararResistenciaDisparity ? [{ pair: "Aparar + Resistência", percent: apararResistenciaDisparity }] : []),
+            ]}
+            defensePair={isEsquivaResistenciaExceeded || hasEsquivaResistenciaDisparity ? "Esquiva + Resistência" : "Aparar + Resistência"}
           />
           <DefenseCard
             title="Vontade"
@@ -439,6 +538,11 @@ export default function AdvancedStatus() {
             total={vontadeTotal}
             isEditMode={isEditMode}
             onInputChange={vontadePoints.update}
+            isLimitExceeded={isFortitudeVontadeExceeded}
+            hasDisparity={hasFortitudeVontadeDisparity}
+            exceedValue={Math.max(0, fortitudeVontadeTotal - defenseLimit)}
+            disparityPercent={fortitudeVontadeDisparity}
+            defensePair="Fortitude + Vontade"
           />
         </div>
       </div>

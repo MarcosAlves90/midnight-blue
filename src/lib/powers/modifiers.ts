@@ -1,4 +1,4 @@
-import { Modifier } from "../../components/powers/types";
+import { Modifier } from "../../components/status/powers/types";
 
 export const COMMON_EXTRAS: Modifier[] = [
   {
