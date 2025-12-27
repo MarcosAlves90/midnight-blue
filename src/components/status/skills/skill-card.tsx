@@ -104,7 +104,8 @@ export function SkillCard({
                 type="skill-combat"
                 label={name}
                 total={totalBonus}
-                limit={skillLimit}
+                limit={2 * powerLevel}
+                excess={totalBonus - 2 * powerLevel}
               />
             )}
             <div className="flex flex-col items-start">

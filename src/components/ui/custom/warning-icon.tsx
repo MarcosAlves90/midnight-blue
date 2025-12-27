@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { Tip } from "@/components/ui/tip";
-import { AlertTriangle, TrendingUp } from "lucide-react";
+import { AlertTriangle, TrendingUp, Sword } from "lucide-react";
 
 interface WarningItem {
   label: string;
@@ -74,7 +74,7 @@ export function WarningIcon({
         "Reduza as graduações de perícia, atributo ou bônus de vantagens para ficar dentro do limite (NP + 10).";
     } else {
       title = "📈 Limite de Combate Excedido";
-      Icon = TrendingUp;
+      Icon = Sword;
       titleColor = "text-yellow-300";
       fixTitle = "Recomendação:";
       fixText =
@@ -96,11 +96,15 @@ export function WarningIcon({
                   ? `Excesso +${item.exceed ?? 0} pontos`
                   : `Bônus total ${total} (máximo: ${limit})`}
               </>
-            ) : (
+            ) : type === "defense-disparity" ? (
               <>
                 Diferença{" "}
                 {typeof item.percent === "number" ? item.percent.toFixed(1) : 0}
                 %
+              </>
+            ) : (
+              <>
+                {`Bônus total ${total} (máximo: ${limit})`}
               </>
             )}
           </div>

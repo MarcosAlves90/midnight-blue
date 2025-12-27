@@ -10,16 +10,18 @@ service cloud.firestore {
         && (
           request.resource.data.keys().hasOnly(['displayName', 'email', 'avatar', 'updatedAt']) ||
           request.resource.data.keys().hasOnly(['avatar', 'updatedAt']) ||
-          request.resource.data.keys().hasOnly(['displayName', 'updatedAt'])
+          request.resource.data.keys().hasOnly(['displayName', 'updatedAt']) ||
+          request.resource.data.keys().hasOnly(['lastSelectedCharacterId', 'updatedAt'])
         );
       allow delete: if false;
-    }
 
-    // Permitir leitura de dados públicos de personagens (se necessário)
-    match /characters/{characterId} {
-      allow read: if request.auth != null;
-      allow create: if request.auth != null && resource.data.userId == request.auth.uid;
-      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
+      // Subcoleção de personagens do usuário
+      match /characters/{characterId} {
+        allow read: if request.auth != null && request.auth.uid == userId;
+        allow create: if request.auth != null && request.auth.uid == userId;
+        allow update: if request.auth != null && request.auth.uid == userId;
+        allow delete: if request.auth != null && request.auth.uid == userId;
+      }
     }
 
     // Bloquear tudo mais por padrão

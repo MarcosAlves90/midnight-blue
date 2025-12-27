@@ -86,23 +86,20 @@ function DefenseCard({
         >
           <DiceIcon className="w-3.5 h-3.5 text-muted-foreground hover:text-foreground" />
         </button>
-        
-        {/* Warning icons (componentized) */}
-        <div className="flex items-center gap-2">
-          {/* aggregate limit warnings */}
-          {limitWarnings && limitWarnings.length > 0 ? (
-            <DefenseWarning type="defense-limit" items={limitWarnings.map(w => ({ label: w.pair, exceed: w.exceed }))} />
-          ) : isLimitExceeded ? (
-            <DefenseWarning type="defense-limit" label={defensePair} excess={exceedValue} />
-          ) : null}
 
-          {/* aggregate disparity warnings */}
-          {disparityWarnings && disparityWarnings.length > 0 ? (
-            <DefenseWarning type="defense-disparity" items={disparityWarnings.map(w => ({ label: w.pair, percent: w.percent }))} />
-          ) : hasDisparity ? (
-            <DefenseWarning type="defense-disparity" label={defensePair} percent={disparityPercent} />
-          ) : null}
-        </div>
+        {/* aggregate limit warnings */}
+        {limitWarnings && limitWarnings.length > 0 ? (
+          <DefenseWarning type="defense-limit" items={limitWarnings.map(w => ({ label: w.pair, exceed: w.exceed }))} />
+        ) : isLimitExceeded ? (
+          <DefenseWarning type="defense-limit" label={defensePair} excess={exceedValue} />
+        ) : null}
+
+        {/* aggregate disparity warnings */}
+        {disparityWarnings && disparityWarnings.length > 0 ? (
+          <DefenseWarning type="defense-disparity" items={disparityWarnings.map(w => ({ label: w.pair, percent: w.percent }))} />
+        ) : hasDisparity ? (
+          <DefenseWarning type="defense-disparity" label={defensePair} percent={disparityPercent} />
+        ) : null}
 
         {description ? (
           <Tip
