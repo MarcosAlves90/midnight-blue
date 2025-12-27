@@ -1,6 +1,6 @@
 import React, { useCallback } from "react";
 import { IdentityData } from "@/contexts/IdentityContext";
-import { ROTATION_MULTIPLIER, SCALE_MULTIPLIER } from "./constants";
+import { ROTATION_MULTIPLIER, SCALE_MULTIPLIER } from "../constants";
 import { IdentityCardHeader } from "./identity-card-header";
 import { ImageArea } from "./image-area";
 import { IdentityCardContent } from "./identity-card-content";
@@ -19,7 +19,7 @@ interface IdentityCardContainerProps {
   onSave: () => void;
 }
 
-export const IdentityCardContainer: React.FC<IdentityCardContainerProps> = ({
+export const IdentityCard: React.FC<IdentityCardContainerProps> = ({
   identity,
   cardRef,
   onFieldChange,

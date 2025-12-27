@@ -16,7 +16,7 @@ interface BiometricDataSectionProps {
   onFieldChange: (field: keyof IdentityData, value: string) => void;
 }
 
-export const BiometricDataSection: React.FC<BiometricDataSectionProps> = ({
+export const BiometricData: React.FC<BiometricDataSectionProps> = ({
   identity,
   onFieldChange,
 }) => (

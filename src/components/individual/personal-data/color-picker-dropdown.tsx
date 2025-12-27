@@ -7,7 +7,7 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import { FormInput } from "@/components/ui/form-input";
-import { PREDEFINED_COLORS } from "./constants";
+import { PREDEFINED_COLORS } from "@/components/individual/constants";
 import { hexToRgb } from "@/lib/colors";
 
 interface ColorPickerDropdownProps {

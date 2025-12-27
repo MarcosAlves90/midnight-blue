@@ -3,12 +3,12 @@
 import React, { useRef, useCallback } from "react";
 import { toPng } from "html-to-image";
 import { useIdentityContext, IdentityData } from "@/contexts/IdentityContext";
-import { IdentityCardContainer } from "./identity/identity-card-container";
-import { BiometricDataSection } from "./identity/biometric-data-section";
-import { PersonalDataSection } from "./identity/personal-data-section";
-import { ConfidentialFileSection } from "./identity/confidential-file-section";
-import { HistorySection } from "./identity/history-section";
-import { ComplicationsSection } from "./identity/complications-section";
+import { IdentityCard } from "@/components/individual/identity-card";
+import { BiometricData } from "@/components/individual/biometric-data";
+import { PersonalData } from "@/components/individual/personal-data";
+import { ConfidentialFileSection } from "./individual/identity/confidential-file-section";
+import { HistorySection } from "./individual/identity/history-section";
+import { ComplicationsSection } from "./individual/identity/complications-section";
 
 // ============================================================================
 // Component: IdentityForm
@@ -88,7 +88,7 @@ export default function IdentityForm() {
         {/* Left Column: ID Card */}
         <div className="xl:col-span-3">
           <div className="sticky top-6">
-            <IdentityCardContainer
+            <IdentityCard
               identity={identity}
               cardRef={cardRef}
               onFieldChange={handleChange}
@@ -104,11 +104,11 @@ export default function IdentityForm() {
         <div className="xl:col-span-9 space-y-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <div className="space-y-4">
-              <BiometricDataSection
+              <BiometricData
                 identity={identity}
                 onFieldChange={handleChange}
               />
-              <PersonalDataSection
+              <PersonalData
                 identity={identity}
                 onFieldChange={handleChange}
               />

@@ -10,7 +10,7 @@ interface PersonalDataSectionProps {
   onFieldChange: (field: keyof IdentityData, value: string) => void;
 }
 
-export const PersonalDataSection: React.FC<PersonalDataSectionProps> = ({
+export const PersonalData: React.FC<PersonalDataSectionProps> = ({
   identity,
   onFieldChange,
 }) => (
