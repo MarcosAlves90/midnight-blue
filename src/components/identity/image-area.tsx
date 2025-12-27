@@ -3,7 +3,7 @@ import Image from "next/image";
 import { normalizeCloudinarySrc } from "@/lib/cloudinary";
 import { Camera, Upload, ChevronUp, ChevronDown } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
-import GlitchText from "@/components/glitch-text";
+import GlitchText from "@/components/ui/custom/glitch-text";
 
 interface ImageAreaProps {
   profileImage?: string;

@@ -1,6 +1,6 @@
-import ParallaxBackground from "@/components/parallax-background";
-import EnterButton from "@/components/enter-button";
-import GlitchText from "@/components/glitch-text";
+import ParallaxBackground from "@/components/ui/custom/parallax-background";
+import EnterButton from "@/components/ui/custom/enter-button";
+import GlitchText from "@/components/ui/custom/glitch-text";
 import { APP_VERSION } from "@/lib/version";
 
 export default function Home() {

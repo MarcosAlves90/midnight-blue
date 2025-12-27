@@ -1,6 +1,6 @@
 import { toast } from "react-toastify";
 import React from "react";
-import { DiceIcon } from "../../components/dice-icon";
+import { DiceIcon } from "../../components/ui/icons/dice-icon";
 import { getColorClasses } from "../colors";
 import type { DiceResult } from "./types";
 

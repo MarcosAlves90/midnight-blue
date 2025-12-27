@@ -3,7 +3,7 @@ import { FormInput } from "@/components/ui/form-input";
 import { Tip } from "@/components/ui/tip";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useGlitchColor } from "@/hooks/use-glitch-color";
-import GlitchText from "@/components/glitch-text";
+import GlitchText from "@/components/ui/custom/glitch-text";
 
 interface IdentityCardContentProps {
   alternateIdentity: string;

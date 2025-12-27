@@ -6,7 +6,7 @@ import { Tip } from "@/components/ui/tip";
 import { getColorClasses } from "@/lib/colors";
 import { useAttributesContext } from "@/contexts/AttributesContext";
 import { rollDice } from "@/lib/dice-system";
-import { DiceIcon } from "@/components/dice-icon";
+import { DiceIcon } from "@/components/ui/icons/dice-icon";
 import { useEditableValue } from "../attributes-grid/use-editable-value";
 import type { Skill } from "./types";
 

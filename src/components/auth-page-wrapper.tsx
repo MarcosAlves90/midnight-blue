@@ -4,7 +4,7 @@ import Link from "next/link";
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
-import ParallaxBackground from "@/components/parallax-background";
+import ParallaxBackground from "@/components/ui/custom/parallax-background";
 import { Button } from "@/components/ui/button";
 import { FieldDescription } from "@/components/ui/field";
 import { getClientAuth } from "@/lib/firebase";

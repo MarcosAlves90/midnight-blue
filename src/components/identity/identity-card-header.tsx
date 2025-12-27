@@ -4,7 +4,7 @@ import { Tip } from "@/components/ui/tip";
 import { Download } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useGlitchColor } from "@/hooks/use-glitch-color";
-import GlitchText from "@/components/glitch-text";
+import GlitchText from "@/components/ui/custom/glitch-text";
 
 interface IdentityCardHeaderProps {
   name: string;

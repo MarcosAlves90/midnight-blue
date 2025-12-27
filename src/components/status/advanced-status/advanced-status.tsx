@@ -16,9 +16,9 @@ import {
   Minus,
   RotateCcw,
 } from "lucide-react";
-import DefenseWarning from "@/components/status/advanced-status/defense-warning";
+import DefenseWarning from "./defense-warning";
 import { rollDice } from "@/lib/dice-system";
-import { DiceIcon } from "@/components/dice-icon";
+import { DiceIcon } from "@/components/ui/icons/dice-icon";
 
 interface SingleLimitWarning { pair: string; exceed: number }
 interface SingleDisparityWarning { pair: string; percent: number }
@@ -88,24 +88,20 @@ function DefenseCard({
         </button>
         
         {/* Warning icons (componentized) */}
-        <div className="flex items-center gap-0.5">
-          {/* multiple limit warnings */}
-          {limitWarnings && limitWarnings.length > 0
-            ? limitWarnings.map((w: SingleLimitWarning) => (
-                <DefenseWarning key={`limit-${w.pair}`} type="limit" pair={w.pair} exceed={w.exceed} />
-              ))
-            : isLimitExceeded && (
-                <DefenseWarning type="limit" pair={defensePair} exceed={exceedValue} />
-              )}
+        <div className="flex items-center gap-2">
+          {/* aggregate limit warnings */}
+          {limitWarnings && limitWarnings.length > 0 ? (
+            <DefenseWarning type="limit" items={limitWarnings} />
+          ) : isLimitExceeded ? (
+            <DefenseWarning type="limit" pair={defensePair} exceed={exceedValue} />
+          ) : null}
 
-          {/* multiple disparity warnings */}
-          {disparityWarnings && disparityWarnings.length > 0
-            ? disparityWarnings.map((w: SingleDisparityWarning) => (
-                <DefenseWarning key={`disp-${w.pair}`} type="disparity" pair={w.pair} percent={w.percent} />
-              ))
-            : hasDisparity && (
-                <DefenseWarning type="disparity" pair={defensePair} percent={disparityPercent} />
-              )}
+          {/* aggregate disparity warnings */}
+          {disparityWarnings && disparityWarnings.length > 0 ? (
+            <DefenseWarning type="disparity" items={disparityWarnings} />
+          ) : hasDisparity ? (
+            <DefenseWarning type="disparity" pair={defensePair} percent={disparityPercent} />
+          ) : null}
         </div>
 
         {description ? (
@@ -173,7 +169,7 @@ export default function AdvancedStatus() {
 
   // Editable values
   const nivelInput = powerLevel.toString();
-  const deslocamento = useEditableNumber(9);
+  const deslocamento = useEditableNumber(8);
 
   const handleAddPoint = () => {
     if (extraPoints >= 14) {
@@ -289,12 +285,7 @@ export default function AdvancedStatus() {
   return (
     <div className="bg-muted/50 rounded-xl p-6 space-y-4">
       <div className="flex items-center justify-between mb-3">
-        <button
-          className="px-4 py-1 rounded font-semibold transition-all duration-200 cursor-pointer bg-muted-foreground/20 text-muted-foreground"
-          disabled
-        >
-          Progressão
-        </button>
+        <h2 className="text-lg font-semibold">Progressão</h2>
         <button
           onClick={toggleEditMode}
           className={`p-2 rounded cursor-pointer transition-all duration-200 ${

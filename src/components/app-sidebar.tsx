@@ -27,8 +27,6 @@ import {
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/contexts/AuthContext";
 
-const DEFAULT_AVATAR = "/avatars/shadcn.jpg";
-
 const teams = [
   { name: "Acme Inc", logo: GalleryVerticalEnd, plan: "Enterprise" },
   { name: "Acme Corp.", logo: AudioWaveform, plan: "Startup" },
@@ -94,9 +92,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     ? {
         name: user.displayName ?? user.email ?? "Usuário",
         email: user.email ?? "",
-        avatar: user.photoURL ?? DEFAULT_AVATAR,
+        avatar: user.photoURL ?? undefined,
       }
-    : { name: "Convidado", email: "", avatar: DEFAULT_AVATAR };
+    : { name: "Convidado", email: "", avatar: undefined };
 
   return (
     <Sidebar collapsible="icon" {...props}>
