@@ -11,7 +11,7 @@ interface DashboardLayoutProps {
   children: React.ReactNode;
 }
 
-import RequireAuth from "@/components/require-auth";
+import RequireAuth from "@/components/auth/require-auth";
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   return (

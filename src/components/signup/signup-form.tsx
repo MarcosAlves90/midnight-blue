@@ -25,7 +25,7 @@ import { getFirebaseErrorMessage } from "@/lib/firebase-errors";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { getClientAuth } from "@/lib/firebase";
 
-export function SignupForm({
+export default function SignupForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {

@@ -6,26 +6,15 @@ import { useIdentityContext, IdentityData } from "@/contexts/IdentityContext";
 import { IdentityCard } from "@/components/individual/identity-card";
 import { BiometricData } from "@/components/individual/biometric-data";
 import { PersonalData } from "@/components/individual/personal-data";
-import { ConfidentialFileSection } from "./individual/identity/confidential-file-section";
-import { HistorySection } from "./individual/identity/history-section";
-import { ComplicationsSection } from "./individual/identity/complications-section";
+import { ConfidentialFileSection } from "@/components/individual/confidential-file";
+import { HistorySection } from "@/components/individual/history-data";
+import { ComplicationsSection } from "@/components/individual/complications";
 
-// ============================================================================
-// Component: IdentityForm
-// ============================================================================
-
-/**
- * Main identity form component that manages character creation and editing
- * Includes 3D card with biometric and personal data sections
- */
-export default function IdentityForm() {
+export default function Individual() {
   const { identity, updateIdentity } = useIdentityContext();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const cardRef = useRef<HTMLDivElement | null>(null);
 
-  /**
-   * Updates identity field value
-   */
   const handleChange = useCallback(
     <K extends keyof IdentityData>(field: K, value: IdentityData[K]) => {
       updateIdentity(field, value);
@@ -33,9 +22,6 @@ export default function IdentityForm() {
     [updateIdentity],
   );
 
-  /**
-   * Handles image file upload
-   */
   const handleImageUpload = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
@@ -50,16 +36,10 @@ export default function IdentityForm() {
     [updateIdentity],
   );
 
-  /**
-   * Triggers the file input dialog
-   */
   const triggerImageUpload = useCallback(() => {
     fileInputRef.current?.click();
   }, []);
 
-  /**
-   * Saves the identity card as an image
-   */
   const handleSaveImage = useCallback(async () => {
     if (!cardRef.current) return;
     try {
@@ -85,7 +65,6 @@ export default function IdentityForm() {
   return (
     <div className="pb-10">
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
-        {/* Left Column: ID Card */}
         <div className="xl:col-span-3">
           <div className="sticky top-6">
             <IdentityCard
@@ -100,7 +79,6 @@ export default function IdentityForm() {
           </div>
         </div>
 
-        {/* Right Column: Forms */}
         <div className="xl:col-span-9 space-y-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <div className="space-y-4">
@@ -124,7 +102,6 @@ export default function IdentityForm() {
         </div>
       </div>
 
-      {/* History and Complications Sections - Full Width */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
         <ComplicationsSection
           identity={identity}

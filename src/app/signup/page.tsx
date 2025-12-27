@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { SignupForm } from "@/components/signup-form";
-import { AuthPageWrapper } from "@/components/auth-page-wrapper";
+import { Signup } from "@/components/signup";
+import { AuthPageWrapper } from "@/components/auth/auth-page-wrapper";
 
 export const metadata: Metadata = {
   title: "Cadastro",
@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 export default function SignupPage() {
   return (
     <AuthPageWrapper>
-      <SignupForm />
+      <Signup />
     </AuthPageWrapper>
   );
 }

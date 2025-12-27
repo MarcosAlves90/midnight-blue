@@ -30,7 +30,7 @@ import {
 } from "firebase/auth";
 import { getClientAuth } from "@/lib/firebase";
 
-export function LoginForm({
+export default function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
