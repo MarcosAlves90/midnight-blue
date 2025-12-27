@@ -1,4 +1,4 @@
-import { AppSidebar } from "@/components/app-sidebar";
+import { Sidebar } from "@/components/ui/custom/sidebar";
 import { DynamicBreadcrumb } from "@/components/dynamic-breadcrumb";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -16,7 +16,7 @@ import RequireAuth from "@/components/auth/require-auth";
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   return (
     <SidebarProvider defaultOpen>
-      <AppSidebar />
+      <Sidebar />
       <SidebarInset>
         <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
           <div className="flex items-center gap-2 px-4">

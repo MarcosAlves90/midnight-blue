@@ -6,21 +6,15 @@ service cloud.firestore {
     match /users/{userId} {
       allow read: if request.auth != null && request.auth.uid == userId;
       allow create: if request.auth != null && request.auth.uid == userId;
-      allow update: if request.auth != null && request.auth.uid == userId
-        && (
-          request.resource.data.keys().hasOnly(['displayName', 'email', 'avatar', 'updatedAt']) ||
-          request.resource.data.keys().hasOnly(['avatar', 'updatedAt']) ||
-          request.resource.data.keys().hasOnly(['displayName', 'updatedAt']) ||
-          request.resource.data.keys().hasOnly(['lastSelectedCharacterId', 'updatedAt'])
-        );
+      allow update: if request.auth != null && request.auth.uid == userId;
       allow delete: if false;
 
       // Subcoleção de personagens do usuário
       match /characters/{characterId} {
         allow read: if request.auth != null && request.auth.uid == userId;
-        allow create: if request.auth != null && request.auth.uid == userId;
-        allow update: if request.auth != null && request.auth.uid == userId;
-        allow delete: if request.auth != null && request.auth.uid == userId;
+        allow create: if request.auth != null && request.auth.uid == userId && request.resource.data.userId == request.auth.uid;
+        allow update: if request.auth != null && request.auth.uid == userId && resource.data.userId == request.auth.uid;
+        allow delete: if request.auth != null && request.auth.uid == userId && resource.data.userId == request.auth.uid;
       }
     }
 

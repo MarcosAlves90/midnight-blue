@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useRef, useCallback } from "react";
+import React, { useRef, useCallback, useEffect } from "react";
 import { toPng } from "html-to-image";
 import { useIdentityContext, IdentityData } from "@/contexts/IdentityContext";
+import { useSelectedCharacter } from "@/hooks/use-selected-character";
 import { IdentityCard } from "@/components/individual/identity-card";
 import { BiometricData } from "@/components/individual/biometric-data";
 import { PersonalData } from "@/components/individual/personal-data";
@@ -12,8 +13,26 @@ import { ComplicationsSection } from "@/components/individual/complications";
 
 export default function Individual() {
   const { identity, updateIdentity } = useIdentityContext();
+  const { character, isLoading, error } = useSelectedCharacter();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const cardRef = useRef<HTMLDivElement | null>(null);
+
+  // Carrega dados da ficha quando ela for selecionada
+  useEffect(() => {
+    if (character?.identity) {
+      Object.keys(character.identity).forEach((key) => {
+        updateIdentity(key as keyof IdentityData, character.identity[key as keyof IdentityData]);
+      });
+    }
+  }, [character?.id, character?.identity, updateIdentity]);
+
+  if (isLoading) {
+    return <div className="flex items-center justify-center p-8">Carregando ficha...</div>;
+  }
+
+  if (error) {
+    return <div className="flex items-center justify-center p-8 text-red-500">{error}</div>;
+  }
 
   const handleChange = useCallback(
     <K extends keyof IdentityData>(field: K, value: IdentityData[K]) => {

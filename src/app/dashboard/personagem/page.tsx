@@ -8,15 +8,36 @@ export const metadata: Metadata = {
 export default function PersonagemPage() {
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Personagem</h1>
-        <p className="text-muted-foreground">
-          Dossiê completo e gestão de dados operacionais do indivíduo sob
-          supervisão.
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Personagem</h1>
+          <p className="text-muted-foreground">
+            Dossiê completo e gestão de dados operacionais do indivíduo sob
+            supervisão.
+          </p>
+        </div>
+        <Link
+          href="/dashboard/personagem/novo"
+          className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium"
+        >
+          Nova Ficha
+        </Link>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="rounded-lg border p-6">
+          <h3 className="font-semibold mb-2">Minhas Fichas</h3>
+          <p className="text-sm text-muted-foreground mb-4">
+            Gerencie todas as suas fichas de personagem em um único lugar.
+          </p>
+          <Link
+            href="/dashboard/galeria"
+            className="text-sm text-primary hover:underline"
+          >
+            Acessar →
+          </Link>
+        </div>
+
         <div className="rounded-lg border p-6">
           <h3 className="font-semibold mb-2">Individual</h3>
           <p className="text-sm text-muted-foreground mb-4">

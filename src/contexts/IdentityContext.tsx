@@ -6,6 +6,8 @@ import React, {
   useEffect,
   useCallback,
 } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useCharacterPersistence } from "@/hooks/use-character-persistence";
 
 export interface IdentityData {
   name: string;
@@ -68,6 +70,9 @@ interface IdentityContextType {
     value: IdentityData[K],
   ) => void;
   setIdentity: React.Dispatch<React.SetStateAction<IdentityData>>;
+  currentCharacterId?: string | null;
+  setCurrentCharacterId: (id: string | null) => void;
+  saveIdentityNow: () => Promise<void>;
 }
 
 const IdentityContext = createContext<IdentityContextType | undefined>(
@@ -75,11 +80,19 @@ const IdentityContext = createContext<IdentityContextType | undefined>(
 );
 
 const STORAGE_KEY = "midnight-identity";
+const CURRENT_CHAR_KEY = "midnight-current-character-id";
 
 export const IdentityProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [identity, setIdentity] = useState<IdentityData>(INITIAL_IDENTITY);
+  const [currentCharacterId, setCurrentCharacterIdState] = useState<string | null>(null);
+
+  const { user } = useAuth();
+  const {
+    scheduleAutoSave,
+    saveImmediately,
+  } = useCharacterPersistence(user?.uid ?? null, currentCharacterId ?? undefined);
 
   useEffect(() => {
     try {
@@ -99,17 +112,54 @@ export const IdentityProvider: React.FC<{ children: React.ReactNode }> = ({
     } catch {
       // ignore
     }
-  }, [identity]);
+
+    // Auto-save (debounced) to Firestore when a character is selected
+    if (currentCharacterId && user) {
+      scheduleAutoSave({ identity });
+    }
+  }, [identity, currentCharacterId, user, scheduleAutoSave]);
 
   const updateIdentity = useCallback(
     <K extends keyof IdentityData>(field: K, value: IdentityData[K]) => {
       setIdentity((prev) => ({ ...prev, [field]: value }));
+      // schedule auto-save if we have a character selected and a user
+      if (currentCharacterId && user) {
+        scheduleAutoSave({ identity: { ...identity, [field]: value } });
+      }
     },
-    [],
+    [currentCharacterId, user, scheduleAutoSave, identity],
   );
 
+  const setCurrentCharacterId = (id: string | null) => {
+    setCurrentCharacterIdState(id);
+    try {
+      if (id) localStorage.setItem(CURRENT_CHAR_KEY, id);
+      else localStorage.removeItem(CURRENT_CHAR_KEY);
+    } catch {
+      // ignore
+    }
+  };
+
+  const saveIdentityNow = async () => {
+    if (!user || !currentCharacterId) return;
+    try {
+      await saveImmediately({ identity });
+    } catch (e) {
+      console.error("Falha ao salvar identidade:", e);
+    }
+  };
+
   return (
-    <IdentityContext.Provider value={{ identity, updateIdentity, setIdentity }}>
+    <IdentityContext.Provider
+      value={{
+        identity,
+        updateIdentity,
+        setIdentity,
+        currentCharacterId,
+        setCurrentCharacterId,
+        saveIdentityNow,
+      }}
+    >
       {children}
     </IdentityContext.Provider>
   );

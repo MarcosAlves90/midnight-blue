@@ -2,22 +2,15 @@
 
 import * as React from "react";
 import {
-  AudioWaveform,
   BookOpenText,
   Store,
-  Command,
   Frame,
-  GalleryVerticalEnd,
   Map,
   PieChart,
   BookMarked,
   VenetianMask,
 } from "lucide-react";
-
-import { NavMain } from "@/components/nav-main";
-import { NavProjects } from "@/components/nav-projects";
-import { NavUser } from "@/components/nav-user";
-import { TeamSwitcher } from "@/components/team-switcher";
+import { NavMain, NavProjects, NavUser, CharacterSwitcher } from ".";
 import {
   Sidebar,
   SidebarContent,
@@ -26,12 +19,6 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/contexts/AuthContext";
-
-const teams = [
-  { name: "Acme Inc", logo: GalleryVerticalEnd, plan: "Enterprise" },
-  { name: "Acme Corp.", logo: AudioWaveform, plan: "Startup" },
-  { name: "Evil Corp.", logo: Command, plan: "Free" },
-];
 
 const navMain = [
   {
@@ -99,7 +86,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <TeamSwitcher teams={teams} />
+        <CharacterSwitcher />
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={navMain} />

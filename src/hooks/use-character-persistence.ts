@@ -9,6 +9,7 @@ import {
   setLastSelectedCharacter,
   getLastSelectedCharacterId,
   getLastSelectedCharacter,
+  onCharactersChange,
   type CharacterDocument,
   type CharacterData,
 } from "@/lib/character-service";
@@ -121,6 +122,17 @@ export function useCharacterPersistence(
     return getLastSelectedCharacter(userId);
   }, [userId]);
 
+  /**
+   * Escuta mudanças em tempo real na lista de personagens
+   */
+  const listenToCharacters = useCallback(
+    (callback: (characters: CharacterDocument[]) => void) => {
+      if (!userId) throw new Error("Usuário não autenticado");
+      return onCharactersChange(userId, callback);
+    },
+    [userId],
+  );
+
   // Limpa timeout ao desmontar
   useEffect(() => {
     return () => {
@@ -134,6 +146,7 @@ export function useCharacterPersistence(
     createCharacter,
     loadCharacter,
     loadCharactersList,
+    listenToCharacters,
     scheduleAutoSave,
     saveImmediately,
     removeCharacter,
