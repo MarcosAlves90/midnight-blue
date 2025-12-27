@@ -56,7 +56,8 @@ export function CharacterSwitcher() {
   const { isMobile } = useSidebar();
   const { user } = useAuth();
   const router = useRouter();
-  const { selectedCharacter, setSelectedCharacter } = useCharacter();
+  const characterContext = useCharacter();
+  const { selectedCharacter, setSelectedCharacter } = characterContext;
   const { listenToCharacters, selectCharacter } = useCharacterPersistence(
     user?.uid || null,
   );
@@ -105,7 +106,9 @@ export function CharacterSwitcher() {
   };
 
   const handleCreateNewCharacter = () => {
-    router.push("/dashboard/galeria?new=true");
+    // Use o contexto para sinalizar abertura de novo dialog em vez de query param
+    characterContext.setOpenNewDialog(true);
+    router.push("/dashboard/galeria");
   }; 
 
   const handleOpenGallery = () => {

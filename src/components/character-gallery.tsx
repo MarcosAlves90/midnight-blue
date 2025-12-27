@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { useAuth } from "@/contexts/AuthContext";
@@ -9,6 +9,7 @@ import { useCharacterPersistence } from "@/hooks/use-character-persistence";
 import { Button } from "@/components/ui/button";
 import { Loader2, Trash2, Edit3 } from "lucide-react";
 import { NewCharacterDialog } from "@/components/new-character-dialog";
+import { useCharacter } from "@/contexts/CharacterContext";
 import type { CharacterDocument } from "@/lib/character-service";
 
 // Hook para gerenciar estado da galeria
@@ -213,21 +214,21 @@ function CharacterCard({
 // Componente principal da galeria
 export function CharacterGallery() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { user } = useAuth();
+  const { openNewDialog, setOpenNewDialog } = useCharacter();
 
   const state = useGalleryState();
   const { handleSelectCharacter, handleDeleteCharacter, loadCharactersList } =
     useGalleryActions(user?.uid || null, state, router);
 
-  // Verifica se deve abrir o dialog
+  // Abre o dialog quando o contexto sinaliza abertura de nova ficha
   useEffect(() => {
-    const newParam = searchParams.get("new");
-    if (newParam === "true") {
-      state.setDialogOpen(true);
-      router.replace("/dashboard/galeria");
+    if (openNewDialog) {
+      if (!state.dialogOpen) state.setDialogOpen(true);
+      // Limpa o sinal no contexto para evitar reaberturas
+      setOpenNewDialog(false);
     }
-  }, [searchParams, router, state]);
+  }, [openNewDialog, setOpenNewDialog, state]);
 
   // Carrega lista de personagens
   useEffect(() => {

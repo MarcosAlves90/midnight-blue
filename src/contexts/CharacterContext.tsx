@@ -6,15 +6,18 @@ import type { CharacterDocument } from "@/lib/character-service";
 interface CharacterContextType {
   selectedCharacter: CharacterDocument | null;
   setSelectedCharacter: (character: CharacterDocument | null) => void;
+  openNewDialog: boolean;
+  setOpenNewDialog: (open: boolean) => void;
 }
 
 const CharacterContext = createContext<CharacterContextType | undefined>(undefined);
 
 export function CharacterProvider({ children }: { children: React.ReactNode }) {
   const [selectedCharacter, setSelectedCharacter] = useState<CharacterDocument | null>(null);
+  const [openNewDialog, setOpenNewDialog] = useState(false);
 
   return (
-    <CharacterContext.Provider value={{ selectedCharacter, setSelectedCharacter }}>
+    <CharacterContext.Provider value={{ selectedCharacter, setSelectedCharacter, openNewDialog, setOpenNewDialog }}>
       {children}
     </CharacterContext.Provider>
   );

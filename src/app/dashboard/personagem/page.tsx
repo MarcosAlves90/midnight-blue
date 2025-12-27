@@ -17,7 +17,7 @@ export default function PersonagemPage() {
           </p>
         </div>
         <Link
-          href="/dashboard/personagem/novo"
+          href="/dashboard/galeria"
           className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium"
         >
           Nova Ficha
