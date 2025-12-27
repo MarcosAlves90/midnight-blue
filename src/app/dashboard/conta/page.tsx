@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { AccountSettingsForm } from "@/components/account-settings-form";
+import { Settings } from "@/components/settings";
 
 export const metadata: Metadata = {
   title: "Configurações da Conta",
@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 export default function AccountPage() {
   return (
     <div className="flex flex-1 flex-col gap-6">
-      <AccountSettingsForm />
+      <Settings />
     </div>
   );
 }

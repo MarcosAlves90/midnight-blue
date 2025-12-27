@@ -43,7 +43,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { authSuccess, authError, authInfo } from "@/lib/toast";
 import { useAvatarUpload } from "@/hooks/use-avatar-upload";
 
-export function AccountSettingsForm() {
+export default function AccountSettingsForm() {
   const { user, refreshUser } = useAuth();
   const { uploading: uploadingAvatar, uploadAvatar } = useAvatarUpload();
 
