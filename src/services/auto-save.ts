@@ -44,17 +44,47 @@ export class AutoSaveService<T extends Record<string, unknown> = Record<string, 
     onSaved?: () => void,
     onConflict?: (conflict: unknown, attempted: T) => Promise<{ action: "retry" } | { action: "retryWith"; data: T } | { action: "abort" }>,
   ) {
-    const serialized = JSON.stringify(data);
+    // Heuristic: avoid serializing very large payloads synchronously (e.g., base64 images).
+    const containsLargeString = (obj: unknown, threshold = 2048): boolean => {
+      if (!obj || typeof obj !== "object") return false;
+      try {
+        for (const k of Object.keys(obj as Record<string, unknown>)) {
+          const v = (obj as Record<string, unknown>)[k];
+          if (typeof v === "string" && v.length > threshold) return true;
+          if (typeof v === "object" && v !== null) {
+            // one level deep check is sufficient for our use-case
+            for (const kk of Object.keys(v as Record<string, unknown>)) {
+              const vv = (v as Record<string, unknown>)[kk];
+              if (typeof vv === "string" && vv.length > threshold) return true;
+            }
+          }
+        }
+      } catch {
+        // ignore
+      }
+      return false;
+    };
 
-    // If nothing changed since last successful save and there is no in-flight save, skip
-    if (!this.inFlight && this.lastSavedSerialized === serialized) {
-      // no-op
-      return;
+    const isLarge = containsLargeString(data);
+
+    // If payload is reasonably small, compute serialized snapshot now for simple change-detection
+    if (!isLarge) {
+      const serialized = JSON.stringify(data);
+
+      // If nothing changed since last successful save and there is no in-flight save, skip
+      if (!this.inFlight && this.lastSavedSerialized === serialized) {
+        // no-op
+        return;
+      }
+
+      this.pendingObj = data;
+      this.pendingSerialized = serialized;
+    } else {
+      // For large payloads, avoid synchronous stringify: keep object and defer serialization until execute
+      this.pendingObj = data;
+      this.pendingSerialized = null;
     }
 
-    // coalesce: keep latest pending
-    this.pendingObj = data;
-    this.pendingSerialized = serialized;
     // store the callback to notify after success
     this.pendingOnSaved = onSaved ?? null;
     this.pendingOnConflict = onConflict ?? null;
@@ -75,7 +105,7 @@ export class AutoSaveService<T extends Record<string, unknown> = Record<string, 
     if (!this.pendingObj || !this.pendingSerialized) return;
 
     const toSave = this.pendingObj;
-    const toSaveSerialized = this.pendingSerialized;
+    let toSaveSerialized = this.pendingSerialized;
     const onSavedForThis = this.pendingOnSaved;
 
     // clear pending snapshot now (we captured the callback too)
@@ -83,11 +113,44 @@ export class AutoSaveService<T extends Record<string, unknown> = Record<string, 
     this.pendingSerialized = null;
     this.pendingOnSaved = null;
 
+    // If we didn't compute a serialized snapshot earlier (large payload), perform serialization during idle time to avoid blocking input handlers
+    if (!toSaveSerialized && toSave) {
+      const serializeInIdle = (obj: T) =>
+        new Promise<string>((resolve) => {
+          const win = typeof window !== "undefined" ? (window as unknown as { requestIdleCallback?: (cb: () => void, opts?: { timeout?: number }) => number }) : undefined;
+          if (win && typeof win.requestIdleCallback === "function") {
+            win.requestIdleCallback(() => {
+              try {
+                resolve(JSON.stringify(obj));
+              } catch {
+                resolve("");
+              }
+            }, { timeout: 500 });
+            return;
+          }
+
+          // Fallback: defer to next tick
+          setTimeout(() => {
+            try {
+              resolve(JSON.stringify(obj));
+            } catch {
+              resolve("");
+            }
+          }, 0);
+        });
+
+      try {
+        toSaveSerialized = await serializeInIdle(toSave);
+      } catch {
+        toSaveSerialized = "";
+      }
+    }
+
     this.inFlight = true;
     this.opts.onExecute?.({});
 
     try {
-      await this.handler(toSave);
+      await this.handler(toSave); // handler receives the object payload
       this.lastSavedSerialized = toSaveSerialized;
       this.opts.onSuccess?.({});
       try {

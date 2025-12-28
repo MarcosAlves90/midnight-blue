@@ -3,6 +3,7 @@
 import React, { useRef, useCallback, useEffect } from "react";
 import { toPng } from "html-to-image";
 import { useIdentityContext, IdentityData } from "@/contexts/IdentityContext";
+import { useAvatarUpload } from "@/hooks/use-avatar-upload";
 import { useSelectedCharacter } from "@/hooks/use-selected-character";
 import { IdentityCard } from "@/components/pages/individual/identity-card";
 import { ConflictBanner } from "@/components/ui/conflict-banner";
@@ -77,18 +78,23 @@ export default function Individual() {
     [updateIdentity],
   );
 
+  const { uploadAvatar } = useAvatarUpload();
+
   const handleImageUpload = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          updateIdentity("profileImage", reader.result as string);
-        };
-        reader.readAsDataURL(file);
+      if (!file) return;
+      try {
+        const previous = identity.profileImage ?? null;
+        const res = await uploadAvatar(file, previous);
+        if (res) {
+          updateIdentity("profileImage", res.secure_url);
+        }
+      } catch (err) {
+        console.error("Falha no upload de imagem:", err);
       }
     },
-    [updateIdentity],
+    [uploadAvatar, updateIdentity, identity.profileImage],
   );
 
   const triggerImageUpload = useCallback(() => {

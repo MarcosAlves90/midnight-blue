@@ -10,6 +10,7 @@ import {
 } from "@/lib/character-service";
 import { FirebaseCharacterRepository } from "@/services/repository/character-repo";
 import { AutoSaveService } from "@/services/auto-save";
+import { backgroundPersistence } from "@/services/background-persistence";
 import * as CharacterService from "@/lib/character-service";
 import type { UpdateResult } from "@/lib/character-service";
 
@@ -35,12 +36,38 @@ export function useCharacterPersistence(
     if (userId && characterId) {
       repoRef.current = new FirebaseCharacterRepository(userId);
       autoSaveServiceRef.current = new AutoSaveService(async (data) => {
-        // delegate to repo update and handle conflict results
-        const res = await repoRef.current!.updateCharacter(characterId, data as Partial<CharacterData>);
-        if (res && res.success === false) {
-          const err = new Error("conflict") as Error & { conflict?: CharacterDocument };
-          err.conflict = res.conflict;
-          throw err;
+        // enqueue a small patch update to BackgroundPersistence instead of calling repo directly.
+        if (!repoRef.current) throw new Error("Repository not initialized");
+
+        // The task will call updateCharacter; if it returns a conflict result we throw so AutoSaveService can handle conflict flow.
+        const res = await backgroundPersistence.enqueue(characterId, async () => {
+          return repoRef.current!.updateCharacter(characterId, data as Partial<CharacterData>);
+        }, {
+          priority: 5,
+          maxRetries: 3,
+          initialBackoffMs: 400,
+          shouldRetry: (err: unknown) => {
+            // If err contains a conflict result (handled by updateCharacter returning { success: false }), we should NOT retry
+            if (!err || typeof err !== "object") return true;
+            try {
+              const asObj = err as Record<string, unknown>;
+              if (asObj["success"] === false) return false;
+              if (Object.prototype.hasOwnProperty.call(asObj, "conflict")) return false;
+            } catch {
+              // ignore
+            }
+            return true;
+          },
+        });
+
+        // Enqueue returns the UpdateResult; if it indicates conflict, rethrow to be handled upstream.
+        if (res && typeof res === "object") {
+          const asObj = res as Record<string, unknown>;
+          if (asObj["success"] === false) {
+            const err = new Error("conflict") as Error & { conflict?: CharacterDocument };
+            err.conflict = asObj["conflict"] as CharacterDocument | undefined;
+            throw err;
+          }
         }
       }, {
         debounceMs: 3000,
@@ -301,6 +328,34 @@ export function useCharacterPersistence(
       if (autoSaveTimeoutRef.current) {
         clearTimeout(autoSaveTimeoutRef.current);
       }
+    };
+  }, []);
+
+  // Try to flush pending saves when page is hidden/unloaded to reduce chance of lost edits
+  useEffect(() => {
+    const flushIfAny = () => {
+      try {
+        if (autoSaveServiceRef.current) {
+          // Best-effort flush (non-blocking in unload/paghide handlers)
+          void autoSaveServiceRef.current.flush();
+        }
+      } catch {
+        // ignore
+      }
+    };
+
+    const onVisibility = () => {
+      if (document.visibilityState === "hidden") flushIfAny();
+    };
+
+    window.addEventListener("pagehide", flushIfAny);
+    document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("beforeunload", flushIfAny);
+
+    return () => {
+      window.removeEventListener("pagehide", flushIfAny);
+      document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("beforeunload", flushIfAny);
     };
   }, []);
 

@@ -68,6 +68,7 @@ export function NewCharacterForm({ onSuccess, onCancel }: NewCharacterFormProps)
         userId: user.uid,
         createdAt: new Date(),
         updatedAt: new Date(),
+        version: 1,
         identity: {
           name: formData.name.trim(),
           heroName: formData.heroName.trim(),

@@ -37,7 +37,7 @@ const SelectedModifierInstance = memo(
             <div className="flex items-center justify-between gap-3">
               <div className="truncate text-sm font-medium text-foreground">
                 {instance.modifier.name}
-                {isTipo && instance.options?.subType && (
+                {isTipo && typeof instance.options?.subType === "string" && (
                   <span className="ml-2 text-[10px] text-purple-400 uppercase tracking-wider">
                     (
                     {instance.options.subType === "amplo"

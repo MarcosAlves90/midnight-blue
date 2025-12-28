@@ -135,6 +135,18 @@ export const IdentityProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, [isSaving]);
 
+  // Dev-only long-task monitor for diagnosing expensive handlers
+  useEffect(() => {
+    if (process.env.NODE_ENV === "development") {
+      // dynamic import to avoid require lint rule and keep code-splitting
+      import("@/lib/perf-monitor")
+        .then((m) => m.startDevLongTaskMonitor?.())
+        .catch(() => {
+          // ignore
+        });
+    }
+  }, []);
+
 
 
   useEffect(() => {
@@ -209,7 +221,8 @@ export const IdentityProvider: React.FC<{ children: React.ReactNode }> = ({
     scheduleAutoSaveRef.current = scheduleAutoSave;
   }, [scheduleAutoSave]);
 
-  // Simplified sync: delegate autosave to scheduleAutoSave (service handles debounce/coalesce)
+  // Manage persisted state without triggering expensive work on every identity change.
+  // We keep a ref to the identity snapshot for conflict handling and only run light per-field patches on updates.
   useEffect(() => {
     identityRef.current = identity;
 
@@ -231,62 +244,44 @@ export const IdentityProvider: React.FC<{ children: React.ReactNode }> = ({
       return;
     }
 
-    // Delegate to the persistence hook's scheduleAutoSave (it will coalesce and debounce)
+    // Do NOT schedule a full-object save here. Field updates call scheduleAutoSave directly (see updateIdentity).
+  }, [identity, currentCharacterId, user]);
+
+  // Stable conflict handler reused by per-field saves
+  const handleConflict = useCallback(async (conflict: unknown, attempted: Partial<import("@/lib/character-service").CharacterData>) => {
+    const server = conflict as import("@/lib/character-service").CharacterDocument;
+
+    // build merged identity: start from server and overlay local dirty fields
+    const mergedIdentity = { ...(server.identity || {}) } as unknown as IdentityData;
     try {
-      // When save completes, clear the dirty fields set (they were acknowledged)
-      scheduleAutoSave(
-        { identity },
-        () => {
-          setDirtyFields(new Set());
-          try {
-            lastSavedRef.current = JSON.stringify(identityRef.current);
-          } catch {
-            lastSavedRef.current = null;
-          }
-          hasPendingChangesRef.current = false;
-        },
-        // onConflict handler
-        async (conflict, attempted) => {
-          // conflict is a CharacterDocument from server
-          const server = conflict as import("@/lib/character-service").CharacterDocument;
-
-          // build merged identity: start from server and overlay local dirty fields
-          const mergedIdentity = { ...(server.identity || {}) } as unknown as IdentityData;
-          try {
-            const local = identityRef.current;
-            dirtyFields.forEach((field) => {
-              (mergedIdentity as unknown as Record<string, unknown>)[field] = (local as unknown as Record<string, unknown>)[field];
-            });
-          } catch {
-            // ignore merge errors
-          }
-
-          // Attempt to save merged identity using the server's version as baseVersion
-          try {
-            const res = await saveImmediately({ identity: mergedIdentity }, { baseVersion: server.version });
-            if (res && (res as import("@/lib/character-service").UpdateResult).success === false) {
-              // still conflict or failed - show manual resolver to the user
-              setConflict({ server, attempted: attempted as Partial<import("@/lib/character-service").CharacterData> });
-              setConflictModalOpen(true);
-              return { action: "abort" } as const;
-            }
-
-            // Success - clear dirty flags (we merged local changes into server and saved)
-            setDirtyFields(new Set());
-            return { action: "abort" } as const;
-          } catch {
-            // Couldn't resolve automatically - surface conflict
-            setConflict({ server, attempted: attempted as Partial<import("@/lib/character-service").CharacterData> });
-            setConflictModalOpen(true);
-            return { action: "abort" } as const;
-          }
-        },
-      );
-      hasPendingChangesRef.current = true;
+      const local = identityRef.current;
+      dirtyFields.forEach((field) => {
+        (mergedIdentity as unknown as Record<string, unknown>)[field] = (local as unknown as Record<string, unknown>)[field];
+      });
     } catch {
-      // scheduleAutoSave may be unavailable during init; ignore
+      // ignore merge errors
     }
-  }, [identity, currentCharacterId, user, scheduleAutoSave, dirtyFields, saveImmediately]);
+
+    // Attempt to save merged identity using the server's version as baseVersion
+    try {
+      const res = await saveImmediately({ identity: mergedIdentity }, { baseVersion: server.version });
+      if (res && (res as import("@/lib/character-service").UpdateResult).success === false) {
+        // still conflict or failed - show manual resolver to the user
+        setConflict({ server, attempted: attempted as Partial<import("@/lib/character-service").CharacterData> });
+        setConflictModalOpen(true);
+        return { action: "abort" } as const;
+      }
+
+      // Success - clear dirty flags (we merged local changes into server and saved)
+      setDirtyFields(new Set());
+      return { action: "abort" } as const;
+    } catch {
+      // Couldn't resolve automatically - surface conflict
+      setConflict({ server, attempted: attempted as Partial<import("@/lib/character-service").CharacterData> });
+      setConflictModalOpen(true);
+      return { action: "abort" } as const;
+    }
+  }, [dirtyFields, saveImmediately]);
 
   const updateIdentity = useCallback(
     <K extends keyof IdentityData>(field: K, value: IdentityData[K]) => {
@@ -314,8 +309,34 @@ export const IdentityProvider: React.FC<{ children: React.ReactNode }> = ({
         // Fallback if startTransition is not available
         setIdentity((prev) => ({ ...prev, [field]: value } as IdentityData));
       }
+
+      // Schedule a lightweight per-field patch save (avoid serializing the whole identity on every keystroke)
+      try {
+        // construct small patch for the changed field
+        const patch = { identity: { [field]: value } as Partial<IdentityData> } as Partial<import("@/lib/character-service").CharacterData>;
+        // onSaved: clear dirty flags and update lastSaved snapshot
+        const onSaved = () => {
+          setDirtyFields(new Set());
+          try {
+            lastSavedRef.current = JSON.stringify(identityRef.current);
+          } catch {
+            lastSavedRef.current = null;
+          }
+          hasPendingChangesRef.current = false;
+        };
+
+        // Use the scheduleAutoSave ref to avoid re-render dependency
+        try {
+          scheduleAutoSaveRef.current?.(patch, onSaved, handleConflict);
+          hasPendingChangesRef.current = true;
+        } catch {
+          // ignore scheduling errors
+        }
+      } catch {
+        // swallow errors in scheduling
+      }
     },
-    [],
+    [handleConflict],
   );
 
   const markFieldDirty = (field: string) => {

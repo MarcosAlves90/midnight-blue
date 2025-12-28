@@ -295,7 +295,7 @@ export function PowerCard({
                         <span className="px-2 py-0.5 text-[10px] bg-red-500/10 text-red-300 rounded cursor-help">
                           {instance.modifier.name}
                           {instance.modifierId === "tipo" &&
-                            instance.options?.subType && (
+                            typeof instance.options?.subType === "string" && (
                               <span className="opacity-70 ml-1">
                                 (
                                 {instance.options.subType === "amplo"

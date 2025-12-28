@@ -184,17 +184,61 @@ export async function updateCharacter(userId: string, characterId: string, updat
 
   const payload: Record<string, unknown> = {};
 
-  if (updates.attributes) payload.attributes = serializeAttributes(updates.attributes as Attribute[]);
-  if (updates.skills) payload.skills = serializeSkills(updates.skills as Skill[]);
-  if (updates.identity) payload.identity = normalizeIdentity(updates.identity as Partial<IdentityData>);
-  if (updates.powers) payload.powers = updates.powers;
-  if (updates.status) payload.status = updates.status;
-
-  // Permitir atualização direta do heroName (compatibilidade)
   const updatesRecord = updates as Record<string, unknown>;
-  if (Object.prototype.hasOwnProperty.call(updatesRecord, "heroName")) {
-    payload.identity = { ...(payload.identity as Record<string, unknown> || {}), heroName: String(updatesRecord.heroName) };
+
+  // Handle attributes / skills as full arrays (serialized)
+  if (Object.prototype.hasOwnProperty.call(updatesRecord, "attributes")) {
+    payload.attributes = serializeAttributes(updates.attributes as Attribute[]);
   }
+  if (Object.prototype.hasOwnProperty.call(updatesRecord, "skills")) {
+    payload.skills = serializeSkills(updates.skills as Skill[]);
+  }
+
+  // If caller provided dotted keys (e.g., 'identity.name') or top-level primitive keys (e.g., 'heroName'), copy them through
+  Object.keys(updatesRecord).forEach((key) => {
+    const val = updatesRecord[key];
+
+    // Skip handled structured keys
+    if (key === "attributes" || key === "skills") return;
+    if (key === "powers") {
+      payload.powers = val;
+      return;
+    }
+    if (key === "status") {
+      payload.status = val;
+      return;
+    }
+
+    // Support dotted updates (identity.name) — copy as-is so Firestore will update nested field
+    if (key.includes(".")) {
+      payload[key] = val;
+      return;
+    }
+
+    // Identity partial: convert to dotted keys to avoid replacing the entire identity object
+    if (key === "identity" && typeof val === "object" && val !== null) {
+      try {
+        const identityPart = val as Record<string, unknown>;
+        Object.keys(identityPart).forEach((k) => {
+          // Avoid deep-normalization here; keep values verbatim so single-field updates are cheap
+          payload[`identity.${k}`] = identityPart[k as keyof typeof identityPart];
+        });
+      } catch {
+        // fallback: if something goes wrong, replace entire identity
+        payload.identity = normalizeIdentity(updates.identity as Partial<IdentityData>);
+      }
+      return;
+    }
+
+    // Compatibility: allow updating heroName from top-level (legacy callers)
+    if (key === "heroName") {
+      payload[`identity.heroName`] = String(val);
+      return;
+    }
+
+    // Fallback: set top-level fields
+    payload[key] = val;
+  });
 
   // Use transaction to perform optimistic locking based on numeric 'version'
   try {
