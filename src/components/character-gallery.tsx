@@ -41,6 +41,7 @@ function useGalleryActions(
     setCharacters: Dispatch<SetStateAction<CharacterDocument[]>>;
     setError: Dispatch<SetStateAction<string | null>>;
     setDeletingId: Dispatch<SetStateAction<string | null>>;
+    setSelectedCharacter?: (c: CharacterDocument | null) => void;
   },
   push: (url: string) => void
 ) {
@@ -49,8 +50,10 @@ function useGalleryActions(
 
   const handleSelectCharacter = async (character: CharacterDocument) => {
     try {
+      // Atualiza contexto de seleção imediatamente para UX responsiva
+      handlers.setSelectedCharacter?.(character);
       await selectCharacter(character.id);
-      push(`/dashboard/personagem/individual?id=${character.id}`);
+      push(`/dashboard/personagem/individual/${character.id}`);
     } catch (error) {
       console.error("Erro ao selecionar personagem:", error);
       handlers.setError("Erro ao selecionar personagem");
@@ -191,13 +194,14 @@ function CharacterCard({
         </div>
 
         <div className="flex gap-2 pt-2">
-          <button
-            onClick={onSelect}
+          <a
+            href={`/dashboard/personagem/individual/${character.id}`}
+            onClick={(e) => { e.preventDefault(); onSelect(); }}
             className="flex-1 px-3 py-2 bg-primary/10 hover:bg-primary/20 text-primary rounded text-sm font-medium transition-colors flex items-center justify-center gap-2"
           >
             <Edit3 className="w-3.5 h-3.5" />
             Editar
-          </button>
+          </a>
           <button
             onClick={onDelete}
             disabled={isDeleting}
@@ -224,8 +228,10 @@ export function CharacterGallery() {
   const state = useGalleryState();
   const { setCharacters, setIsLoading, setError, setDialogOpen, setDeletingId } = state;
 
+  const { setSelectedCharacter } = useCharacter();
+
   const { handleSelectCharacter, handleDeleteCharacter, loadCharactersList } =
-    useGalleryActions(user?.uid || null, { setCharacters, setError, setDeletingId }, router.push);
+    useGalleryActions(user?.uid || null, { setCharacters, setError, setDeletingId, setSelectedCharacter }, router.push);
 
   // Abre o dialog quando o contexto sinaliza abertura de nova ficha
   useEffect(() => {

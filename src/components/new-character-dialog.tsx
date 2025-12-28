@@ -22,7 +22,7 @@ export function NewCharacterDialog({ open, onOpenChange, onCharacterCreated }: N
   const handleSuccess = (characterId: string) => {
     onOpenChange(false);
     onCharacterCreated?.();
-    router.push(`/dashboard/personagem/individual?id=${characterId}`);
+    router.push(`/dashboard/personagem/individual/${characterId}`);
   };
 
   const handleCancel = () => {

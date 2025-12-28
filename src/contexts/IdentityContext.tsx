@@ -5,9 +5,11 @@ import React, {
   useState,
   useEffect,
   useCallback,
+  useRef,
 } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCharacterPersistence } from "@/hooks/use-character-persistence";
+import { deepEqual } from "@/lib/deep-equal";
 
 export interface IdentityData {
   name: string;
@@ -92,7 +94,27 @@ export const IdentityProvider: React.FC<{ children: React.ReactNode }> = ({
   const {
     scheduleAutoSave,
     saveImmediately,
+    isSaving,
   } = useCharacterPersistence(user?.uid ?? null, currentCharacterId ?? undefined);
+
+  // Rastreia o último estado enviado ao Firebase para detecção de mudanças
+  const lastSavedRef = useRef<IdentityData | null>(null);
+  const hasPendingChangesRef = useRef<boolean>(false);
+  // Rastreia se é a primeira sincronização de uma nova ficha (não deve disparar auto-save)
+  const isInitialSyncRef = useRef<boolean>(true);
+  const lastCharacterIdRef = useRef<string | null>(null);
+  // Rastreia a função scheduleAutoSave para evitar incluir na dependência do efeito
+  const scheduleAutoSaveRef = useRef(scheduleAutoSave);
+  // Rastreia a identity atual para detecção de mudanças SEM depender do efeito
+  const identityRef = useRef<IdentityData>(identity);
+
+  // Reseta a flag quando o salvamento termina com sucesso
+  useEffect(() => {
+    if (!isSaving && hasPendingChangesRef.current) {
+      // A identity será capturada no closure do context
+      hasPendingChangesRef.current = false;
+    }
+  }, [isSaving]);
 
   useEffect(() => {
     try {
@@ -104,30 +126,62 @@ export const IdentityProvider: React.FC<{ children: React.ReactNode }> = ({
     } catch {
       // ignore
     }
+
+    // restore last selected character id if present
+    try {
+      const storedChar = localStorage.getItem(CURRENT_CHAR_KEY);
+      if (storedChar) setCurrentCharacterIdState(storedChar);
+    } catch {
+      // ignore
+    }
   }, []);
 
+  // Sincroniza com localStorage sempre
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(identity));
     } catch {
       // ignore
     }
+  }, [identity]);
 
-    // Auto-save (debounced) to Firestore when a character is selected
-    if (currentCharacterId && user) {
-      scheduleAutoSave({ identity });
+  // Atualiza a ref quando scheduleAutoSave muda
+  useEffect(() => {
+    scheduleAutoSaveRef.current = scheduleAutoSave;
+  }, [scheduleAutoSave]);
+
+  // Detecta mudanças na identity e dispara auto-save (com debounce via scheduleAutoSave)
+  useEffect(() => {
+    identityRef.current = identity;
+
+    if (!currentCharacterId || !user || isInitialSyncRef.current) {
+      return; // Não auto-save na primeira sincronização ou sem character selecionado
     }
-  }, [identity, currentCharacterId, user, scheduleAutoSave]);
+
+    // Se mudou de ficha, reinicia sync inicial
+    if (lastCharacterIdRef.current !== currentCharacterId) {
+      lastCharacterIdRef.current = currentCharacterId;
+      isInitialSyncRef.current = true;
+      lastSavedRef.current = JSON.parse(JSON.stringify(identity));
+      return;
+    }
+
+    // Se a identity mudou desde o último save, dispara auto-save
+    if (!deepEqual(lastSavedRef.current, identity)) {
+      hasPendingChangesRef.current = true;
+      // scheduleAutoSave já tem seu próprio debounce de 3 segundos
+      scheduleAutoSaveRef.current({ identity });
+    }
+  }, [identity, currentCharacterId, user]);
 
   const updateIdentity = useCallback(
     <K extends keyof IdentityData>(field: K, value: IdentityData[K]) => {
-      setIdentity((prev) => ({ ...prev, [field]: value }));
-      // schedule auto-save if we have a character selected and a user
-      if (currentCharacterId && user) {
-        scheduleAutoSave({ identity: { ...identity, [field]: value } });
-      }
+      setIdentity((prev) => {
+        const next = { ...prev, [field]: value } as IdentityData;
+        return next;
+      });
     },
-    [currentCharacterId, user, scheduleAutoSave, identity],
+    [],
   );
 
   const setCurrentCharacterId = (id: string | null) => {

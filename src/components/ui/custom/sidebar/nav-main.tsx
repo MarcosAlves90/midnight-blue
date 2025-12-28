@@ -20,6 +20,8 @@ import {
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
 
+import { useCharacter } from "@/contexts/CharacterContext";
+
 export const NavMain = React.memo(function NavMain({
   items,
 }: {
@@ -34,6 +36,8 @@ export const NavMain = React.memo(function NavMain({
     }[];
   }[];
 }) {
+  const { selectedCharacter } = useCharacter();
+
   // Manter estado de abertura dos itens para evitar reset na navegação
   const [openItems, setOpenItems] = React.useState<Record<string, boolean>>(
     () => {
@@ -75,15 +79,19 @@ export const NavMain = React.memo(function NavMain({
               </CollapsibleTrigger>
               <CollapsibleContent>
                 <SidebarMenuSub>
-                  {item.items?.map((subItem) => (
-                    <SidebarMenuSubItem key={subItem.title}>
-                      <SidebarMenuSubButton asChild>
-                        <Link href={subItem.url}>
-                          <span>{subItem.title}</span>
-                        </Link>
-                      </SidebarMenuSubButton>
-                    </SidebarMenuSubItem>
-                  ))}
+                  {item.items?.map((subItem) => {
+                    const isIndividual = subItem.url === "/dashboard/personagem/individual";
+                    const href = isIndividual && selectedCharacter ? `/dashboard/personagem/individual/${selectedCharacter.id}` : subItem.url;
+                    return (
+                      <SidebarMenuSubItem key={subItem.title}>
+                        <SidebarMenuSubButton asChild>
+                          <Link href={href}>
+                            <span>{subItem.title}</span>
+                          </Link>
+                        </SidebarMenuSubButton>
+                      </SidebarMenuSubItem>
+                    );
+                  })}
                 </SidebarMenuSub>
               </CollapsibleContent>
             </SidebarMenuItem>

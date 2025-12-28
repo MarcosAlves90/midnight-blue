@@ -91,15 +91,8 @@ export function NewCharacterForm({ onSuccess, onCancel }: NewCharacterFormProps)
           history: "",
           complications: [],
         },
-        attributes: INITIAL_ATTRIBUTES.map((attr) => ({
-          id: attr.id,
-          value: attr.value,
-        })),
-        skills: INITIAL_SKILLS.map((skill) => ({
-          id: skill.id,
-          value: skill.value ?? 0,
-          others: skill.others ?? 0,
-        })),
+        attributes: INITIAL_ATTRIBUTES.map((attr) => ({ ...attr, value: attr.value })),
+        skills: INITIAL_SKILLS.map((skill) => ({ ...skill, value: skill.value ?? 0, others: skill.others ?? 0 })),
         powers: [],
         status: {
           powerLevel: 10,
@@ -125,7 +118,7 @@ export function NewCharacterForm({ onSuccess, onCancel }: NewCharacterFormProps)
       if (onSuccess) {
         onSuccess(characterId);
       } else {
-        router.push(`/dashboard/personagem/individual?id=${characterId}`);
+        router.push(`/dashboard/personagem/individual/${characterId}`);
       }
     } catch (err) {
       console.error("Erro ao criar personagem:", err);

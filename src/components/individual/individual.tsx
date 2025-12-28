@@ -10,33 +10,56 @@ import { PersonalData } from "@/components/individual/personal-data";
 import { ConfidentialFileSection } from "@/components/individual/confidential-file";
 import { HistorySection } from "@/components/individual/history-data";
 import { ComplicationsSection } from "@/components/individual/complications";
+import { deepEqual } from "@/lib/deep-equal";
 
 export default function Individual() {
-  const { identity, updateIdentity } = useIdentityContext();
+  const { identity, setIdentity, updateIdentity, setCurrentCharacterId } = useIdentityContext();
   const { character, isLoading, error } = useSelectedCharacter();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const cardRef = useRef<HTMLDivElement | null>(null);
+  const characterIdRef = useRef<string | null>(null);
 
-  // Carrega dados da ficha quando ela for selecionada (aplica somente diferenças)
+  // Sincroniza a identity quando character muda (e.g., ao trocar de ficha)
+  // IMPORTANTE: Não dispara auto-save aqui, apenas sincroniza o estado local
   useEffect(() => {
-    if (!character?.identity) return;
+    if (!character?.identity || !character.id) return;
 
-    // Atualizar apenas os campos que realmente mudaram para evitar loops de render
-    Object.keys(character.identity).forEach((key) => {
-      const k = key as keyof IdentityData;
-      const newVal = character.identity![k];
-      const curVal = identity[k];
+    // Evita re-sincronização se o ID não mudou
+    if (characterIdRef.current === character.id) {
+      return;
+    }
 
-      const changed =
-        typeof newVal === "object"
-          ? JSON.stringify(newVal) !== JSON.stringify(curVal)
-          : newVal !== curVal;
+    characterIdRef.current = character.id;
 
-      if (changed) {
-        updateIdentity(k, newVal as IdentityData[keyof IdentityData]);
-      }
+    // Apenas sincroniza para IdentityContext (sem dispara auto-save)
+    setCurrentCharacterId?.(character.id);
+
+    // Atualiza o estado da identidade carregada
+    setIdentity((prev) => {
+      let hasChanged = false;
+      const updated = { ...prev } as IdentityData;
+
+      // Verifica e atualiza apenas campos que realmente mudaram
+      Object.keys(character.identity).forEach((key) => {
+        const k = key as keyof IdentityData;
+        const newVal = character.identity![k];
+        const curVal = prev[k];
+
+        // Comparação de igualdade profunda para objetos, shallow para primitivos
+        const changed =
+          typeof newVal === "object" && newVal !== null
+            ? !deepEqual(newVal, curVal)
+            : newVal !== curVal;
+
+        if (changed) {
+          (updated as any)[k] = newVal;
+          hasChanged = true;
+        }
+      });
+
+      return hasChanged ? updated : prev;
     });
-  }, [character?.id, character?.identity, updateIdentity, identity]);
+  }, [character?.id, setCurrentCharacterId, setIdentity]);
 
   const handleChange = useCallback(
     <K extends keyof IdentityData>(field: K, value: IdentityData[K]) => {

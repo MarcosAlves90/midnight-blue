@@ -100,7 +100,7 @@ export function CharacterSwitcher() {
     setSelectedCharacter(character);
     try {
       await selectCharacter(character.id);
-      router.push(`/dashboard/personagem/individual?id=${character.id}`);
+      router.push(`/dashboard/personagem/individual/${character.id}`);
     } catch (err) {
       console.error("Erro ao selecionar personagem:", err);
       setError("Erro ao selecionar personagem");

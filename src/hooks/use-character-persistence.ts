@@ -1,4 +1,4 @@
-import { useCallback, useRef, useEffect } from "react";
+import { useCallback, useRef, useEffect, useState } from "react";
 import {
   saveCharacter,
   getCharacter,
@@ -19,20 +19,40 @@ export function useCharacterPersistence(
   characterId?: string,
 ) {
   const autoSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const lastSavedDataRef = useRef<Partial<CharacterData> | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   /**
    * Inicia auto-save do personagem com debounce de 3 segundos
+   * OTIMIZADO: Não envia dados idênticos (change detection)
    */
   const scheduleAutoSave = useCallback(
     (data: Partial<CharacterData>) => {
       if (!userId || !characterId) return;
+
+      // Evita agendar salvamento se os dados são idênticos aos últimos salvos
+      if (
+        lastSavedDataRef.current &&
+        JSON.stringify(lastSavedDataRef.current) === JSON.stringify(data)
+      ) {
+        return;
+      }
 
       if (autoSaveTimeoutRef.current) {
         clearTimeout(autoSaveTimeoutRef.current);
       }
 
       autoSaveTimeoutRef.current = setTimeout(() => {
-        autoSaveCharacter(userId, characterId, data).catch(console.error);
+        setIsSaving(true);
+        lastSavedDataRef.current = data;
+        autoSaveCharacter(userId, characterId, data)
+          .then(() => {
+            setIsSaving(false);
+          })
+          .catch((error) => {
+            console.error("Erro no auto-save:", error);
+            setIsSaving(false);
+          });
       }, 3000);
     },
     [userId, characterId],
@@ -153,5 +173,6 @@ export function useCharacterPersistence(
     selectCharacter,
     getLastSelectedId,
     loadLastSelected,
+    isSaving,
   };
 }
