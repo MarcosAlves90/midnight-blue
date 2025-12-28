@@ -2,6 +2,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 export interface UseFieldLocalStateOptions {
   debounceMs?: number;
+  /** Optional semantic field name for dirty tracking */
+  fieldName?: string;
+  /** Callback to notify that the local field became dirty */
+  onDirty?: (fieldName?: string) => void;
 }
 
 export function useFieldLocalState(
@@ -10,6 +14,8 @@ export function useFieldLocalState(
   options?: UseFieldLocalStateOptions,
 ) {
   const debounceMs = options?.debounceMs ?? 300;
+  const fieldName = options?.fieldName;
+  const onDirty = options?.onDirty;
   const [value, setValue] = useState(String(externalValue ?? ""));
   const timeoutRef = useRef<number | undefined>(undefined);
 
@@ -42,8 +48,14 @@ export function useFieldLocalState(
   const handleChange = useCallback((payload: string | React.ChangeEvent<HTMLInputElement> | React.ChangeEvent<HTMLTextAreaElement>) => {
     const newVal = typeof payload === "string" ? payload : payload.target.value ?? "";
     setValue(newVal);
+    // notify dirty state if requested
+    try {
+      if (fieldName && onDirty) onDirty(fieldName);
+    } catch {
+      // ignore onDirty errors
+    }
     scheduleCommit(newVal);
-  }, [scheduleCommit]);
+  }, [scheduleCommit, fieldName, onDirty]);
 
   const handleBlur = useCallback(() => {
     // flush pending and commit the latest local value

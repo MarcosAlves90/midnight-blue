@@ -7,7 +7,7 @@ export interface CharacterRepository {
   saveCharacter: (data: CharacterData, characterId?: string) => Promise<string>;
   getCharacter: (characterId: string) => Promise<CharacterDocument | null>;
   listCharacters: () => Promise<CharacterDocument[]>;
-  updateCharacter: (characterId: string, updates: Partial<CharacterData>) => Promise<void>;
+  updateCharacter: (characterId: string, updates: Partial<CharacterData>, options?: { baseVersion?: number }) => Promise<import("@/lib/character-service").UpdateResult>;
   deleteCharacter: (characterId: string) => Promise<void>;
 }
 
@@ -32,9 +32,9 @@ export class FirebaseCharacterRepository implements CharacterRepository {
     return CharacterService.listCharacters(this.userId);
   }
 
-  async updateCharacter(characterId: string, updates: Partial<CharacterData>) {
+  async updateCharacter(characterId: string, updates: Partial<CharacterData>, options?: { baseVersion?: number }) {
     if (!this.userId) throw new Error("User not authenticated");
-    return CharacterService.updateCharacter(this.userId, characterId, updates);
+    return CharacterService.updateCharacter(this.userId, characterId, updates, options?.baseVersion);
   }
 
   async deleteCharacter(characterId: string) {

@@ -32,6 +32,7 @@ export const BiometricData: React.FC<BiometricDataSectionProps> = ({
       <StatField
         icon={<User className="w-3 h-3" aria-hidden="true" />}
         label="Gênero"
+        fieldKey="gender"
         value={identity.gender}
         onChange={(v) => onFieldChange("gender", v)}
         placeholder="Ex: Masculino"
@@ -40,6 +41,7 @@ export const BiometricData: React.FC<BiometricDataSectionProps> = ({
       <StatField
         icon={<Calendar className="w-3 h-3" aria-hidden="true" />}
         label="Idade"
+        fieldKey="age"
         value={identity.age}
         onChange={(v) => onFieldChange("age", v)}
         placeholder="Ex: 25"
@@ -48,6 +50,7 @@ export const BiometricData: React.FC<BiometricDataSectionProps> = ({
       <StatField
         icon={<Ruler className="w-3 h-3" aria-hidden="true" />}
         label="Altura"
+        fieldKey="height"
         value={identity.height}
         onChange={(v) => onFieldChange("height", v)}
         placeholder="Ex: 1.80m"
@@ -56,6 +59,7 @@ export const BiometricData: React.FC<BiometricDataSectionProps> = ({
       <StatField
         icon={<Weight className="w-3 h-3" aria-hidden="true" />}
         label="Peso"
+        fieldKey="weight"
         value={identity.weight}
         onChange={(v) => onFieldChange("weight", v)}
         placeholder="Ex: 75kg"
@@ -64,6 +68,7 @@ export const BiometricData: React.FC<BiometricDataSectionProps> = ({
       <StatField
         icon={<Eye className="w-3 h-3" aria-hidden="true" />}
         label="Olhos"
+        fieldKey="eyes"
         value={identity.eyes}
         onChange={(v) => onFieldChange("eyes", v)}
         placeholder="Ex: Castanhos"
@@ -72,6 +77,7 @@ export const BiometricData: React.FC<BiometricDataSectionProps> = ({
       <StatField
         icon={<Scissors className="w-3 h-3" aria-hidden="true" />}
         label="Cabelo"
+        fieldKey="hair"
         value={identity.hair}
         onChange={(v) => onFieldChange("hair", v)}
         placeholder="Ex: Preto"

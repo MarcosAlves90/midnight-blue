@@ -2,12 +2,15 @@ import React from "react";
 import { FormInput } from "@/components/ui/form-input";
 import { Tip } from "@/components/ui/tip";
 import { useFieldLocalState } from "@/hooks/use-field-local-state";
+import { useIdentityContext } from "@/contexts/IdentityContext";
 
 interface StatFieldProps {
   icon: React.ReactNode;
   label: string;
   value: string;
   onChange: (value: string) => void;
+  /** Optional key name to identify the field for dirty tracking */
+  fieldKey?: keyof import("@/contexts/IdentityContext").IdentityData;
   placeholder?: string;
   required?: boolean;
   description?: string;
@@ -18,11 +21,17 @@ export const StatField: React.FC<StatFieldProps> = ({
   label,
   value,
   onChange: parentOnChange,
+  fieldKey,
   placeholder,
   required = false,
   description,
 }) => {
-  const { value: localValue, handleChange, handleBlur } = useFieldLocalState(value, parentOnChange, { debounceMs: 300 });
+  const { markFieldDirty } = useIdentityContext();
+  const { value: localValue, handleChange, handleBlur } = useFieldLocalState(value, parentOnChange, {
+    debounceMs: 300,
+    fieldName: fieldKey ? String(fieldKey) : undefined,
+    onDirty: () => fieldKey && markFieldDirty(String(fieldKey)),
+  });
 
   return (
     <div className="space-y-1.5 group">

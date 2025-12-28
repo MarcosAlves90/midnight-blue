@@ -74,6 +74,18 @@ interface IdentityContextType {
   currentCharacterId?: string | null;
   setCurrentCharacterId: (id: string | null) => void;
   saveIdentityNow: () => Promise<void>;
+  /** Tracking of per-field dirty state (local edits not yet acknowledged) */
+  dirtyFields: Set<string>;
+  markFieldDirty: (field: string) => void;
+  markFieldsSaved: (fields: string[]) => void;
+  hasLocalChanges: boolean;
+
+  /** Conflict resolution APIs */
+  conflict: null | { server: import("@/lib/character-service").CharacterDocument; attempted: Partial<import("@/lib/character-service").CharacterData> };
+  resolveKeepLocal: () => Promise<void>;
+  resolveUseServer: () => void;
+  openConflictModal: () => void;
+  closeConflictModal: () => void;
 }
 
 const IdentityContext = createContext<IdentityContextType | undefined>(
@@ -88,6 +100,14 @@ export const IdentityProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const [identity, setIdentity] = useState<IdentityData>(INITIAL_IDENTITY);
   const [currentCharacterId, setCurrentCharacterIdState] = useState<string | null>(null);
+
+  // Per-field dirty tracking (fields modified locally but not yet acknowledged by the server)
+  const [dirtyFields, setDirtyFields] = useState<Set<string>>(new Set());
+  const hasLocalChanges = dirtyFields.size > 0;
+
+  // Conflict state (when a save conflicts with server and couldn't be auto-resolved)
+  const [conflict, setConflict] = useState<null | { server: import("@/lib/character-service").CharacterDocument; attempted: Partial<import("@/lib/character-service").CharacterData> }>(null);
+  const [, setConflictModalOpen] = useState(false);
 
   const { user } = useAuth();
   const {
@@ -105,13 +125,17 @@ export const IdentityProvider: React.FC<{ children: React.ReactNode }> = ({
   // Rastreia a identity atual para detecção de mudanças SEM depender do efeito
   const identityRef = useRef<IdentityData>(identity);
 
-  // Reseta a flag quando o salvamento termina com sucesso
+  // Reseta a flag quando o salvamento termina com sucesso e limpa dirtyFields quando o autosave confirma
   useEffect(() => {
     if (!isSaving && hasPendingChangesRef.current) {
-      // A identity será capturada no closure do context
+      // The persistence hook completed a save; clear the pending flag
       hasPendingChangesRef.current = false;
+      // When a save completes successfully, treat dirtyFields as acknowledged
+      setDirtyFields(new Set());
     }
   }, [isSaving]);
+
+
 
   useEffect(() => {
     try {
@@ -202,20 +226,82 @@ export const IdentityProvider: React.FC<{ children: React.ReactNode }> = ({
         lastSavedRef.current = null;
       }
       hasPendingChangesRef.current = false;
+      // clear dirtyFields on character switch
+      setDirtyFields(new Set());
       return;
     }
 
     // Delegate to the persistence hook's scheduleAutoSave (it will coalesce and debounce)
     try {
-      scheduleAutoSave({ identity });
+      // When save completes, clear the dirty fields set (they were acknowledged)
+      scheduleAutoSave(
+        { identity },
+        () => {
+          setDirtyFields(new Set());
+          try {
+            lastSavedRef.current = JSON.stringify(identityRef.current);
+          } catch {
+            lastSavedRef.current = null;
+          }
+          hasPendingChangesRef.current = false;
+        },
+        // onConflict handler
+        async (conflict, attempted) => {
+          // conflict is a CharacterDocument from server
+          const server = conflict as import("@/lib/character-service").CharacterDocument;
+
+          // build merged identity: start from server and overlay local dirty fields
+          const mergedIdentity = { ...(server.identity || {}) } as unknown as IdentityData;
+          try {
+            const local = identityRef.current;
+            dirtyFields.forEach((field) => {
+              (mergedIdentity as unknown as Record<string, unknown>)[field] = (local as unknown as Record<string, unknown>)[field];
+            });
+          } catch {
+            // ignore merge errors
+          }
+
+          // Attempt to save merged identity using the server's version as baseVersion
+          try {
+            const res = await saveImmediately({ identity: mergedIdentity }, { baseVersion: server.version });
+            if (res && (res as import("@/lib/character-service").UpdateResult).success === false) {
+              // still conflict or failed - show manual resolver to the user
+              setConflict({ server, attempted: attempted as Partial<import("@/lib/character-service").CharacterData> });
+              setConflictModalOpen(true);
+              return { action: "abort" } as const;
+            }
+
+            // Success - clear dirty flags (we merged local changes into server and saved)
+            setDirtyFields(new Set());
+            return { action: "abort" } as const;
+          } catch {
+            // Couldn't resolve automatically - surface conflict
+            setConflict({ server, attempted: attempted as Partial<import("@/lib/character-service").CharacterData> });
+            setConflictModalOpen(true);
+            return { action: "abort" } as const;
+          }
+        },
+      );
       hasPendingChangesRef.current = true;
     } catch {
       // scheduleAutoSave may be unavailable during init; ignore
     }
-  }, [identity, currentCharacterId, user, scheduleAutoSave]);
+  }, [identity, currentCharacterId, user, scheduleAutoSave, dirtyFields, saveImmediately]);
 
   const updateIdentity = useCallback(
     <K extends keyof IdentityData>(field: K, value: IdentityData[K]) => {
+      // mark as dirty immediately when a field is updated locally
+      try {
+        setDirtyFields((prev) => {
+          if (prev.has(String(field))) return prev;
+          const next = new Set(prev);
+          next.add(String(field));
+          return next;
+        });
+      } catch {
+        // ignore
+      }
+
       // Use startTransition to mark state updates as non-urgent to avoid blocking UI
       try {
         startTransition(() => {
@@ -231,6 +317,49 @@ export const IdentityProvider: React.FC<{ children: React.ReactNode }> = ({
     },
     [],
   );
+
+  const markFieldDirty = (field: string) => {
+    setDirtyFields((prev) => {
+      if (prev.has(field)) return prev;
+      const next = new Set(prev);
+      next.add(field);
+      return next;
+    });
+  };
+
+  const markFieldsSaved = (fields: string[]) => {
+    if (!fields || fields.length === 0) return;
+    setDirtyFields((prev) => {
+      const next = new Set(prev);
+      fields.forEach((f) => next.delete(f));
+      return next;
+    });
+  };
+
+  const resolveKeepLocal = async () => {
+    if (!conflict) return;
+    try {
+      // Force-apply the local attempted payload (no baseVersion) to overwrite server
+      await saveImmediately(conflict.attempted as Partial<import("@/lib/character-service").CharacterData>);
+      setDirtyFields(new Set());
+      setConflict(null);
+      setConflictModalOpen(false);
+    } catch (e) {
+      console.error("Failed to force-save local changes:", e);
+    }
+  };
+
+  const resolveUseServer = () => {
+    if (!conflict) return;
+    // Accept server snapshot: apply server.identity and clear dirty flags
+    setIdentity((prev) => ({ ...prev, ...(conflict.server.identity || {}) } as IdentityData));
+    setDirtyFields(new Set());
+    setConflict(null);
+    setConflictModalOpen(false);
+  };
+
+  const openConflictModal = () => setConflictModalOpen(true);
+  const closeConflictModal = () => setConflictModalOpen(false);
 
   const setCurrentCharacterId = (id: string | null) => {
     setCurrentCharacterIdState(id);
@@ -249,6 +378,8 @@ export const IdentityProvider: React.FC<{ children: React.ReactNode }> = ({
       // Atualiza lastSavedRef após salvar manualmente
       lastSavedRef.current = JSON.parse(JSON.stringify(identity));
       hasPendingChangesRef.current = false;
+      // clear dirty flags for fields saved
+      setDirtyFields(new Set());
     } catch (e) {
       console.error("Falha ao salvar identidade:", e);
     }
@@ -263,6 +394,15 @@ export const IdentityProvider: React.FC<{ children: React.ReactNode }> = ({
         currentCharacterId,
         setCurrentCharacterId,
         saveIdentityNow,
+        dirtyFields,
+        markFieldDirty,
+        markFieldsSaved,
+        hasLocalChanges,
+        conflict,
+        resolveKeepLocal,
+        resolveUseServer,
+        openConflictModal,
+        closeConflictModal,
       }}
     >
       {children}

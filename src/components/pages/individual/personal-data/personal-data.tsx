@@ -2,7 +2,7 @@ import React from "react";
 import { FileText, MapPin, Briefcase } from "lucide-react";
 import { FormInput } from "@/components/ui/form-input";
 import { Tip } from "@/components/ui/tip";
-import { IdentityData } from "@/contexts/IdentityContext";
+import { IdentityData, useIdentityContext } from "@/contexts/IdentityContext";
 import { useFieldLocalState } from "@/hooks/use-field-local-state";
 import { ColorPickerDropdown } from "./color-picker-dropdown";
 
@@ -15,8 +15,9 @@ export const PersonalData: React.FC<PersonalDataSectionProps> = ({
   identity,
   onFieldChange,
 }) => {
-  const { value: placeValue, handleChange: handlePlaceChange, handleBlur: handlePlaceBlur } = useFieldLocalState(identity.placeOfBirth, (v: string) => onFieldChange("placeOfBirth", v), { debounceMs: 300 });
-  const { value: occupationValue, handleChange: handleOccupationChange, handleBlur: handleOccupationBlur } = useFieldLocalState(identity.occupation, (v: string) => onFieldChange("occupation", v), { debounceMs: 300 });
+  const { markFieldDirty } = useIdentityContext();
+  const { value: placeValue, handleChange: handlePlaceChange, handleBlur: handlePlaceBlur } = useFieldLocalState(identity.placeOfBirth, (v: string) => onFieldChange("placeOfBirth", v), { debounceMs: 300, fieldName: "placeOfBirth", onDirty: () => markFieldDirty("placeOfBirth") });
+  const { value: occupationValue, handleChange: handleOccupationChange, handleBlur: handleOccupationBlur } = useFieldLocalState(identity.occupation, (v: string) => onFieldChange("occupation", v), { debounceMs: 300, fieldName: "occupation", onDirty: () => markFieldDirty("occupation") });
 
   return (
     <div className="bg-muted/50 rounded-xl p-6">

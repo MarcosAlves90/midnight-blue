@@ -28,6 +28,8 @@ export class AutoSaveService<T extends Record<string, unknown> = Record<string, 
   private inFlight = false;
   private pendingObj: T | null = null;
   private pendingSerialized: string | null = null;
+  private pendingOnSaved: (() => void) | null = null;
+  private pendingOnConflict: ((conflict: unknown, attempted: T) => Promise<{ action: "retry" } | { action: "retryWith"; data: T } | { action: "abort" }>) | null = null;
   private lastSavedSerialized: string | null = null;
   private opts: AutoSaveOptions;
 
@@ -37,7 +39,11 @@ export class AutoSaveService<T extends Record<string, unknown> = Record<string, 
     this.opts = opts ?? {};
   }
 
-  schedule(data: T) {
+  schedule(
+    data: T,
+    onSaved?: () => void,
+    onConflict?: (conflict: unknown, attempted: T) => Promise<{ action: "retry" } | { action: "retryWith"; data: T } | { action: "abort" }>,
+  ) {
     const serialized = JSON.stringify(data);
 
     // If nothing changed since last successful save and there is no in-flight save, skip
@@ -49,6 +55,9 @@ export class AutoSaveService<T extends Record<string, unknown> = Record<string, 
     // coalesce: keep latest pending
     this.pendingObj = data;
     this.pendingSerialized = serialized;
+    // store the callback to notify after success
+    this.pendingOnSaved = onSaved ?? null;
+    this.pendingOnConflict = onConflict ?? null;
 
     this.opts.onSchedule?.({});
 
@@ -67,10 +76,12 @@ export class AutoSaveService<T extends Record<string, unknown> = Record<string, 
 
     const toSave = this.pendingObj;
     const toSaveSerialized = this.pendingSerialized;
+    const onSavedForThis = this.pendingOnSaved;
 
-    // clear pending snapshot now
+    // clear pending snapshot now (we captured the callback too)
     this.pendingObj = null;
     this.pendingSerialized = null;
+    this.pendingOnSaved = null;
 
     this.inFlight = true;
     this.opts.onExecute?.({});
@@ -79,11 +90,51 @@ export class AutoSaveService<T extends Record<string, unknown> = Record<string, 
       await this.handler(toSave);
       this.lastSavedSerialized = toSaveSerialized;
       this.opts.onSuccess?.({});
+      try {
+        onSavedForThis?.();
+      } catch {
+        // ignore callback errors
+      }
     } catch (err) {
+      // Detect conflict payload inside error object and give caller a chance to resolve
+      const conflict = (err as unknown as { conflict?: unknown }).conflict;
+      if (conflict && this.pendingOnConflict) {
+        try {
+          const decision = await this.pendingOnConflict(conflict, toSave);
+          if (decision.action === "retry") {
+            // push payload back and retry immediately
+            this.pendingObj = toSave;
+            this.pendingSerialized = toSaveSerialized;
+            this.pendingOnSaved = onSavedForThis;
+            setTimeout(() => this.execute(), 0);
+            return;
+          }
+          if (decision.action === "retryWith") {
+            // use provided data and retry
+            this.pendingObj = decision.data;
+            this.pendingSerialized = JSON.stringify(decision.data);
+            this.pendingOnSaved = onSavedForThis;
+            setTimeout(() => this.execute(), 0);
+            return;
+          }
+          if (decision.action === "abort") {
+            // give up and surface the conflict via opts.onError
+            this.opts.onError?.(err);
+            return;
+          }
+        } catch (e) {
+          // if conflict handler throws, fall back to generic error handling
+          this.opts.onError?.(e);
+        }
+      }
+
+      // fallback generic handling: schedule retry with backoff
       this.opts.onError?.(err);
       // Simple retry placeholder: push payload back to pending for retry later
       this.pendingObj = toSave;
       this.pendingSerialized = toSaveSerialized;
+      // preserve callback for retry
+      this.pendingOnSaved = onSavedForThis;
       // exponential backoff could be implemented here
       setTimeout(() => this.execute(), 1000);
     } finally {

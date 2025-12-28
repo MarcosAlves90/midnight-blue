@@ -5,6 +5,8 @@ import { toPng } from "html-to-image";
 import { useIdentityContext, IdentityData } from "@/contexts/IdentityContext";
 import { useSelectedCharacter } from "@/hooks/use-selected-character";
 import { IdentityCard } from "@/components/pages/individual/identity-card";
+import { ConflictBanner } from "@/components/ui/conflict-banner";
+import { ConflictModal } from "@/components/ui/conflict-modal";
 import { BiometricData } from "@/components/pages/individual/biometric-data";
 import { PersonalData } from "@/components/pages/individual/personal-data";
 import { ConfidentialFileSection } from "@/components/pages/individual/confidential-file";
@@ -14,7 +16,7 @@ import { deepEqual } from "@/lib/deep-equal";
 import { NoCharacterSelected } from "@/components/config/character";
 
 export default function Individual() {
-  const { identity, setIdentity, updateIdentity, setCurrentCharacterId } = useIdentityContext();
+  const { identity, setIdentity, updateIdentity, setCurrentCharacterId, dirtyFields } = useIdentityContext();
   const { character, isLoading, error } = useSelectedCharacter();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const cardRef = useRef<HTMLDivElement | null>(null);
@@ -59,10 +61,14 @@ export default function Individual() {
 
       if (!hasChanged) return prev;
 
-      const patch = Object.fromEntries(changedEntries) as Partial<IdentityData>;
+      // Filter out any fields that are currently dirty (local edits) to avoid overwriting
+      const patch = Object.fromEntries(
+        changedEntries.filter(([k]) => !dirtyFields.has(k)),
+      ) as Partial<IdentityData>;
+
       return { ...prev, ...patch } as IdentityData;
     });
-  }, [character?.id, character?.identity, setCurrentCharacterId, setIdentity]);
+  }, [character?.id, character?.identity, setCurrentCharacterId, setIdentity, dirtyFields]);
 
   const handleChange = useCallback(
     <K extends keyof IdentityData>(field: K, value: IdentityData[K]) => {
@@ -126,6 +132,12 @@ export default function Individual() {
 
   return (
     <div className="pb-10">
+      <div className="mb-4">
+        {/* Conflict UI */}
+        <ConflictBanner />
+        <ConflictModal />
+      </div>
+
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
         <div className="xl:col-span-3">
           <div className="sticky top-6">

@@ -39,6 +39,8 @@ export interface CharacterDocument {
   userId: string;
   createdAt: Date;
   updatedAt: Date;
+  /** numeric monotonic version for optimistic locking */
+  version: number;
   identity: IdentityData;
   attributes: Attribute[];
   skills: Skill[];
@@ -47,6 +49,11 @@ export interface CharacterDocument {
 }
 
 export type CharacterData = Omit<CharacterDocument, "id">;
+
+export type UpdateResult =
+  | { success: true; newVersion: number }
+  | { success: false; conflict: CharacterDocument };
+
 
 /* --------------------------- Helpers pequenos --------------------------- */
 
@@ -88,6 +95,7 @@ function mapFirestoreToCharacter(id: string, data: Record<string, unknown>): Cha
     userId: String(data.userId),
     createdAt: toDateSafe(data.createdAt),
     updatedAt: toDateSafe(data.updatedAt),
+    version: Number((data.version as number) ?? 0),
     identity,
     attributes: hydrateAttributes((data.attributes as unknown) as SavedAttribute[] || []),
     skills: hydrateSkills((data.skills as unknown) as SavedSkill[] || []),
@@ -113,6 +121,8 @@ export async function saveCharacter(userId: string, data: CharacterData, charact
     userId,
     createdAt: data.createdAt ?? now,
     updatedAt: now,
+    // initial version for newly created documents
+    version: 1,
     identity: normalizeIdentity(data.identity),
     attributes: serializeAttributes((data.attributes as Attribute[]) ?? INITIAL_ATTRIBUTES),
     skills: serializeSkills((data.skills as Skill[]) ?? INITIAL_SKILLS),
@@ -169,10 +179,10 @@ export async function listCharacters(userId: string): Promise<CharacterDocument[
  * @param characterId ID do personagem
  * @param updates Campos a atualizar
  */
-export async function updateCharacter(userId: string, characterId: string, updates: Partial<CharacterData>): Promise<void> {
+export async function updateCharacter(userId: string, characterId: string, updates: Partial<CharacterData>, baseVersion?: number): Promise<UpdateResult> {
   const docRef = doc(db, USERS_COLLECTION, userId, CHARACTERS_SUBCOLLECTION, characterId);
 
-  const payload: Record<string, unknown> = { updatedAt: new Date() };
+  const payload: Record<string, unknown> = {};
 
   if (updates.attributes) payload.attributes = serializeAttributes(updates.attributes as Attribute[]);
   if (updates.skills) payload.skills = serializeSkills(updates.skills as Skill[]);
@@ -186,8 +196,36 @@ export async function updateCharacter(userId: string, characterId: string, updat
     payload.identity = { ...(payload.identity as Record<string, unknown> || {}), heroName: String(updatesRecord.heroName) };
   }
 
+  // Use transaction to perform optimistic locking based on numeric 'version'
   try {
-    await updateDoc(docRef, payload);
+    const res = await (async () => {
+      try {
+        const result = await import("firebase/firestore").then(({ runTransaction, serverTimestamp }) =>
+          runTransaction(db, async (t) => {
+            const snap = await t.get(docRef);
+            if (!snap.exists()) throw new Error("Document does not exist");
+
+            const serverData = snap.data();
+            const serverVersion = Number((serverData.version as number) ?? 0);
+
+            if (typeof baseVersion === "number" && baseVersion !== serverVersion) {
+              // return conflict
+              return { success: false as const, conflict: mapFirestoreToCharacter(snap.id, serverData) } as UpdateResult;
+            }
+
+            const newVersion = serverVersion + 1;
+            const updated = { ...payload, updatedAt: serverTimestamp(), version: newVersion };
+            t.update(docRef, updated);
+            return { success: true as const, newVersion } as UpdateResult;
+          }),
+        );
+        return result;
+      } catch (err) {
+        throw err;
+      }
+    })();
+
+    return res;
   } catch (err) {
     console.error("updateCharacter failed:", err);
     throw err;

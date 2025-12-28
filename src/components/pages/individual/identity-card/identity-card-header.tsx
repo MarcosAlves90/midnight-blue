@@ -6,6 +6,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useGlitchColor } from "@/hooks/use-glitch-color";
 import GlitchText from "@/components/ui/custom/glitch-text";
 import { useFieldLocalState } from "@/hooks/use-field-local-state";
+import { useIdentityContext } from "@/contexts/IdentityContext";
 
 interface IdentityCardHeaderProps {
   heroName: string;
@@ -29,7 +30,8 @@ export const IdentityCardHeader: React.FC<IdentityCardHeaderProps> = ({
     intervalMs: 250,
   });
 
-  const { value, handleChange, handleBlur } = useFieldLocalState(heroName, parentOnChange, { debounceMs: 300 });
+  const { markFieldDirty } = useIdentityContext();
+  const { value, handleChange, handleBlur } = useFieldLocalState(heroName, parentOnChange, { debounceMs: 300, fieldName: "heroName", onDirty: () => markFieldDirty("heroName") });
 
   return (
     <div
@@ -90,6 +92,7 @@ export const IdentityCardHeader: React.FC<IdentityCardHeaderProps> = ({
             style={{ color: glitchColor }}
           />
         </button>
+
       </div>
     </div>
   );

@@ -11,6 +11,7 @@ import {
 import { FirebaseCharacterRepository } from "@/services/repository/character-repo";
 import { AutoSaveService } from "@/services/auto-save";
 import * as CharacterService from "@/lib/character-service";
+import type { UpdateResult } from "@/lib/character-service";
 
 export function useCharacterPersistence(
   userId: string | null,
@@ -34,14 +35,27 @@ export function useCharacterPersistence(
     if (userId && characterId) {
       repoRef.current = new FirebaseCharacterRepository(userId);
       autoSaveServiceRef.current = new AutoSaveService(async (data) => {
-        // delegate to repo update
-        await repoRef.current!.updateCharacter(characterId, data as Partial<CharacterData>);
+        // delegate to repo update and handle conflict results
+        const res = await repoRef.current!.updateCharacter(characterId, data as Partial<CharacterData>);
+        if (res && res.success === false) {
+          const err = new Error("conflict") as Error & { conflict?: CharacterDocument };
+          err.conflict = res.conflict;
+          throw err;
+        }
       }, {
         debounceMs: 3000,
         onSchedule: () => console.debug("[auto-save] scheduled (service)", { userId, characterId }),
         onExecute: () => console.debug("[auto-save] executing (service)", { userId, characterId }),
         onSuccess: () => console.debug("[auto-save] success (service)", { userId, characterId }),
-        onError: (err) => console.error("[auto-save] error (service)", err),
+        onError: (err: unknown) => {
+          // detect conflict and surface it for higher-level handling
+          const maybeConflict = (err as Error & { conflict?: CharacterDocument }).conflict;
+          if (maybeConflict) {
+            console.warn("[auto-save] conflict (service)", maybeConflict);
+          } else {
+            console.error("[auto-save] error (service)", err);
+          }
+        },
       });
     } else {
       repoRef.current = null;
@@ -58,7 +72,7 @@ export function useCharacterPersistence(
    * OTIMIZADO: Não envia dados idênticos (change detection)
    */
   const scheduleAutoSave = useCallback(
-    (data: Partial<CharacterData>, onSaved?: () => void) => {
+    (data: Partial<CharacterData>, onSaved?: () => void, onConflict?: (conflict: import("@/lib/character-service").CharacterDocument, attempted: Partial<CharacterData>) => Promise<{ action: "retry" } | { action: "retryWith"; data: Partial<CharacterData> } | { action: "abort" }>) => {
       if (!userId || !characterId) return;
 
       const serialized = JSON.stringify(data);
@@ -73,9 +87,10 @@ export function useCharacterPersistence(
       pendingSerializedRef.current = serialized;
       pendingObjRef.current = data;
 
-      // delegate to AutoSaveService if available
+      // delegate to AutoSaveService if available, forwarding onSaved and onConflict
       if (autoSaveServiceRef.current) {
-        autoSaveServiceRef.current.schedule(data as Partial<CharacterData>);
+        // 'onConflict' has a narrower conflict type here, cast to the generic signature expected by the service
+        autoSaveServiceRef.current.schedule(data as Partial<CharacterData>, onSaved, onConflict as unknown as (conflict: unknown, attempted: Partial<CharacterData>) => Promise<{ action: "retry" } | { action: "retryWith"; data: Partial<CharacterData> } | { action: "abort" }>);
         return;
       }
 
@@ -108,19 +123,27 @@ export function useCharacterPersistence(
         console.debug("[auto-save] executing (legacy)", { userId, characterId });
 
         try {
+          let res: UpdateResult | void;
           if (repoRef.current) {
-            await repoRef.current.updateCharacter(characterId, toSave as Partial<CharacterData>);
+            res = await repoRef.current.updateCharacter(characterId, toSave as Partial<CharacterData>);
           } else {
-            await CharacterService.updateCharacter(userId, characterId, toSave as Partial<CharacterData>);
+            res = await CharacterService.updateCharacter(userId, characterId, toSave as Partial<CharacterData>);
           }
-          // mark successful save
-          lastSavedDataRef.current = toSaveSerialized;
 
-          // Notify caller that save completed
-          try {
-            onSaved?.();
-          } catch {
-            // ignore callback errors
+          if (res && res.success === false) {
+            // Conflict detected - log and surface
+            console.warn("[auto-save] conflict detected (legacy)", res.conflict);
+            // leave pendingObj as-is so user can decide how to resolve later
+          } else {
+            // mark successful save
+            lastSavedDataRef.current = toSaveSerialized;
+
+            // Notify caller that save completed
+            try {
+              onSaved?.();
+            } catch {
+              // ignore callback errors
+            }
           }
         } catch (error) {
           console.error("Erro no auto-save:", error);
@@ -182,7 +205,7 @@ export function useCharacterPersistence(
    * Atualiza um personagem imediatamente
    */
   const saveImmediately = useCallback(
-    async (updates: Partial<CharacterData>) => {
+    async (updates: Partial<CharacterData>, options?: { baseVersion?: number }) => {
       if (!userId || !characterId) throw new Error("Dados incompletos");
 
       if (autoSaveTimeoutRef.current) {
@@ -190,12 +213,18 @@ export function useCharacterPersistence(
       }
 
       console.debug("[saveImmediately] start", { userId, characterId });
-      let res;
+      let res: UpdateResult | void;
       if (repoRef.current) {
-        res = await repoRef.current.updateCharacter(characterId, updates);
+        res = await repoRef.current.updateCharacter(characterId, updates, { baseVersion: options?.baseVersion });
       } else {
-        // legacy fallback
-        res = await libUpdateCharacter(userId, characterId, updates);
+        // legacy fallback (no version support)
+        res = await libUpdateCharacter(userId, characterId, updates as Partial<CharacterData>);
+      }
+
+      if (res && res.success === false) {
+        // Conflict returned - surface to caller
+        console.warn("[saveImmediately] conflict detected", res.conflict);
+        return res;
       }
 
       // Clear pending timeout and update lastSavedDataRef to reflect the saved state

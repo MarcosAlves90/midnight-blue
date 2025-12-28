@@ -1,7 +1,7 @@
 import React from "react";
 import { BookOpen } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
-import { IdentityData } from "@/contexts/IdentityContext";
+import { IdentityData, useIdentityContext } from "@/contexts/IdentityContext";
 import { useFieldLocalState } from "@/hooks/use-field-local-state";
 
 interface HistorySectionProps {
@@ -16,7 +16,8 @@ export const HistorySection: React.FC<HistorySectionProps> = ({
   identity,
   onFieldChange,
 }) => {
-  const { value, handleChange, handleBlur } = useFieldLocalState(identity.history || "", (v: string) => onFieldChange("history", v), { debounceMs: 300 });
+  const { markFieldDirty } = useIdentityContext();
+  const { value, handleChange, handleBlur } = useFieldLocalState(identity.history || "", (v: string) => onFieldChange("history", v), { debounceMs: 300, fieldName: "history", onDirty: () => markFieldDirty("history") });
 
   return (
     <div className="bg-muted/50 rounded-xl p-6">

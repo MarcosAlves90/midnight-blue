@@ -3,7 +3,7 @@ import { Shield, Users, MapPin, Zap, Heart } from "lucide-react";
 import { FormInput } from "@/components/ui/form-input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tip } from "@/components/ui/tip";
-import { IdentityData } from "@/contexts/IdentityContext";
+import { IdentityData, useIdentityContext } from "@/contexts/IdentityContext";
 import { useFieldLocalState } from "@/hooks/use-field-local-state";
 
 interface ConfidentialFileSectionProps {
@@ -14,10 +14,12 @@ interface ConfidentialFileSectionProps {
 export const ConfidentialFileSection: React.FC<
   ConfidentialFileSectionProps
 > = ({ identity, onFieldChange }) => {
-  const { value: groupValue, handleChange: handleGroupChange, handleBlur: handleGroupBlur } = useFieldLocalState(identity.groupAffiliation, (v: string) => onFieldChange("groupAffiliation", v), { debounceMs: 300 });
-  const { value: baseValue, handleChange: handleBaseChange, handleBlur: handleBaseBlur } = useFieldLocalState(identity.baseOfOperations, (v: string) => onFieldChange("baseOfOperations", v), { debounceMs: 300 });
-  const { value: originValue, handleChange: handleOriginChange, handleBlur: handleOriginBlur } = useFieldLocalState(identity.powerOrigin, (v: string) => onFieldChange("powerOrigin", v), { debounceMs: 300 });
-  const { value: motivationValue, handleChange: handleMotivationChange, handleBlur: handleMotivationBlur } = useFieldLocalState(identity.motivation, (v: string) => onFieldChange("motivation", v), { debounceMs: 300 });
+  const { markFieldDirty } = useIdentityContext();
+
+  const { value: groupValue, handleChange: handleGroupChange, handleBlur: handleGroupBlur } = useFieldLocalState(identity.groupAffiliation, (v: string) => onFieldChange("groupAffiliation", v), { debounceMs: 300, fieldName: "groupAffiliation", onDirty: () => markFieldDirty("groupAffiliation") });
+  const { value: baseValue, handleChange: handleBaseChange, handleBlur: handleBaseBlur } = useFieldLocalState(identity.baseOfOperations, (v: string) => onFieldChange("baseOfOperations", v), { debounceMs: 300, fieldName: "baseOfOperations", onDirty: () => markFieldDirty("baseOfOperations") });
+  const { value: originValue, handleChange: handleOriginChange, handleBlur: handleOriginBlur } = useFieldLocalState(identity.powerOrigin, (v: string) => onFieldChange("powerOrigin", v), { debounceMs: 300, fieldName: "powerOrigin", onDirty: () => markFieldDirty("powerOrigin") });
+  const { value: motivationValue, handleChange: handleMotivationChange, handleBlur: handleMotivationBlur } = useFieldLocalState(identity.motivation, (v: string) => onFieldChange("motivation", v), { debounceMs: 300, fieldName: "motivation", onDirty: () => markFieldDirty("motivation") });
 
   return (
     <div className="bg-muted/50 rounded-xl p-6 h-full">

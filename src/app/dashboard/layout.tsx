@@ -29,7 +29,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
         </header>
         <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-          <RequireAuth>{children}</RequireAuth>
+          <RequireAuth>
+            {children}
+          </RequireAuth>
         </div>
       </SidebarInset>
     </SidebarProvider>
