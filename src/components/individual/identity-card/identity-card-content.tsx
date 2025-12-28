@@ -6,13 +6,13 @@ import { useGlitchColor } from "@/hooks/use-glitch-color";
 import GlitchText from "@/components/ui/custom/glitch-text";
 
 interface IdentityCardContentProps {
-  alternateIdentity: string;
+  civilName: string;
   onChange: (value: string) => void;
   favoriteColor: string;
 }
 
 export const IdentityCardContent: React.FC<IdentityCardContentProps> = ({
-  alternateIdentity,
+  civilName,
   onChange,
   favoriteColor,
 }) => {
@@ -67,7 +67,7 @@ export const IdentityCardContent: React.FC<IdentityCardContentProps> = ({
           </Tip>
           <span style={{ color: glitchColor }}>=</span>
           <FormInput
-            value={alternateIdentity}
+            value={civilName}
             onChange={(e) => onChange(e.target.value)}
             className="font-mono text-xs h-7 px-2 bg-background/50 border-border/50 focus-visible:ring-1 focus-visible:ring-primary flex-1"
             placeholder="[ENCRYPTED]"

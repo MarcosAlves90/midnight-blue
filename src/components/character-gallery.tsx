@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -37,8 +37,12 @@ function useGalleryState() {
 // Hook para gerenciar ações da galeria
 function useGalleryActions(
   userId: string | null,
-  state: ReturnType<typeof useGalleryState>,
-  router: ReturnType<typeof useRouter>
+  handlers: {
+    setCharacters: Dispatch<SetStateAction<CharacterDocument[]>>;
+    setError: Dispatch<SetStateAction<string | null>>;
+    setDeletingId: Dispatch<SetStateAction<string | null>>;
+  },
+  push: (url: string) => void
 ) {
   const { loadCharactersList, selectCharacter, removeCharacter } =
     useCharacterPersistence(userId);
@@ -46,10 +50,10 @@ function useGalleryActions(
   const handleSelectCharacter = async (character: CharacterDocument) => {
     try {
       await selectCharacter(character.id);
-      router.push(`/dashboard/personagem/individual?id=${character.id}`);
+      push(`/dashboard/personagem/individual?id=${character.id}`);
     } catch (error) {
       console.error("Erro ao selecionar personagem:", error);
-      state.setError("Erro ao selecionar personagem");
+      handlers.setError("Erro ao selecionar personagem");
     }
   };
 
@@ -58,16 +62,16 @@ function useGalleryActions(
       return;
     }
 
-    state.setDeletingId(characterId);
+    handlers.setDeletingId(characterId);
     try {
       await removeCharacter(characterId);
-      state.setCharacters((prev) => prev.filter((char) => char.id !== characterId));
-      state.setError(null);
+      handlers.setCharacters((prev) => prev.filter((char) => char.id !== characterId));
+      handlers.setError(null);
     } catch (error) {
       console.error("Erro ao deletar personagem:", error);
-      state.setError("Erro ao deletar ficha");
+      handlers.setError("Erro ao deletar ficha");
     } finally {
-      state.setDeletingId(null);
+      handlers.setDeletingId(null);
     }
   };
 
@@ -146,7 +150,7 @@ function CharacterCard({
         <div className="h-40 bg-muted overflow-hidden relative">
           <Image
             src={character.identity.profileImage}
-            alt={character.name}
+            alt={character.identity?.heroName || character.identity?.name || ""}
             fill
             className="object-cover"
             style={{
@@ -157,7 +161,7 @@ function CharacterCard({
       ) : (
         <div className="h-40 bg-gradient-to-br from-muted/50 to-muted flex items-center justify-center">
           <span className="text-4xl font-bold text-muted-foreground opacity-50">
-            {character.name.charAt(0).toUpperCase()}
+            {(character.identity?.heroName || character.identity?.name || "?").charAt(0).toUpperCase()}
           </span>
         </div>
       )}
@@ -165,9 +169,9 @@ function CharacterCard({
       {/* Conteúdo */}
       <div className="p-4 space-y-3">
         <div>
-          <h3 className="font-semibold text-base">{character.name}</h3>
+          <h3 className="font-semibold text-base">{character.identity?.heroName || character.identity?.name || ""}</h3>
           <p className="text-xs text-muted-foreground">
-            Herói: {character.identity?.heroName || ""}
+            Civil: {character.identity?.name || ""}
           </p>
         </div>
 
@@ -175,7 +179,7 @@ function CharacterCard({
           <div>
             <span className="text-muted-foreground">Nível</span>
             <p className="font-semibold">
-              {character.status.powerLevel}
+              {((character.status as { powerLevel?: number }).powerLevel ?? 0)}
             </p>
           </div>
           <div>
@@ -218,40 +222,42 @@ export function CharacterGallery() {
   const { openNewDialog, setOpenNewDialog } = useCharacter();
 
   const state = useGalleryState();
+  const { setCharacters, setIsLoading, setError, setDialogOpen, setDeletingId } = state;
+
   const { handleSelectCharacter, handleDeleteCharacter, loadCharactersList } =
-    useGalleryActions(user?.uid || null, state, router);
+    useGalleryActions(user?.uid || null, { setCharacters, setError, setDeletingId }, router.push);
 
   // Abre o dialog quando o contexto sinaliza abertura de nova ficha
   useEffect(() => {
     if (openNewDialog) {
-      if (!state.dialogOpen) state.setDialogOpen(true);
+      setDialogOpen(true);
       // Limpa o sinal no contexto para evitar reaberturas
       setOpenNewDialog(false);
     }
-  }, [openNewDialog, setOpenNewDialog, state]);
+  }, [openNewDialog, setOpenNewDialog, setDialogOpen]);
 
   // Carrega lista de personagens
   useEffect(() => {
     if (!user?.uid) {
-      state.setIsLoading(false);
+      setIsLoading(false);
       return;
     }
 
     const loadCharacters = async () => {
       try {
         const loadedCharacters = await loadCharactersList();
-        state.setCharacters(loadedCharacters);
-        state.setError(null);
+        setCharacters(loadedCharacters);
+        setError(null);
       } catch (error) {
         console.error("Erro ao carregar personagens:", error);
-        state.setError("Erro ao carregar fichas de personagem");
+        setError("Erro ao carregar fichas de personagem");
       } finally {
-        state.setIsLoading(false);
+        setIsLoading(false);
       }
     };
 
     loadCharacters();
-  }, [user?.uid, loadCharactersList, state]);
+  }, [user?.uid, loadCharactersList, setCharacters, setError, setIsLoading]);
 
   if (state.isLoading) {
     return <LoadingState />;

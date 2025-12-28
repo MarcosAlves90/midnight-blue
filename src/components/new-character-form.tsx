@@ -66,7 +66,6 @@ export function NewCharacterForm({ onSuccess, onCancel }: NewCharacterFormProps)
       // Criar dados iniciais do personagem
       const newCharacterData: CharacterData = {
         userId: user.uid,
-        name: formData.name.trim(),
         createdAt: new Date(),
         updatedAt: new Date(),
         identity: {

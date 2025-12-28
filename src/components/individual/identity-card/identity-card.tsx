@@ -105,8 +105,8 @@ export const IdentityCard: React.FC<IdentityCardContainerProps> = ({
             }}
           >
             <IdentityCardHeader
-              name={identity.name}
-              onChange={(v) => onFieldChange("name", v)}
+              heroName={identity.heroName}
+              onChange={(v) => onFieldChange("heroName", v)}
               favoriteColor={identity.favoriteColor}
               onSave={onSave}
             />
@@ -139,8 +139,8 @@ export const IdentityCard: React.FC<IdentityCardContainerProps> = ({
             </div>
 
             <IdentityCardContent
-              alternateIdentity={identity.alternateIdentity}
-              onChange={(v) => onFieldChange("alternateIdentity", v)}
+              civilName={identity.name}
+              onChange={(v) => onFieldChange("name", v)}
               favoriteColor={identity.favoriteColor}
             />
           </div>

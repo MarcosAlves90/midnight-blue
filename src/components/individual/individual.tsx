@@ -17,22 +17,26 @@ export default function Individual() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const cardRef = useRef<HTMLDivElement | null>(null);
 
-  // Carrega dados da ficha quando ela for selecionada
+  // Carrega dados da ficha quando ela for selecionada (aplica somente diferenças)
   useEffect(() => {
-    if (character?.identity) {
-      Object.keys(character.identity).forEach((key) => {
-        updateIdentity(key as keyof IdentityData, character.identity[key as keyof IdentityData]);
-      });
-    }
-  }, [character?.id, character?.identity, updateIdentity]);
+    if (!character?.identity) return;
 
-  if (isLoading) {
-    return <div className="flex items-center justify-center p-8">Carregando ficha...</div>;
-  }
+    // Atualizar apenas os campos que realmente mudaram para evitar loops de render
+    Object.keys(character.identity).forEach((key) => {
+      const k = key as keyof IdentityData;
+      const newVal = character.identity![k];
+      const curVal = identity[k];
 
-  if (error) {
-    return <div className="flex items-center justify-center p-8 text-red-500">{error}</div>;
-  }
+      const changed =
+        typeof newVal === "object"
+          ? JSON.stringify(newVal) !== JSON.stringify(curVal)
+          : newVal !== curVal;
+
+      if (changed) {
+        updateIdentity(k, newVal as IdentityData[keyof IdentityData]);
+      }
+    });
+  }, [character?.id, character?.identity, updateIdentity, identity]);
 
   const handleChange = useCallback(
     <K extends keyof IdentityData>(field: K, value: IdentityData[K]) => {
@@ -80,6 +84,14 @@ export default function Individual() {
       console.error("Erro ao salvar imagem:", error);
     }
   }, []);
+
+  if (isLoading) {
+    return <div className="flex items-center justify-center p-8">Carregando ficha...</div>;
+  }
+
+  if (error) {
+    return <div className="flex items-center justify-center p-8 text-red-500">{error}</div>;
+  }
 
   return (
     <div className="pb-10">

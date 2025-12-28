@@ -19,97 +19,81 @@ import type { Power } from "@/components/status/powers/types";
 import { INITIAL_ATTRIBUTES } from "@/components/status/attributes-grid/constants";
 import { INITIAL_SKILLS } from "@/components/status/skills/constants";
 
-/**
- * Dados mínimos de atributo para salvar (apenas valores)
- */
+const USERS_COLLECTION = "users";
+const CHARACTERS_SUBCOLLECTION = "characters";
+
 export interface SavedAttribute {
   id: string;
   value: number;
 }
 
-/**
- * Dados mínimos de perícia para salvar (apenas valores editáveis)
- */
 export interface SavedSkill {
   id: string;
   value?: number;
   others?: number;
 }
 
+// CharacterDocument returns hydrated types (Attributes and Skills) to avoid confusion
 export interface CharacterDocument {
   id: string;
   userId: string;
-  name: string; // Individual name
   createdAt: Date;
   updatedAt: Date;
-  identity: IdentityData; // now contains heroName
-  attributes: SavedAttribute[];
-  skills: SavedSkill[];
+  identity: IdentityData;
+  attributes: Attribute[];
+  skills: Skill[];
   powers: Power[];
-  status: {
-    powerLevel: number;
-    extraPoints: number;
-    defenses: {
-      apararPoints: number;
-      esquivaPoints: number;
-      fortitudePoints: number;
-      resistenciaPoints: number;
-      vontadePoints: number;
-      deslocamento: number;
-    };
-  };
+  status: Record<string, unknown>;
 }
 
 export type CharacterData = Omit<CharacterDocument, "id">;
 
-/**
- * Otimiza os dados de atributos para salvar (remove dados estáticos)
- */
-function optimizeAttributesForStorage(
-  attributes: Attribute[],
-): SavedAttribute[] {
-  return attributes.map((attr) => ({
-    id: attr.id,
-    value: attr.value,
-  }));
+/* --------------------------- Helpers pequenos --------------------------- */
+
+function toDateSafe(value: unknown): Date {
+  const candidate = value as { toDate?: () => Date } | undefined;
+  if (candidate && typeof candidate.toDate === "function") return candidate.toDate();
+  if (value instanceof Date) return value;
+  return new Date();
 }
 
-/**
- * Otimiza os dados de perícias para salvar (remove dados estáticos)
- */
-function optimizeSkillsForStorage(skills: Skill[]): SavedSkill[] {
-  return skills.map((skill) => ({
-    id: skill.id,
-    value: skill.value ?? 0,
-    others: skill.others ?? 0,
-  }));
+function normalizeIdentity(raw: Partial<IdentityData> | Record<string, unknown> = {}): IdentityData {
+  const r = raw as Record<string, unknown>;
+  const name = (r.name as string) || (r.displayName as string) || "";
+  const heroName = (r.heroName as string) || (r.hero as string) || "";
+  return { ...(raw as IdentityData), name, heroName } as IdentityData;
 }
 
-/**
- * Hidrata atributos salvos com dados estáticos (nome, cor, etc)
- */
-function hydrateAttributes(saved: SavedAttribute[]): Attribute[] {
-  return INITIAL_ATTRIBUTES.map((attr) => {
-    const savedAttr = saved.find((s) => s.id === attr.id);
-    return {
-      ...attr,
-      value: savedAttr?.value ?? 0,
-    };
-  });
+function serializeAttributes(attributes: Attribute[] = INITIAL_ATTRIBUTES): SavedAttribute[] {
+  return attributes.map((a) => ({ id: a.id, value: a.value }));
 }
 
-/**
- * Hidrata perícias salvas com dados estáticos (nome, descrição, etc)
- */
-function hydrateSkills(saved: SavedSkill[]): Skill[] {
-  return INITIAL_SKILLS.map((skill) => {
-    const savedSkill = saved.find((s) => s.id === skill.id);
-    return {
-      ...skill,
-      value: savedSkill?.value ?? 0,
-      others: savedSkill?.others ?? 0,
-    };
-  });
+function serializeSkills(skills: Skill[] = INITIAL_SKILLS): SavedSkill[] {
+  return skills.map((s) => ({ id: s.id, value: s.value ?? 0, others: s.others ?? 0 }));
+}
+
+function hydrateAttributes(saved: SavedAttribute[] = []): Attribute[] {
+  return INITIAL_ATTRIBUTES.map((base) => ({ ...base, value: saved.find((s) => s.id === base.id)?.value ?? 0 }));
+}
+
+function hydrateSkills(saved: SavedSkill[] = []): Skill[] {
+  return INITIAL_SKILLS.map((base) => ({ ...base, value: (saved.find((s) => s.id === base.id)?.value) ?? 0, others: (saved.find((s) => s.id === base.id)?.others) ?? 0 }));
+}
+
+function mapFirestoreToCharacter(id: string, data: Record<string, unknown>): CharacterDocument {
+  const identity = normalizeIdentity((data.identity as Record<string, unknown>) || data);
+
+  return {
+    id,
+    userId: String(data.userId),
+    createdAt: toDateSafe(data.createdAt),
+    updatedAt: toDateSafe(data.updatedAt),
+    identity,
+    attributes: hydrateAttributes((data.attributes as unknown) as SavedAttribute[] || []),
+    skills: hydrateSkills((data.skills as unknown) as SavedSkill[] || []),
+    powers: (data.powers as Power[]) || [],
+    status: (data.status as Record<string, unknown>) || {},
+  };
 }
 
 /**
@@ -118,41 +102,30 @@ function hydrateSkills(saved: SavedSkill[]): Skill[] {
  * @param characterId ID único do personagem (gerado automaticamente se não fornecido)
  * @param data Dados do personagem
  */
-export async function saveCharacter(
-  userId: string,
-  data: CharacterData,
-  characterId?: string,
-): Promise<string> {
+export async function saveCharacter(userId: string, data: CharacterData, characterId?: string): Promise<string> {
+  const id = characterId ?? doc(collection(db, USERS_COLLECTION, userId, CHARACTERS_SUBCOLLECTION)).id;
+  const docRef = doc(db, USERS_COLLECTION, userId, CHARACTERS_SUBCOLLECTION, id);
+
+  const now = new Date();
+
+  const payload = {
+    id,
+    userId,
+    createdAt: data.createdAt ?? now,
+    updatedAt: now,
+    identity: normalizeIdentity(data.identity),
+    attributes: serializeAttributes((data.attributes as Attribute[]) ?? INITIAL_ATTRIBUTES),
+    skills: serializeSkills((data.skills as Skill[]) ?? INITIAL_SKILLS),
+    powers: data.powers ?? [],
+    status: data.status ?? {},
+  };
+
   try {
-    const newId = characterId || doc(collection(db, "users", userId, "characters")).id;
-    const docRef = doc(db, "users", userId, "characters", newId);
-
-    // Otimizar dados antes de salvar
-    // Ensure heroName is stored inside identity for consistency
-    const identityForStorage: IdentityData = {
-      ...data.identity,
-      heroName: (data.identity && (data.identity as any).heroName) || (data as any).heroName || "",
-    } as IdentityData;
-
-    const optimizedData = {
-      id: newId,
-      userId: data.userId,
-      name: data.name,
-      createdAt: data.createdAt,
-      updatedAt: new Date(),
-      identity: identityForStorage,
-      attributes: optimizeAttributesForStorage(data.attributes as Attribute[]),
-      skills: optimizeSkillsForStorage(data.skills as Skill[]),
-      powers: data.powers,
-      status: data.status,
-    };
-
-    await setDoc(docRef, optimizedData);
-
-    return newId;
-  } catch (error) {
-    console.error("Erro ao salvar personagem:", error);
-    throw error;
+    await setDoc(docRef, payload);
+    return id;
+  } catch (err) {
+    console.error("saveCharacter failed:", err);
+    throw err;
   }
 }
 
@@ -161,42 +134,15 @@ export async function saveCharacter(
  * @param userId ID do usuário
  * @param characterId ID do personagem
  */
-export async function getCharacter(
-  userId: string,
-  characterId: string,
-): Promise<CharacterDocument | null> {
+export async function getCharacter(userId: string, characterId: string): Promise<CharacterDocument | null> {
+  const docRef = doc(db, USERS_COLLECTION, userId, CHARACTERS_SUBCOLLECTION, characterId);
   try {
-    const docRef = doc(db, "users", userId, "characters", characterId);
-    const docSnap = await getDoc(docRef);
-
-    if (!docSnap.exists()) {
-      return null;
-    }
-
-    const data = docSnap.data();
-    
-    // Hidratar dados estáticos
-    const hydratedAttributes = hydrateAttributes(data.attributes || []);
-    const hydratedSkills = hydrateSkills(data.skills || []);
-
-    // If older documents still have heroName top-level, migrate to identity.heroName
-    const hero = data.identity?.heroName || data.heroName || "";
-
-    return {
-      id: characterId,
-      userId: data.userId,
-      name: data.name,
-      createdAt: data.createdAt?.toDate() || new Date(),
-      updatedAt: data.updatedAt?.toDate() || new Date(),
-      identity: { ...(data.identity || {}), heroName: hero },
-      attributes: hydratedAttributes,
-      skills: hydratedSkills,
-      powers: data.powers || [],
-      status: data.status,
-    };
-  } catch (error) {
-    console.error("Erro ao carregar personagem:", error);
-    throw error;
+    const snap = await getDoc(docRef);
+    if (!snap.exists()) return null;
+    return mapFirestoreToCharacter(snap.id, snap.data());
+  } catch (err) {
+    console.error("getCharacter failed:", err);
+    throw err;
   }
 }
 
@@ -204,39 +150,16 @@ export async function getCharacter(
  * Lista todos os personagens do usuário ordenados por data de atualização (mais recente primeiro)
  * @param userId ID do usuário
  */
-export async function listCharacters(
-  userId: string,
-): Promise<CharacterDocument[]> {
+export async function listCharacters(userId: string): Promise<CharacterDocument[]> {
+  const collectionRef = collection(db, USERS_COLLECTION, userId, CHARACTERS_SUBCOLLECTION);
+  const q = query(collectionRef, orderBy("updatedAt", "desc"));
+
   try {
-    const collectionRef = collection(db, "users", userId, "characters");
-    const q = query(collectionRef, orderBy("updatedAt", "desc"));
-    const querySnapshot = await getDocs(q);
-
-    return querySnapshot.docs.map((docSnap) => {
-      const data = docSnap.data();
-      
-      // Hidratar dados estáticos
-      const hydratedAttributes = hydrateAttributes(data.attributes || []);
-      const hydratedSkills = hydrateSkills(data.skills || []);
-
-      const hero = data.identity?.heroName || data.heroName || "";
-
-      return {
-        id: docSnap.id,
-        userId: data.userId,
-        name: data.name,
-        createdAt: data.createdAt?.toDate() || new Date(),
-        updatedAt: data.updatedAt?.toDate() || new Date(),
-        identity: { ...(data.identity || {}), heroName: hero },
-        attributes: hydratedAttributes,
-        skills: hydratedSkills,
-        powers: data.powers || [],
-        status: data.status,
-      };
-    });
-  } catch (error) {
-    console.error("Erro ao listar personagens:", error);
-    throw error;
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map((d) => mapFirestoreToCharacter(d.id, d.data()));
+  } catch (err) {
+    console.error("listCharacters failed:", err);
+    throw err;
   }
 }
 
@@ -246,53 +169,28 @@ export async function listCharacters(
  * @param characterId ID do personagem
  * @param updates Campos a atualizar
  */
-export async function updateCharacter(
-  userId: string,
-  characterId: string,
-  updates: Partial<CharacterData>,
-): Promise<void> {
+export async function updateCharacter(userId: string, characterId: string, updates: Partial<CharacterData>): Promise<void> {
+  const docRef = doc(db, USERS_COLLECTION, userId, CHARACTERS_SUBCOLLECTION, characterId);
+
+  const payload: Record<string, unknown> = { updatedAt: new Date() };
+
+  if (updates.attributes) payload.attributes = serializeAttributes(updates.attributes as Attribute[]);
+  if (updates.skills) payload.skills = serializeSkills(updates.skills as Skill[]);
+  if (updates.identity) payload.identity = normalizeIdentity(updates.identity as Partial<IdentityData>);
+  if (updates.powers) payload.powers = updates.powers;
+  if (updates.status) payload.status = updates.status;
+
+  // Permitir atualização direta do heroName (compatibilidade)
+  const updatesRecord = updates as Record<string, unknown>;
+  if (Object.prototype.hasOwnProperty.call(updatesRecord, "heroName")) {
+    payload.identity = { ...(payload.identity as Record<string, unknown> || {}), heroName: String(updatesRecord.heroName) };
+  }
+
   try {
-    const docRef = doc(db, "users", userId, "characters", characterId);
-
-    // Otimizar dados antes de salvar
-    const optimizedUpdates: Record<string, unknown> = { updatedAt: new Date() };
-
-    if (updates.attributes) {
-      optimizedUpdates.attributes = optimizeAttributesForStorage(
-        updates.attributes as Attribute[],
-      );
-    }
-    if (updates.skills) {
-      optimizedUpdates.skills = optimizeSkillsForStorage(updates.skills as Skill[]);
-    }
-    if (updates.identity) {
-      optimizedUpdates.identity = updates.identity;
-    }
-    if (updates.powers) {
-      optimizedUpdates.powers = updates.powers;
-    }
-    if (updates.status) {
-      optimizedUpdates.status = updates.status;
-    }
-    if (updates.name) {
-      optimizedUpdates.name = updates.name;
-    }
-    // Suporte a atualização do nome do herói (mover para identity)
-    if ((updates as any).heroName) {
-      const existingIdentity = (optimizedUpdates.identity as any) || (updates.identity as any) || {};
-      optimizedUpdates.identity = { ...existingIdentity, heroName: (updates as any).heroName };
-    }
-
-    // Se identity for fornecida e contiver heroName, mesclar
-    if (updates.identity && (updates.identity as any).heroName) {
-      const existingIdentity = (optimizedUpdates.identity as any) || {};
-      optimizedUpdates.identity = { ...existingIdentity, ...(updates.identity as any) };
-    }
-
-    await updateDoc(docRef, optimizedUpdates);
-  } catch (error) {
-    console.error("Erro ao atualizar personagem:", error);
-    throw error;
+    await updateDoc(docRef, payload);
+  } catch (err) {
+    console.error("updateCharacter failed:", err);
+    throw err;
   }
 }
 
@@ -301,16 +199,12 @@ export async function updateCharacter(
  * @param userId ID do usuário
  * @param characterId ID do personagem
  */
-export async function deleteCharacter(
-  userId: string,
-  characterId: string,
-): Promise<void> {
+export async function deleteCharacter(userId: string, characterId: string): Promise<void> {
   try {
-    const docRef = doc(db, "users", userId, "characters", characterId);
-    await deleteDoc(docRef);
-  } catch (error) {
-    console.error("Erro ao deletar personagem:", error);
-    throw error;
+    await deleteDoc(doc(db, USERS_COLLECTION, userId, CHARACTERS_SUBCOLLECTION, characterId));
+  } catch (err) {
+    console.error("deleteCharacter failed:", err);
+    throw err;
   }
 }
 
@@ -318,16 +212,11 @@ export async function deleteCharacter(
  * Auto-salva os dados do personagem periodicamente
  * Ideal para usar com hooks em componentes
  */
-export async function autoSaveCharacter(
-  userId: string,
-  characterId: string,
-  data: Partial<CharacterData>,
-): Promise<void> {
+export async function autoSaveCharacter(userId: string, characterId: string, data: Partial<CharacterData>): Promise<void> {
   try {
     await updateCharacter(userId, characterId, data);
-  } catch (error) {
-    console.error("Erro no auto-save:", error);
-    // Não lança erro para não interromper a experiência do usuário
+  } catch (err) {
+    console.error("autoSaveCharacter failed:", err);
   }
 }
 
@@ -336,32 +225,16 @@ export async function autoSaveCharacter(
  * @param userId ID do usuário
  * @param characterId ID do personagem selecionado
  */
-export async function setLastSelectedCharacter(
-  userId: string,
-  characterId: string,
-): Promise<void> {
+export async function setLastSelectedCharacter(userId: string, characterId: string): Promise<void> {
+  const userDoc = doc(db, USERS_COLLECTION, userId);
+  const now = new Date();
+
   try {
-    const userDocRef = doc(db, "users", userId);
-    
-    // Verificar se o documento do usuário existe
-    const userSnap = await getDoc(userDocRef);
-    
-    if (!userSnap.exists()) {
-      // Criar documento do usuário se não existir
-      await setDoc(userDocRef, {
-        lastSelectedCharacterId: characterId,
-        updatedAt: new Date(),
-      });
-    } else {
-      // Atualizar documento existente
-      await updateDoc(userDocRef, {
-        lastSelectedCharacterId: characterId,
-        updatedAt: new Date(),
-      });
-    }
-  } catch (error) {
-    console.error("Erro ao salvar último personagem selecionado:", error);
-    // Não lança erro para não interromper a UX
+    const snap = await getDoc(userDoc);
+    if (!snap.exists()) await setDoc(userDoc, { lastSelectedCharacterId: characterId, updatedAt: now });
+    else await updateDoc(userDoc, { lastSelectedCharacterId: characterId, updatedAt: now });
+  } catch (err) {
+    console.error("setLastSelectedCharacter failed:", err);
   }
 }
 
@@ -370,20 +243,13 @@ export async function setLastSelectedCharacter(
  * @param userId ID do usuário
  * @returns ID do personagem ou null se nenhum foi selecionado
  */
-export async function getLastSelectedCharacterId(
-  userId: string,
-): Promise<string | null> {
+export async function getLastSelectedCharacterId(userId: string): Promise<string | null> {
   try {
-    const userDocRef = doc(db, "users", userId);
-    const userSnap = await getDoc(userDocRef);
-
-    if (!userSnap.exists()) {
-      return null;
-    }
-
-    return userSnap.data().lastSelectedCharacterId || null;
-  } catch (error) {
-    console.error("Erro ao recuperar último personagem selecionado:", error);
+    const snap = await getDoc(doc(db, USERS_COLLECTION, userId));
+    if (!snap.exists()) return null;
+    return snap.data().lastSelectedCharacterId || null;
+  } catch (err) {
+    console.error("getLastSelectedCharacterId failed:", err);
     return null;
   }
 }
@@ -393,17 +259,13 @@ export async function getLastSelectedCharacterId(
  * @param userId ID do usuário
  * @returns Documento do personagem ou null se nenhum foi selecionado
  */
-export async function getLastSelectedCharacter(
-  userId: string,
-): Promise<CharacterDocument | null> {
+export async function getLastSelectedCharacter(userId: string): Promise<CharacterDocument | null> {
   try {
-    const characterId = await getLastSelectedCharacterId(userId);
-    if (!characterId) {
-      return null;
-    }
-    return getCharacter(userId, characterId);
-  } catch (error) {
-    console.error("Erro ao recuperar último personagem:", error);
+    const id = await getLastSelectedCharacterId(userId);
+    if (!id) return null;
+    return getCharacter(userId, id);
+  } catch (err) {
+    console.error("getLastSelectedCharacter failed:", err);
     return null;
   }
 }
@@ -414,37 +276,14 @@ export async function getLastSelectedCharacter(
  * @param callback Função chamada quando a lista é atualizada
  * @returns Função para desinscrever do listener
  */
-export function onCharactersChange(
-  userId: string,
-  callback: (characters: CharacterDocument[]) => void,
-): Unsubscribe {
-  const collectionRef = collection(db, "users", userId, "characters");
+export function onCharactersChange(userId: string, callback: (characters: CharacterDocument[]) => void): Unsubscribe {
+  const collectionRef = collection(db, USERS_COLLECTION, userId, CHARACTERS_SUBCOLLECTION);
   const q = query(collectionRef, orderBy("updatedAt", "desc"));
 
-  return onSnapshot(q, (querySnapshot) => {
-    const characters = querySnapshot.docs.map((docSnap) => {
-      const data = docSnap.data();
-
-      const hydratedAttributes = hydrateAttributes(data.attributes || []);
-      const hydratedSkills = hydrateSkills(data.skills || []);
-
-      return {
-        id: docSnap.id,
-        userId: data.userId,
-        name: data.name,
-        heroName: data.heroName,
-        createdAt: data.createdAt?.toDate() || new Date(),
-        updatedAt: data.updatedAt?.toDate() || new Date(),
-        identity: data.identity,
-        attributes: hydratedAttributes,
-        skills: hydratedSkills,
-        powers: data.powers || [],
-        status: data.status,
-      };
-    });
-
-    callback(characters);
-  }, (error) => {
-    console.error("Erro ao escutar mudanças em personagens:", error);
+  return onSnapshot(q, (snapshot) => {
+    const chars = snapshot.docs.map((d) => mapFirestoreToCharacter(d.id, d.data()));
+    callback(chars);
+  }, (err) => {
+    console.error("onCharactersChange failed:", err);
   });
 }
