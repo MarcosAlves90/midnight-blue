@@ -61,42 +61,47 @@ export const NavMain = React.memo(function NavMain({
     <SidebarGroup>
       <SidebarGroupLabel>Ficha</SidebarGroupLabel>
       <SidebarMenu>
-        {items.map((item) => (
-          <Collapsible
-            key={item.title}
-            asChild
-            open={openItems[item.title] ?? false}
-            onOpenChange={(isOpen) => handleOpenChange(item.title, isOpen)}
-            className="group/collapsible"
-          >
-            <SidebarMenuItem>
-              <CollapsibleTrigger asChild>
-                <SidebarMenuButton tooltip={item.title}>
-                  {item.icon && <item.icon />}
-                  <span>{item.title}</span>
-                  <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
-                </SidebarMenuButton>
-              </CollapsibleTrigger>
-              <CollapsibleContent>
-                <SidebarMenuSub>
-                  {item.items?.map((subItem) => {
-                    const isIndividual = subItem.url === "/dashboard/personagem/individual";
-                    const href = isIndividual && selectedCharacter ? `/dashboard/personagem/individual/${selectedCharacter.id}` : subItem.url;
-                    return (
-                      <SidebarMenuSubItem key={subItem.title}>
-                        <SidebarMenuSubButton asChild>
-                          <Link href={href}>
-                            <span>{subItem.title}</span>
-                          </Link>
-                        </SidebarMenuSubButton>
-                      </SidebarMenuSubItem>
-                    );
-                  })}
-                </SidebarMenuSub>
-              </CollapsibleContent>
-            </SidebarMenuItem>
-          </Collapsible>
-        ))}
+        {items.map((item, idx) => {
+          const slug = item.title.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9\-]/g, "");
+          const contentId = `nav-${slug}-${idx}`;
+
+          return (
+            <Collapsible
+              key={item.title}
+              asChild
+              open={openItems[item.title] ?? false}
+              onOpenChange={(isOpen) => handleOpenChange(item.title, isOpen)}
+              className="group/collapsible"
+            >
+              <SidebarMenuItem>
+                <CollapsibleTrigger asChild>
+                <SidebarMenuButton tooltip={item.title} aria-controls={contentId} aria-expanded={openItems[item.title] ?? false}>
+                    {item.icon && <item.icon />}
+                    <span>{item.title}</span>
+                    <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                  </SidebarMenuButton>
+                </CollapsibleTrigger>
+                <CollapsibleContent id={contentId}>
+                  <SidebarMenuSub>
+                    {item.items?.map((subItem) => {
+                      const isIndividual = subItem.url === "/dashboard/personagem/individual";
+                      const href = isIndividual && selectedCharacter ? `/dashboard/personagem/individual/${selectedCharacter.id}` : subItem.url;
+                      return (
+                        <SidebarMenuSubItem key={subItem.title}>
+                          <SidebarMenuSubButton asChild>
+                            <Link href={href}>
+                              <span>{subItem.title}</span>
+                            </Link>
+                          </SidebarMenuSubButton>
+                        </SidebarMenuSubItem>
+                      );
+                    })}
+                  </SidebarMenuSub>
+                </CollapsibleContent>
+              </SidebarMenuItem>
+            </Collapsible>
+          );
+        })}
       </SidebarMenu>
     </SidebarGroup>
   );

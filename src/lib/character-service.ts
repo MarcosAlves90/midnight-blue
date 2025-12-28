@@ -214,6 +214,7 @@ export async function deleteCharacter(userId: string, characterId: string): Prom
  */
 export async function autoSaveCharacter(userId: string, characterId: string, data: Partial<CharacterData>): Promise<void> {
   try {
+    console.debug("[autoSaveCharacter] calling updateCharacter", { userId, characterId });
     await updateCharacter(userId, characterId, data);
   } catch (err) {
     console.error("autoSaveCharacter failed:", err);

@@ -24,7 +24,7 @@ export function CharacterProvider({ children }: { children: React.ReactNode }) {
   const { loadCharacter, loadLastSelected } = useCharacterPersistence(user?.uid || null);
 
   // Wrapper que persiste a seleção no localStorage para restaurar rapidamente após reload
-  const setSelectedCharacter = (character: CharacterDocument | null) => {
+  const setSelectedCharacter = React.useCallback((character: CharacterDocument | null) => {
     internalSetSelectedCharacter(character);
     try {
       if (character) localStorage.setItem(CURRENT_CHAR_KEY, character.id);
@@ -32,7 +32,15 @@ export function CharacterProvider({ children }: { children: React.ReactNode }) {
     } catch {
       // ignore
     }
-  };
+  }, []);
+
+  // Memoize provider value to avoid unnecessary re-renders of consumers
+  const value = React.useMemo(() => ({
+    selectedCharacter,
+    setSelectedCharacter,
+    openNewDialog,
+    setOpenNewDialog,
+  }), [selectedCharacter, setSelectedCharacter, openNewDialog, setOpenNewDialog]);
 
   // Ao logar / montar, restaura última seleção: prefer localStorage para responsividade, fallback para servidor
   useEffect(() => {
@@ -70,7 +78,7 @@ export function CharacterProvider({ children }: { children: React.ReactNode }) {
   }, [user?.uid, loadCharacter, loadLastSelected]);
 
   return (
-    <CharacterContext.Provider value={{ selectedCharacter, setSelectedCharacter, openNewDialog, setOpenNewDialog }}>
+    <CharacterContext.Provider value={value}>
       {children}
     </CharacterContext.Provider>
   );

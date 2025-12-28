@@ -6,10 +6,11 @@ import React, {
   useEffect,
   useCallback,
   useRef,
+  startTransition,
 } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCharacterPersistence } from "@/hooks/use-character-persistence";
-import { deepEqual } from "@/lib/deep-equal";
+
 
 export interface IdentityData {
   name: string;
@@ -95,11 +96,9 @@ export const IdentityProvider: React.FC<{ children: React.ReactNode }> = ({
     isSaving,
   } = useCharacterPersistence(user?.uid ?? null, currentCharacterId ?? undefined);
 
-  // Rastreia o último estado enviado ao Firebase para detecção de mudanças
-  const lastSavedRef = useRef<IdentityData | null>(null);
+  // Rastreia o último snapshot serializado enviado ao Firebase para detecção de mudanças
+  const lastSavedRef = useRef<string | null>(null);
   const hasPendingChangesRef = useRef<boolean>(false);
-  // Rastreia se é a primeira sincronização de uma nova ficha (não deve disparar auto-save)
-  const isInitialSyncRef = useRef<boolean>(true);
   const lastCharacterIdRef = useRef<string | null>(null);
   // Rastreia a função scheduleAutoSave para evitar incluir na dependência do efeito
   const scheduleAutoSaveRef = useRef(scheduleAutoSave);
@@ -134,13 +133,51 @@ export const IdentityProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, []);
 
-  // Sincroniza com localStorage sempre
+  // Sincroniza com localStorage de forma assíncrona / debounced
+  const localStorageWriteRef = useRef<number | undefined>(undefined);
+
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(identity));
-    } catch {
-      // ignore
+    // Save function
+    const save = () => {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(identity));
+      } catch {
+        // ignore
+      }
+    };
+
+    // Cross-browser helper for idle callback with typed access
+    const win = window as unknown as {
+      requestIdleCallback?: (cb: () => void, opts?: { timeout?: number }) => number;
+      cancelIdleCallback?: (id: number) => void;
+    };
+
+    if (typeof window !== "undefined" && typeof win.requestIdleCallback === "function") {
+      const idleId = win.requestIdleCallback!(save, { timeout: 1500 });
+      return () => {
+        try {
+          win.cancelIdleCallback?.(idleId);
+        } catch {
+          // ignore
+        }
+      };
     }
+
+    // Fallback: debounce write by 700ms
+    if (localStorageWriteRef.current) {
+      clearTimeout(localStorageWriteRef.current);
+    }
+    localStorageWriteRef.current = window.setTimeout(() => {
+      save();
+      localStorageWriteRef.current = undefined;
+    }, 700) as unknown as number;
+
+    return () => {
+      if (localStorageWriteRef.current) {
+        clearTimeout(localStorageWriteRef.current);
+        localStorageWriteRef.current = undefined;
+      }
+    };
   }, [identity]);
 
   // Atualiza a ref quando scheduleAutoSave muda
@@ -148,36 +185,49 @@ export const IdentityProvider: React.FC<{ children: React.ReactNode }> = ({
     scheduleAutoSaveRef.current = scheduleAutoSave;
   }, [scheduleAutoSave]);
 
-  // Detecta mudanças na identity e dispara auto-save (com debounce via scheduleAutoSave)
+  // Simplified sync: delegate autosave to scheduleAutoSave (service handles debounce/coalesce)
   useEffect(() => {
     identityRef.current = identity;
 
-    if (!currentCharacterId || !user || isInitialSyncRef.current) {
-      return; // Não auto-save na primeira sincronização ou sem character selecionado
+    if (!currentCharacterId || !user) {
+      return; // nothing to do without character/user
     }
 
-    // Se mudou de ficha, reinicia sync inicial
+    // If the character changed, mark current state as already saved to avoid an immediate redundant save
     if (lastCharacterIdRef.current !== currentCharacterId) {
       lastCharacterIdRef.current = currentCharacterId;
-      isInitialSyncRef.current = true;
-      lastSavedRef.current = JSON.parse(JSON.stringify(identity));
+      try {
+        lastSavedRef.current = JSON.stringify(identity);
+      } catch {
+        lastSavedRef.current = null;
+      }
+      hasPendingChangesRef.current = false;
       return;
     }
 
-    // Se a identity mudou desde o último save, dispara auto-save
-    if (!deepEqual(lastSavedRef.current, identity)) {
+    // Delegate to the persistence hook's scheduleAutoSave (it will coalesce and debounce)
+    try {
+      scheduleAutoSave({ identity });
       hasPendingChangesRef.current = true;
-      // scheduleAutoSave já tem seu próprio debounce de 3 segundos
-      scheduleAutoSaveRef.current({ identity });
+    } catch {
+      // scheduleAutoSave may be unavailable during init; ignore
     }
-  }, [identity, currentCharacterId, user]);
+  }, [identity, currentCharacterId, user, scheduleAutoSave]);
 
   const updateIdentity = useCallback(
     <K extends keyof IdentityData>(field: K, value: IdentityData[K]) => {
-      setIdentity((prev) => {
-        const next = { ...prev, [field]: value } as IdentityData;
-        return next;
-      });
+      // Use startTransition to mark state updates as non-urgent to avoid blocking UI
+      try {
+        startTransition(() => {
+          setIdentity((prev) => {
+            const next = { ...prev, [field]: value } as IdentityData;
+            return next;
+          });
+        });
+      } catch {
+        // Fallback if startTransition is not available
+        setIdentity((prev) => ({ ...prev, [field]: value } as IdentityData));
+      }
     },
     [],
   );
@@ -196,6 +246,9 @@ export const IdentityProvider: React.FC<{ children: React.ReactNode }> = ({
     if (!user || !currentCharacterId) return;
     try {
       await saveImmediately({ identity });
+      // Atualiza lastSavedRef após salvar manualmente
+      lastSavedRef.current = JSON.parse(JSON.stringify(identity));
+      hasPendingChangesRef.current = false;
     } catch (e) {
       console.error("Falha ao salvar identidade:", e);
     }

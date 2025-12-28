@@ -217,6 +217,7 @@ export const ComplicationsSection: React.FC<ComplicationsSectionProps> = ({
               Descrição
             </label>
             <FormInput
+              debounceMs={300}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder={

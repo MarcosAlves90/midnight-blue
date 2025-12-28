@@ -38,29 +38,31 @@ export default function Individual() {
     // Atualiza o estado da identidade carregada
     setIdentity((prev) => {
       let hasChanged = false;
-      const updated = { ...prev } as IdentityData;
 
-      // Verifica e atualiza apenas campos que realmente mudaram
-      Object.keys(character.identity).forEach((key) => {
+      // Coleta somente os campos que mudaram
+      const changedEntries: [string, unknown][] = [];
+      Object.entries(character.identity).forEach(([key, val]) => {
         const k = key as keyof IdentityData;
-        const newVal = character.identity![k];
+        const newVal = val as IdentityData[typeof k];
         const curVal = prev[k];
 
-        // Comparação de igualdade profunda para objetos, shallow para primitivos
         const changed =
           typeof newVal === "object" && newVal !== null
             ? !deepEqual(newVal, curVal)
             : newVal !== curVal;
 
         if (changed) {
-          (updated as any)[k] = newVal;
+          changedEntries.push([key, newVal]);
           hasChanged = true;
         }
       });
 
-      return hasChanged ? updated : prev;
+      if (!hasChanged) return prev;
+
+      const patch = Object.fromEntries(changedEntries) as Partial<IdentityData>;
+      return { ...prev, ...patch } as IdentityData;
     });
-  }, [character?.id, setCurrentCharacterId, setIdentity]);
+  }, [character?.id, character?.identity, setCurrentCharacterId, setIdentity]);
 
   const handleChange = useCallback(
     <K extends keyof IdentityData>(field: K, value: IdentityData[K]) => {

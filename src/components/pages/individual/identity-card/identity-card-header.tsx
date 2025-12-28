@@ -5,6 +5,7 @@ import { Download } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useGlitchColor } from "@/hooks/use-glitch-color";
 import GlitchText from "@/components/ui/custom/glitch-text";
+import { useFieldLocalState } from "@/hooks/use-field-local-state";
 
 interface IdentityCardHeaderProps {
   heroName: string;
@@ -15,7 +16,7 @@ interface IdentityCardHeaderProps {
 
 export const IdentityCardHeader: React.FC<IdentityCardHeaderProps> = ({
   heroName,
-  onChange,
+  onChange: parentOnChange,
   favoriteColor,
   onSave,
 }) => {
@@ -27,6 +28,8 @@ export const IdentityCardHeader: React.FC<IdentityCardHeaderProps> = ({
     glitchDuration: 150,
     intervalMs: 250,
   });
+
+  const { value, handleChange, handleBlur } = useFieldLocalState(heroName, parentOnChange, { debounceMs: 300 });
 
   return (
     <div
@@ -65,8 +68,9 @@ export const IdentityCardHeader: React.FC<IdentityCardHeaderProps> = ({
       </div>
       <div className="flex items-center gap-1">
         <FormInput
-          value={heroName}
-          onChange={(e) => onChange(e.target.value)}
+          value={value}
+          onChange={(e) => handleChange(e)}
+          onBlur={handleBlur}
           className={`font-mono h-7 px-2 w-auto ${isMobile ? "max-w-[120px] text-xs" : "max-w-[150px] text-xs"} text-right bg-background/50 border-border/50 focus-visible:ring-1 focus-visible:ring-primary`}
           placeholder="HERO_NAME"
           aria-label="Nome do herói"

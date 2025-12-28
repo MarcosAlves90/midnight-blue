@@ -4,6 +4,7 @@ import { Tip } from "@/components/ui/tip";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useGlitchColor } from "@/hooks/use-glitch-color";
 import GlitchText from "@/components/ui/custom/glitch-text";
+import { useFieldLocalState } from "@/hooks/use-field-local-state";
 
 interface IdentityCardContentProps {
   civilName: string;
@@ -13,7 +14,7 @@ interface IdentityCardContentProps {
 
 export const IdentityCardContent: React.FC<IdentityCardContentProps> = ({
   civilName,
-  onChange,
+  onChange: parentOnChange,
   favoriteColor,
 }) => {
   const isMobile = useIsMobile();
@@ -24,6 +25,8 @@ export const IdentityCardContent: React.FC<IdentityCardContentProps> = ({
     glitchDuration: 150,
     intervalMs: 250,
   });
+
+  const { value, handleChange, handleBlur } = useFieldLocalState(civilName, parentOnChange, { debounceMs: 300 });
 
   return (
     <div
@@ -67,8 +70,9 @@ export const IdentityCardContent: React.FC<IdentityCardContentProps> = ({
           </Tip>
           <span style={{ color: glitchColor }}>=</span>
           <FormInput
-            value={civilName}
-            onChange={(e) => onChange(e.target.value)}
+            value={value}
+            onChange={(e) => handleChange(e)}
+            onBlur={handleBlur}
             className="font-mono text-xs h-7 px-2 bg-background/50 border-border/50 focus-visible:ring-1 focus-visible:ring-primary flex-1"
             placeholder="[ENCRYPTED]"
             aria-label="Nome civil verdadeiro"
