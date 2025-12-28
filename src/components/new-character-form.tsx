@@ -10,10 +10,10 @@ import { Loader2 } from "lucide-react";
 import type { CharacterData } from "@/lib/character-service";
 import {
   INITIAL_ATTRIBUTES,
-} from "@/components/status/attributes-grid/constants";
+} from "@/components/pages/status/attributes-grid/constants";
 import {
   INITIAL_SKILLS,
-} from "@/components/status/skills/constants";
+} from "@/components/pages/status/skills/constants";
 
 const INITIAL_CHARACTER_NAME = "Novo Personagem";
 
@@ -72,7 +72,6 @@ export function NewCharacterForm({ onSuccess, onCancel }: NewCharacterFormProps)
           name: formData.name.trim(),
           heroName: formData.heroName.trim(),
           alternateIdentity: "",
-          identityStatus: "Secret",
           gender: "",
           age: "",
           height: "",

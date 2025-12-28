@@ -13,11 +13,11 @@ import {
 } from "firebase/firestore";
 import { db } from "./firebase";
 import type { IdentityData } from "@/contexts/IdentityContext";
-import type { Attribute } from "@/components/status/attributes-grid/types";
-import type { Skill } from "@/components/status/skills/types";
-import type { Power } from "@/components/status/powers/types";
-import { INITIAL_ATTRIBUTES } from "@/components/status/attributes-grid/constants";
-import { INITIAL_SKILLS } from "@/components/status/skills/constants";
+import type { Attribute } from "@/components/pages/status/attributes-grid/types";
+import type { Skill } from "@/components/pages/status/skills/types";
+import type { Power } from "@/components/pages/status/powers/types";
+import { INITIAL_ATTRIBUTES } from "@/components/pages/status/attributes-grid/constants";
+import { INITIAL_SKILLS } from "@/components/pages/status/skills/constants";
 
 const USERS_COLLECTION = "users";
 const CHARACTERS_SUBCOLLECTION = "characters";

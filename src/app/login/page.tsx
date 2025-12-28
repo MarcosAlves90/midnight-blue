@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { Login } from "@/components/login";
-import { AuthPageWrapper } from "@/components/auth/auth-page-wrapper";
+import { Login } from "@/components/pages/login";
+import { AuthPageWrapper } from "@/components/config/auth/auth-page-wrapper";
 
 export const metadata: Metadata = {
   title: "Login",

@@ -15,7 +15,6 @@ export interface IdentityData {
   name: string;
   heroName: string;
   alternateIdentity: string;
-  identityStatus: string; // Public, Secret
   gender: string;
   age: string;
   height: string;
@@ -45,7 +44,6 @@ const INITIAL_IDENTITY: IdentityData = {
   name: "",
   heroName: "",
   alternateIdentity: "",
-  identityStatus: "Secret",
   gender: "",
   age: "",
   height: "",

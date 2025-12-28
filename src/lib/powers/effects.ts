@@ -1,4 +1,4 @@
-import { Effect } from "../../components/status/powers/types";
+import { Effect } from "../../components/pages/status/powers/types";
 
 export const EFFECT_CATEGORIES: Record<string, string> = {
   ataque:

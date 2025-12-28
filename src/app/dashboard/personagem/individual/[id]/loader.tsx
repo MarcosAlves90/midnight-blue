@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCharacterPersistence } from "@/hooks/use-character-persistence";
 import { useCharacter } from "@/contexts/CharacterContext";
-import { Individual } from "@/components/individual";
+import { Individual } from "@/components/pages/individual";
 
 export default function Loader({ id }: { id: string }) {
   const { user } = useAuth();

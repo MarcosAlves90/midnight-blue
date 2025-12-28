@@ -4,13 +4,14 @@ import React, { useRef, useCallback, useEffect } from "react";
 import { toPng } from "html-to-image";
 import { useIdentityContext, IdentityData } from "@/contexts/IdentityContext";
 import { useSelectedCharacter } from "@/hooks/use-selected-character";
-import { IdentityCard } from "@/components/individual/identity-card";
-import { BiometricData } from "@/components/individual/biometric-data";
-import { PersonalData } from "@/components/individual/personal-data";
-import { ConfidentialFileSection } from "@/components/individual/confidential-file";
-import { HistorySection } from "@/components/individual/history-data";
-import { ComplicationsSection } from "@/components/individual/complications";
+import { IdentityCard } from "@/components/pages/individual/identity-card";
+import { BiometricData } from "@/components/pages/individual/biometric-data";
+import { PersonalData } from "@/components/pages/individual/personal-data";
+import { ConfidentialFileSection } from "@/components/pages/individual/confidential-file";
+import { HistorySection } from "@/components/pages/individual/history-data";
+import { ComplicationsSection } from "@/components/pages/individual/complications";
 import { deepEqual } from "@/lib/deep-equal";
+import { NoCharacterSelected } from "@/components/config/character";
 
 export default function Individual() {
   const { identity, setIdentity, updateIdentity, setCurrentCharacterId } = useIdentityContext();
@@ -113,6 +114,11 @@ export default function Individual() {
   }
 
   if (error) {
+    if (error === "Nenhuma ficha selecionada") {
+      // Mostrar componente reutilizável quando não há ficha selecionada
+      return <NoCharacterSelected />;
+    }
+
     return <div className="flex items-center justify-center p-8 text-red-500">{error}</div>;
   }
 

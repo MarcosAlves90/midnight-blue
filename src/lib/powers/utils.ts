@@ -4,7 +4,7 @@ import {
   ModifierInstance,
   Power,
   EffectOptions,
-} from "@/components/status/powers/types";
+} from "@/components/pages/status/powers/types";
 
 export const calculatePowerCost = (
   rank: number,

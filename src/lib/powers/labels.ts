@@ -2,7 +2,7 @@ import {
   ActionType,
   RangeType,
   DurationType,
-} from "../../components/status/powers/types";
+} from "../../components/pages/status/powers/types";
 
 export const ACTION_LABELS: Record<ActionType, string> = {
   padrao: "Padrão",

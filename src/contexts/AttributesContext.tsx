@@ -1,7 +1,7 @@
 "use client";
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { Attribute } from "../components/status/attributes-grid/types";
-import { INITIAL_ATTRIBUTES } from "../components/status/attributes-grid/constants";
+import { Attribute } from "../components/pages/status/attributes-grid/types";
+import { INITIAL_ATTRIBUTES } from "../components/pages/status/attributes-grid/constants";
 
 interface AttributesContextType {
   attributes: Attribute[];

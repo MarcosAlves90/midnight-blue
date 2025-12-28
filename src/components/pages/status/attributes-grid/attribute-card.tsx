@@ -3,9 +3,9 @@
 import { memo, useMemo } from "react";
 // import { AttributeCardProps } from "./types" // Removido para evitar conflito
 import { useEditableValue } from "./use-editable-value";
-import { getColorClasses } from "../../../lib/colors";
-import { DiceIcon } from "../../ui/icons/dice-icon";
-import { rollDice } from "../../../lib/dice-system";
+import { getColorClasses } from "../../../../lib/colors";
+import { DiceIcon } from "../../../ui/icons/dice-icon";
+import { rollDice } from "../../../../lib/dice-system";
 import { Tip } from "@/components/ui/tip";
 
 export interface AttributeFieldConfig {
