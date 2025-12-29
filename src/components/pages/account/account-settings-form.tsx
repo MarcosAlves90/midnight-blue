@@ -503,6 +503,8 @@ export default function AccountSettingsForm() {
 
                 <div className="p-4">
                   <FormInput
+                    id="deleteConfirm"
+                    name="deleteConfirm"
                     placeholder="Digite EXCLUIR para confirmar"
                     value={deleteConfirm}
                     onChange={(e) => setDeleteConfirm(e.target.value)}

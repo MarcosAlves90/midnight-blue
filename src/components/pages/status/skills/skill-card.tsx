@@ -136,6 +136,8 @@ export function SkillCard({
 
       <td className="px-1 py-1 align-middle text-center">
         <FormInput
+          id={`${id}-value`}
+          name={`${id}-value`}
           value={valueState.inputValue}
           onChange={(e) => valueState.handleChange(e.target.value)}
           onBlur={valueState.handleBlur}
@@ -148,6 +150,8 @@ export function SkillCard({
 
       <td className="px-1 py-1 align-middle text-center">
         <FormInput
+          id={`${id}-others`}
+          name={`${id}-others`}
           value={othersState.inputValue}
           onChange={(e) => othersState.handleChange(e.target.value)}
           onBlur={othersState.handleBlur}

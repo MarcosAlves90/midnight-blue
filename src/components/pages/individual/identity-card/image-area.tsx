@@ -133,6 +133,8 @@ export const ImageArea: React.FC<ImageAreaProps> = ({
       </button>
 
       <input
+        id="identityImage"
+        name="identityImage"
         type="file"
         ref={fileInputRef}
         className="hidden"

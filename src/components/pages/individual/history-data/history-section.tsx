@@ -30,6 +30,8 @@ export const HistorySection: React.FC<HistorySectionProps> = ({
 
       <div className="space-y-1.5">
         <Textarea
+          id="history"
+          name="history"
           value={value}
           onChange={(e) => handleChange(e)}
           onBlur={handleBlur}

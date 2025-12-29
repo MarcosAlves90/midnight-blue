@@ -5,7 +5,6 @@ import { ThemeProvider } from "next-themes";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./globals.css";
-import { UnsavedIndicator } from "@/components/ui/unsaved-indicator";
 import { AppProviders } from "../contexts/Providers";
 
 const geistSans = Geist({
@@ -51,7 +50,6 @@ export default function RootLayout({
           <ThemeProvider attribute="class" defaultTheme="dark" themes={["dark", "black"]} enableSystem={false}>
             <div className="relative min-h-screen">
               {children}
-              <UnsavedIndicator />
               <ToastContainer limit={5} />
             </div>
           </ThemeProvider>

@@ -39,7 +39,7 @@ export const PersonalData: React.FC<PersonalDataSectionProps> = ({
             side="top"
             align="start"
           >
-            <label className="text-[10px] font-medium text-muted-foreground uppercase flex items-center gap-1 cursor-help w-fit">
+            <label htmlFor="placeOfBirth" className="text-[10px] font-medium text-muted-foreground uppercase flex items-center gap-1 cursor-help w-fit">
               <MapPin className="w-3 h-3" aria-hidden="true" />
               <span className="decoration-dotted underline underline-offset-2">
                 Local de Nascimento
@@ -47,6 +47,8 @@ export const PersonalData: React.FC<PersonalDataSectionProps> = ({
             </label>
           </Tip>
           <FormInput
+            id="placeOfBirth"
+            name="placeOfBirth"
             value={placeValue}
             onChange={(e) => handlePlaceChange(e)}
             onBlur={handlePlaceBlur}
@@ -65,7 +67,7 @@ export const PersonalData: React.FC<PersonalDataSectionProps> = ({
             side="top"
             align="start"
           >
-            <label className="text-[10px] font-medium text-muted-foreground uppercase flex items-center gap-1 cursor-help w-fit">
+            <label htmlFor="occupation" className="text-[10px] font-medium text-muted-foreground uppercase flex items-center gap-1 cursor-help w-fit">
               <Briefcase className="w-3 h-3" aria-hidden="true" />
               <span className="decoration-dotted underline underline-offset-2">
                 Ocupação
@@ -73,6 +75,8 @@ export const PersonalData: React.FC<PersonalDataSectionProps> = ({
             </label>
           </Tip>
           <FormInput
+            id="occupation"
+            name="occupation"
             value={occupationValue}
             onChange={(e) => handleOccupationChange(e)}
             onBlur={handleOccupationBlur}

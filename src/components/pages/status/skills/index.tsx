@@ -91,6 +91,8 @@ export function SkillsList() {
   const renderSortDropdown = () => (
     <div className="relative">
       <select
+        id="skill-sort"
+        name="skill-sort"
         value={sortOption}
         onChange={(e) => setSortOption(e.target.value as SortOption)}
         className="appearance-none px-3 py-2 rounded text-sm bg-muted-foreground/20 text-muted-foreground border-0 outline-none cursor-pointer hover:bg-muted-foreground/30 transition-colors pr-8"
@@ -112,6 +114,8 @@ export function SkillsList() {
     <div className="relative">
       <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
       <input
+        id="skill-search"
+        name="skill-search"
         type="text"
         placeholder="Buscar perícia..."
         value={searchTerm}

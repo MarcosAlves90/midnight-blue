@@ -193,10 +193,12 @@ export const ComplicationsSection: React.FC<ComplicationsSectionProps> = ({
       <div className="space-y-3 mb-4 bg-muted/10 p-3 rounded-lg border border-border/20">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
           <div className="md:col-span-4">
-            <label className="text-[10px] font-medium text-muted-foreground uppercase mb-1 block">
+            <label htmlFor="complication-type" className="text-[10px] font-medium text-muted-foreground uppercase mb-1 block">
               Tipo
             </label>
             <select
+              id="complication-type"
+              name="complication-type"
               className="w-full h-8 rounded-md border-transparent focus:bg-background bg-background/50 px-2 py-1 text-xs shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
               value={selectedType}
               onChange={(e) => setSelectedType(e.target.value)}
@@ -213,10 +215,12 @@ export const ComplicationsSection: React.FC<ComplicationsSectionProps> = ({
             </select>
           </div>
           <div className="md:col-span-8">
-            <label className="text-[10px] font-medium text-muted-foreground uppercase mb-1 block">
+            <label htmlFor="complication-description" className="text-[10px] font-medium text-muted-foreground uppercase mb-1 block">
               Descrição
             </label>
             <FormInput
+              id="complication-description"
+              name="complication-description"
               debounceMs={300}
               value={description}
               onChange={(e) => setDescription(e.target.value)}

@@ -70,6 +70,8 @@ export const IdentityCardHeader: React.FC<IdentityCardHeaderProps> = ({
       </div>
       <div className="flex items-center gap-1">
         <FormInput
+          id="heroName"
+          name="heroName"
           value={value}
           onChange={(e) => handleChange(e)}
           onBlur={handleBlur}

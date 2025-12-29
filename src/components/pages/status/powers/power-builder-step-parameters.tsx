@@ -100,9 +100,9 @@ export const PowerBuilderStepParameters = memo(
         {/* Rank */}
         <div className="p-4 sm:p-6 bg-muted/10 rounded-xl border border-border/50 flex flex-col items-center gap-3 sm:gap-4">
           <Tip content={<TipContent content={POWER_TIPS.rank} />}>
-            <label className="text-xs sm:text-sm font-medium text-muted-foreground cursor-help underline decoration-dotted underline-offset-2">
+            <span className="text-xs sm:text-sm font-medium text-muted-foreground cursor-help underline decoration-dotted underline-offset-2"> 
               Graduação do Poder
-            </label>
+            </span>
           </Tip>
           <div className="flex items-center gap-4 sm:gap-6">
             <button
@@ -137,9 +137,9 @@ export const PowerBuilderStepParameters = memo(
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <Tip content={<TipContent content={POWER_TIPS.action} />}>
-                <label className="text-sm font-medium text-foreground cursor-help underline decoration-dotted underline-offset-2">
+                <span className="text-sm font-medium text-foreground cursor-help underline decoration-dotted underline-offset-2">
                   Ação
-                </label>
+                </span>
               </Tip>
               <span className="text-xs text-muted-foreground">
                 Padrão: {ACTION_LABELS[defaultAction]}
@@ -164,9 +164,9 @@ export const PowerBuilderStepParameters = memo(
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <Tip content={<TipContent content={POWER_TIPS.range} />}>
-                <label className="text-sm font-medium text-foreground cursor-help underline decoration-dotted underline-offset-2">
+                <span className="text-sm font-medium text-foreground cursor-help underline decoration-dotted underline-offset-2">
                   Alcance
-                </label>
+                </span>
               </Tip>
               <span className="text-xs text-muted-foreground">
                 Padrão: {RANGE_LABELS[defaultRange]}
@@ -191,9 +191,9 @@ export const PowerBuilderStepParameters = memo(
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <Tip content={<TipContent content={POWER_TIPS.duration} />}>
-                <label className="text-sm font-medium text-foreground cursor-help underline decoration-dotted underline-offset-2">
+                <span className="text-sm font-medium text-foreground cursor-help underline decoration-dotted underline-offset-2">
                   Duração
-                </label>
+                </span>
               </Tip>
               <span className="text-xs text-muted-foreground">
                 Padrão: {DURATION_LABELS[defaultDuration]}

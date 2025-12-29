@@ -155,6 +155,8 @@ export const CaracteristicaOptions: FC<CaracteristicaOptionsProps> = ({
 
       <div className="relative">
         <select
+          id="characteristic-select"
+          name="characteristic-select"
           value={options.sub || ""}
           onChange={(e) => {
             onChange({

@@ -72,6 +72,8 @@ export const IdentityCardContent: React.FC<IdentityCardContentProps> = ({
           </Tip>
           <span style={{ color: glitchColor }}>=</span>
           <FormInput
+            id="civilName"
+            name="civilName"
             value={value}
             onChange={(e) => handleChange(e)}
             onBlur={handleBlur}

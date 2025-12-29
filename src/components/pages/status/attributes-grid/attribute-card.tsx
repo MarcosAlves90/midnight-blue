@@ -94,6 +94,8 @@ export const AttributeCard = memo(function AttributeCard({
         return (
           <input
             key={field.key}
+            id={field.key}
+            name={field.key}
             value={valueState.inputValue}
             onChange={(e) => valueState.handleChange(e.target.value)}
             onBlur={valueState.handleBlur}
@@ -148,8 +150,8 @@ export const AttributeCard = memo(function AttributeCard({
           <div>{renderFields()}</div>
         ) : (
           <div className="flex flex-col gap-1">
-            <input
-              value={baseValueState.inputValue}
+            <input              id={`${abbreviation}-base`}
+              name={`${abbreviation}-base`}              value={baseValueState.inputValue}
               onChange={(e) => baseValueState.handleChange(e.target.value)}
               onBlur={baseValueState.handleBlur}
               onKeyDown={baseValueState.handleKeyDown}
@@ -160,6 +162,8 @@ export const AttributeCard = memo(function AttributeCard({
             />
             {type === "attribute" && (
               <input
+                id={`${abbreviation}-bonus`}
+                name={`${abbreviation}-bonus`}
                 value={bonusValueState.inputValue}
                 onChange={(e) => bonusValueState.handleChange(e.target.value)}
                 onBlur={bonusValueState.handleBlur}

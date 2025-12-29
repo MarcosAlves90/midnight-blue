@@ -58,10 +58,12 @@ export const PowerBuilderStepDetails = memo(
 
         <div className="space-y-4">
           <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">
+            <label htmlFor="power-name" className="text-sm font-medium text-foreground">
               Nome do Poder *
             </label>
             <FormInput
+              id="power-name"
+              name="power-name"
               value={name}
               onChange={(e) => onNameChange(e.target.value)}
               placeholder="Ex: Rajada de Fogo, Escudo Mental..."
@@ -72,9 +74,9 @@ export const PowerBuilderStepDetails = memo(
 
           <div className="space-y-2">
             <Tip content={<TipContent content={POWER_TIPS.descriptors} />}>
-              <label className="text-sm font-medium text-foreground cursor-help underline decoration-dotted underline-offset-2">
+              <span className="text-sm font-medium text-foreground cursor-help underline decoration-dotted underline-offset-2">
                 Descritores
-              </label>
+              </span>
             </Tip>
 
             <div className="space-y-2 p-2 bg-muted/5 rounded-md border border-border/40">
@@ -131,6 +133,8 @@ export const PowerBuilderStepDetails = memo(
                 ) : (
                   <div className="flex gap-2">
                     <FormInput
+                      id="new-descriptor"
+                      name="new-descriptor"
                       value={newDescriptor}
                       onChange={(e) => setNewDescriptor(e.target.value)}
                       onKeyDown={(e) => {
@@ -165,10 +169,12 @@ export const PowerBuilderStepDetails = memo(
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">
+            <label htmlFor="power-notes" className="text-sm font-medium text-foreground">
               Notas (opcional)
             </label>
             <textarea
+              id="power-notes"
+              name="power-notes"
               value={notes}
               onChange={(e) => onNotesChange(e.target.value)}
               placeholder="Descrição adicional, limitações narrativas..."

@@ -44,6 +44,8 @@ export const PowerBuilderStepEffects = memo(
           <div className="relative w-64">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
             <FormInput
+              id="effect-search"
+              name="effect-search"
               placeholder="Buscar efeitos..."
               value={searchTerm}
               onChange={(e) => onSearchChange(e.target.value)}

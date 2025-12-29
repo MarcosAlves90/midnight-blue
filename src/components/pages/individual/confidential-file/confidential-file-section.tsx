@@ -42,7 +42,7 @@ export const ConfidentialFileSection: React.FC<
             side="top"
             align="start"
           >
-            <label className="text-[10px] font-medium text-muted-foreground uppercase flex items-center gap-1 cursor-help w-fit">
+            <label htmlFor="groupAffiliation" className="text-[10px] font-medium text-muted-foreground uppercase flex items-center gap-1 cursor-help w-fit">
               <Users className="w-3 h-3" aria-hidden="true" />
               <span className="decoration-dotted underline underline-offset-2">
                 Afiliação
@@ -50,6 +50,8 @@ export const ConfidentialFileSection: React.FC<
             </label>
           </Tip>
           <FormInput
+            id="groupAffiliation"
+            name="groupAffiliation"
             value={groupValue}
             onChange={(e) => handleGroupChange(e)}
             onBlur={handleGroupBlur}
@@ -69,7 +71,7 @@ export const ConfidentialFileSection: React.FC<
             side="top"
             align="start"
           >
-            <label className="text-[10px] font-medium text-muted-foreground uppercase flex items-center gap-1 cursor-help w-fit">
+            <label htmlFor="baseOfOperations" className="text-[10px] font-medium text-muted-foreground uppercase flex items-center gap-1 cursor-help w-fit">
               <MapPin className="w-3 h-3" aria-hidden="true" />
               <span className="decoration-dotted underline underline-offset-2">
                 Base de Operações
@@ -77,6 +79,8 @@ export const ConfidentialFileSection: React.FC<
             </label>
           </Tip>
           <FormInput
+            id="baseOfOperations"
+            name="baseOfOperations"
             value={baseValue}
             onChange={(e) => handleBaseChange(e)}
             onBlur={handleBaseBlur}
@@ -96,7 +100,7 @@ export const ConfidentialFileSection: React.FC<
             side="top"
             align="start"
           >
-            <label className="text-[10px] font-medium text-muted-foreground uppercase flex items-center gap-1 cursor-help w-fit">
+            <label htmlFor="powerOrigin" className="text-[10px] font-medium text-muted-foreground uppercase flex items-center gap-1 cursor-help w-fit">
               <Zap className="w-3 h-3" aria-hidden="true" />
               <span className="decoration-dotted underline underline-offset-2">
                 Origem dos Poderes
@@ -104,6 +108,8 @@ export const ConfidentialFileSection: React.FC<
             </label>
           </Tip>
           <FormInput
+            id="powerOrigin"
+            name="powerOrigin"
             value={originValue}
             onChange={(e) => handleOriginChange(e)}
             onBlur={handleOriginBlur}
@@ -123,7 +129,7 @@ export const ConfidentialFileSection: React.FC<
             side="top"
             align="start"
           >
-            <label className="text-[10px] font-medium text-muted-foreground uppercase flex items-center gap-1 cursor-help w-fit">
+            <label htmlFor="motivation" className="text-[10px] font-medium text-muted-foreground uppercase flex items-center gap-1 cursor-help w-fit">
               <Heart className="w-3 h-3" aria-hidden="true" />
               <span className="decoration-dotted underline underline-offset-2">
                 Motivação
@@ -131,6 +137,8 @@ export const ConfidentialFileSection: React.FC<
             </label>
           </Tip>
           <Textarea
+            id="motivation"
+            name="motivation"
             value={motivationValue}
             onChange={(e) => handleMotivationChange(e)}
             onBlur={handleMotivationBlur}

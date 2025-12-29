@@ -90,9 +90,9 @@ const SelectedModifierInstance = memo(
               <div className="mt-2 space-y-2">
                 {isTipo && (
                   <div className="flex flex-col gap-1.5 p-2 bg-background/40 rounded border border-border/30">
-                    <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                    <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
                       Nível da Falha:
-                    </label>
+                    </span>
                     <div className="grid grid-cols-2 gap-2">
                       <Tip
                         content={
@@ -149,6 +149,8 @@ const SelectedModifierInstance = memo(
                   </div>
                 )}
                 <textarea
+                  id={`modifier-${instance.id}-description`}
+                  name={`modifier-${instance.id}-description`}
                   value={instance.customDescription || ""}
                   onChange={(e) => onDescriptionChange(e.target.value)}
                   placeholder={
@@ -243,8 +245,8 @@ export const PowerBuilderStepModifiers = memo(
             </h4>
             <div className="relative w-64">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-              <FormInput
-                placeholder="Buscar modificadores..."
+              <FormInput                id="modifier-search"
+                name="modifier-search"                placeholder="Buscar modificadores..."
                 value={searchTerm}
                 onChange={(e) => onSearchChange(e.target.value)}
                 className="pl-8 bg-background/50"

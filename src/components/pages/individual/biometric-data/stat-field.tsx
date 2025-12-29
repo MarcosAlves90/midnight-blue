@@ -41,7 +41,7 @@ export const StatField: React.FC<StatFieldProps> = ({
           side="top"
           align="start"
         >
-          <label className="text-[10px] font-medium text-muted-foreground uppercase flex items-center gap-1.5 group-hover:text-primary transition-colors cursor-help w-fit">
+          <label htmlFor={fieldKey ? String(fieldKey) : undefined} className="text-[10px] font-medium text-muted-foreground uppercase flex items-center gap-1.5 group-hover:text-primary transition-colors cursor-help w-fit">
             {icon}
             <span className="decoration-dotted underline underline-offset-2">
               {label}
@@ -54,7 +54,7 @@ export const StatField: React.FC<StatFieldProps> = ({
           </label>
         </Tip>
       ) : (
-        <label className="text-[10px] font-medium text-muted-foreground uppercase flex items-center gap-1.5 group-hover:text-primary transition-colors">
+        <label htmlFor={fieldKey ? String(fieldKey) : undefined} className="text-[10px] font-medium text-muted-foreground uppercase flex items-center gap-1.5 group-hover:text-primary transition-colors">
           {icon}
           <span>
             {label}
@@ -67,6 +67,8 @@ export const StatField: React.FC<StatFieldProps> = ({
         </label>
       )}
       <FormInput
+        id={fieldKey ? String(fieldKey) : undefined}
+        name={fieldKey ? String(fieldKey) : label.replace(/\s+/g, "-").toLowerCase()}
         value={localValue}
         onChange={(e) => handleChange(e)}
         onBlur={handleBlur}

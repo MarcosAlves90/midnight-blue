@@ -23,6 +23,7 @@ export const OptionSelector: FC<SelectorProps> = ({
   unit = "",
   warning,
 }) => {
+  const slug = label.replace(/\s+/g, "-").toLowerCase();
   return (
     <div className="space-y-1.5">
       <div className="flex items-center justify-between">
@@ -36,6 +37,8 @@ export const OptionSelector: FC<SelectorProps> = ({
       </div>
       <div className="flex items-center gap-2 min-w-0">
         <input
+          id={slug}
+          name={slug}
           type="range"
           min={min}
           max={max}

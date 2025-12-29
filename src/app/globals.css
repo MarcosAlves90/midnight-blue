@@ -136,13 +136,7 @@
   @apply text-xs py-1 px-3 rounded-md min-w-[160px] max-w-[320px] flex items-center gap-2 justify-between;
 }
 
-/* Unsaved indicator (top-right small spinner) */
-.unsaved-indicator {
-  @apply absolute top-3 right-3 z-50 flex items-center justify-center bg-transparent p-1 rounded-md;
-}
-.unsaved-indicator svg {
-  @apply w-4 h-4 text-amber-400;
-}
+
 
 .Toastify__close-button {
   @apply text-primary opacity-90 hover:opacity-100;

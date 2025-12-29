@@ -65,10 +65,10 @@ export const ColorPickerDropdown: React.FC<ColorPickerDropdownProps> = ({
 
   return (
     <div className="space-y-1.5">
-      <label className="text-[10px] font-medium text-muted-foreground uppercase flex items-center gap-1">
+      <span className="text-[10px] font-medium text-muted-foreground uppercase flex items-center gap-1">
         <Heart className="w-3 h-3" aria-hidden="true" />
         <span>Cor Favorita</span>
-      </label>
+      </span>
       <div className="flex items-center gap-2">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -110,6 +110,8 @@ export const ColorPickerDropdown: React.FC<ColorPickerDropdownProps> = ({
                     {/* Fallback for browsers without EyeDropper API */}
                     <input
                       type="color"
+                      id="favoriteColor-color"
+                      name="favoriteColor-color"
                       value={localColor}
                       onChange={(e) => handleColorChange(e.target.value)}
                       className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
@@ -123,6 +125,8 @@ export const ColorPickerDropdown: React.FC<ColorPickerDropdownProps> = ({
                     />
                   </div>
                   <FormInput
+                    id="favoriteColor"
+                    name="favoriteColor"
                     type="text"
                     value={localColor}
                     onChange={(e) => handleColorChange(e.target.value)}

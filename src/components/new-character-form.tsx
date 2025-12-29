@@ -133,8 +133,10 @@ export function NewCharacterForm({ onSuccess, onCancel }: NewCharacterFormProps)
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
-        <label className="text-sm font-medium">Nome do Indivíduo</label>
+        <label htmlFor="name" className="text-sm font-medium">Nome do Indivíduo</label>
         <FormInput
+          id="name"
+          name="name"
           type="text"
           placeholder="Ex: John Doe"
           value={formData.name}
@@ -145,8 +147,10 @@ export function NewCharacterForm({ onSuccess, onCancel }: NewCharacterFormProps)
       </div>
 
       <div className="space-y-2">
-        <label className="text-sm font-medium">Nome do Herói</label>
+        <label htmlFor="heroName" className="text-sm font-medium">Nome do Herói</label>
         <FormInput
+          id="heroName"
+          name="heroName"
           type="text"
           placeholder="Ex: Nightshift"
           value={formData.heroName}

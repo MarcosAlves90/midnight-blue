@@ -123,6 +123,8 @@ function DefenseCard({
         </div>
         <div className="h-3 w-px bg-border/50" />
         <FormInput
+          id={attributeAbbrev}
+          name={attributeAbbrev}
           type="number"
           value={inputValue}
           onChange={(e) => onInputChange(e.target.value)}
@@ -327,12 +329,14 @@ export default function AdvancedStatus() {
               side="top"
               align="start"
             >
-              <label className="text-xs font-medium text-muted-foreground cursor-help decoration-dotted underline underline-offset-2">
+              <label htmlFor="powerLevel" className="text-xs font-medium text-muted-foreground cursor-help decoration-dotted underline underline-offset-2">
                 Nível de Poder
               </label>
             </Tip>
           </div>
           <FormInput
+            id="powerLevel"
+            name="powerLevel"
             type="number"
             min={1}
             value={nivelInput}
@@ -345,11 +349,13 @@ export default function AdvancedStatus() {
         <div className="space-y-1.5">
           <div className="flex items-center gap-2">
             <Move className="h-3.5 w-3.5 text-muted-foreground" />
-            <label className="text-xs font-medium text-muted-foreground">
+            <label htmlFor="displacement" className="text-xs font-medium text-muted-foreground">
               Deslocamento
             </label>
           </div>
           <FormInput
+            id="displacement"
+            name="displacement"
             type="number"
             min={0}
             value={deslocamento.input}
