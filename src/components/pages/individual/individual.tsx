@@ -18,18 +18,36 @@ export default function Individual() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const cardRef = useRef<HTMLDivElement | null>(null);
   const characterIdRef = useRef<string | null>(null);
+  // Rastreia o último identity sincronizado para detectar mudanças mesmo com mesmo ID
+  const lastSyncedIdentityRef = useRef<string | null>(null);
 
-  // Sincroniza a identity quando character muda (e.g., ao trocar de ficha)
+  // Sincroniza a identity quando character muda (e.g., ao trocar de ficha ou dados atualizados)
   // IMPORTANTE: Não dispara auto-save aqui, apenas sincroniza o estado local
   useEffect(() => {
     if (!character?.identity || !character.id) return;
 
-    // Evita re-sincronização se o ID não mudou
-    if (characterIdRef.current === character.id) {
+    // Serializa identity atual para comparação
+    let currentIdentityHash: string;
+    try {
+      currentIdentityHash = JSON.stringify(character.identity);
+    } catch {
+      currentIdentityHash = "";
+    }
+
+    // Se o ID mudou, sempre sincroniza
+    const idChanged = characterIdRef.current !== character.id;
+    
+    // Se o ID é o mesmo mas a identity mudou (dados atualizados), também sincroniza
+    const identityChanged = lastSyncedIdentityRef.current !== currentIdentityHash;
+
+    if (!idChanged && !identityChanged) {
+      // Nada mudou, não precisa sincronizar
       return;
     }
 
+    // Atualiza refs
     characterIdRef.current = character.id;
+    lastSyncedIdentityRef.current = currentIdentityHash;
 
     // Apenas sincroniza para IdentityContext (sem dispara auto-save)
     setCurrentCharacterId?.(character.id);
@@ -62,6 +80,13 @@ export default function Individual() {
       const patch = Object.fromEntries(
         changedEntries.filter(([k]) => !dirtyFields.has(k)),
       ) as Partial<IdentityData>;
+
+      console.debug("[Individual] Syncing identity from character", { 
+        idChanged, 
+        identityChanged, 
+        fieldsChanged: changedEntries.length,
+        dirtyFieldsCount: dirtyFields.size 
+      });
 
       return { ...prev, ...patch } as IdentityData;
     });

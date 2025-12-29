@@ -68,6 +68,7 @@ export function CharacterProvider({ children }: { children: React.ReactNode }) {
         })();
 
         if (localId) {
+          // Carrega dados (pode ser stale, mas retorna rápido)
           const char = await loadCharacter(localId);
           if (!cancelled && char) {
             // apply selection non-urgently to avoid blocking UI
@@ -84,6 +85,32 @@ export function CharacterProvider({ children }: { children: React.ReactNode }) {
             } catch {
               internalSetSelectedCharacter(char);
             }
+
+            // Após carregar dados iniciais, verifica se há dados mais frescos
+            // Aguarda um pouco para ver se dados frescos chegam do background refresh
+            setTimeout(async () => {
+              if (cancelled) return;
+              
+              try {
+                // Força busca de dados frescos
+                const fresh = await loadCharacter(localId, { forceFresh: true });
+                if (!cancelled && fresh) {
+                  // Compara se dados mudaram
+                  const currentHash = JSON.stringify(char.identity);
+                  const freshHash = JSON.stringify(fresh.identity);
+                  
+                  if (currentHash !== freshHash) {
+                    console.debug("[CharacterContext] Fresh data detected, updating state", { localId });
+                    // Atualiza com dados frescos
+                    internalSetSelectedCharacter(fresh);
+                  }
+                }
+              } catch (err) {
+                console.debug("[CharacterContext] Failed to refresh character data:", err);
+                // Ignore errors in background refresh
+              }
+            }, 1000); // Aguarda 1s para dados frescos chegarem
+
             return;
           }
         }

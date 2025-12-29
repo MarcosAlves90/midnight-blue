@@ -452,9 +452,16 @@ export async function patchCharacter(userId: string, characterId: string, update
   });
 
   try {
-    await import("firebase/firestore").then(({ updateDoc, serverTimestamp, increment }) =>
-      updateDoc(docRef, { ...payload, updatedAt: serverTimestamp(), version: increment(1) }),
-    );
+    // Verifica se há campos para atualizar
+    if (Object.keys(payload).length === 0) {
+      console.warn("[patchCharacter] No fields to update, skipping", { userId, characterId });
+      return;
+    }
+
+    // Importa e aguarda corretamente as funções do Firestore
+    const { updateDoc, serverTimestamp, increment } = await import("firebase/firestore");
+    await updateDoc(docRef, { ...payload, updatedAt: serverTimestamp(), version: increment(1) });
+    
     // invalidate cache to ensure subsequent reads pick up changes
     try { invalidateCharacterCache(userId, characterId); } catch {}
   } catch (err) {

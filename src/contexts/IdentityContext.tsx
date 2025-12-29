@@ -114,6 +114,7 @@ export const IdentityProvider: React.FC<{ children: React.ReactNode }> = ({
   const {
     scheduleAutoSave,
     saveImmediately,
+    setOnSaveSuccess,
   } = useCharacterPersistence(user?.uid ?? null, currentCharacterId ?? undefined);
 
   // Rastreia o último snapshot serializado enviado ao Firebase para detecção de mudanças
@@ -256,6 +257,23 @@ export const IdentityProvider: React.FC<{ children: React.ReactNode }> = ({
       return next;
     });
   }, []);
+
+  // Configura callback para limpar dirtyFields quando auto-save completa com sucesso
+  // IMPORTANTE: Deve vir DEPOIS da declaração de markFieldsSaved para evitar erro de inicialização
+  useEffect(() => {
+    setOnSaveSuccess((savedFields: string[]) => {
+      // Clear dirtyFields for fields that were successfully saved
+      if (savedFields && savedFields.length > 0) {
+        markFieldsSaved(savedFields);
+        console.debug("[IdentityContext] Cleared dirtyFields after successful save", { savedFields });
+      }
+    });
+
+    // Cleanup: remove callback when component unmounts or characterId changes
+    return () => {
+      setOnSaveSuccess(null);
+    };
+  }, [setOnSaveSuccess, markFieldsSaved]);
 
   const resolveKeepLocal = useCallback(async () => {
     if (!conflict) return;

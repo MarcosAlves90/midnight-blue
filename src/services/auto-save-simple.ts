@@ -7,11 +7,11 @@
  * - No requestIdleCallback or await in sync paths
  */
 
-export type AutoSaveHandler<T> = (data: T) => Promise<void>;
+export type AutoSaveHandler<T> = (data: T) => Promise<unknown>;
 
 export interface AutoSaveOptions {
   debounceMs?: number;
-  onSuccess?: () => void;
+  onSuccess?: (result?: unknown) => void;
   onError?: (err: unknown) => void;
 }
 
@@ -64,8 +64,8 @@ export class AutoSaveService<T extends Record<string, unknown> = Record<string, 
     // Schedule on next event loop tick to be non-blocking
     this.executionTimeoutId = setTimeout(async () => {
       try {
-        await this.handler(toSave);
-        this.opts.onSuccess?.();
+        const result = await this.handler(toSave);
+        this.opts.onSuccess?.(result);
       } catch (err) {
         this.opts.onError?.(err);
       } finally {
@@ -98,8 +98,8 @@ export class AutoSaveService<T extends Record<string, unknown> = Record<string, 
       this.pendingObj = null;
       this.inFlight = true;
       try {
-        await this.handler(toSave);
-        this.opts.onSuccess?.();
+        const result = await this.handler(toSave);
+        this.opts.onSuccess?.(result);
       } catch (err) {
         this.opts.onError?.(err);
       } finally {

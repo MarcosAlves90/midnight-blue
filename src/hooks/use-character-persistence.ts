@@ -22,18 +22,75 @@ export function useCharacterPersistence(
   // Store last saved fingerprint to avoid repeated stringify costs
   const lastSavedDataRef = useRef<string | null>(null);
   const pendingObjRef = useRef<Partial<CharacterData> | null>(null);
+  
+  // Track all fields that have been scheduled for saving (accumulated across multiple rapid edits)
+  // This ensures we clear all dirtyFields even when AutoSaveService coalesces multiple saves
+  const pendingFieldsRef = useRef<Set<string>>(new Set());
 
   // Repository + AutoSaveService instances (per hook instance)
   const repoRef = useRef<FirebaseCharacterRepository | null>(null);
   const autoSaveServiceRef = useRef<AutoSaveService<Partial<CharacterData>> | null>(null);
+  
+  // Callback ref for notifying when save succeeds (used by IdentityContext to clear dirtyFields)
+  const onSaveSuccessRef = useRef<((savedFields: string[]) => void) | null>(null);
+
+  /**
+   * Improved fingerprint for change detection
+   * Captures nested object values to avoid false positives
+   * Must be defined before useEffect to be accessible
+   */
+  const getCheapFingerprint = (obj: Partial<CharacterData>): string => {
+    if (!obj) return "";
+    const keys = Object.keys(obj).sort();
+    const values = keys.map((k) => {
+      const v = (obj as Record<string, unknown>)[k];
+      if (typeof v === "object" && v !== null) {
+        // For nested objects, include both key count and a hash of values
+        const nested = v as Record<string, unknown>;
+        const nestedKeys = Object.keys(nested).sort();
+        const nestedValues = nestedKeys.map((nk) => {
+          const nv = nested[nk];
+          return typeof nv === "object" && nv !== null 
+            ? `obj${Object.keys(nv as Record<string, unknown>).length}`
+            : String(nv).slice(0, 20);
+        });
+        return `obj${nestedKeys.length}:${nestedValues.join(",")}`;
+      }
+      return String(v).slice(0, 20);
+    });
+    return keys.join(":") + "|" + values.join(":");
+  };
 
   useEffect(() => {
     // instantiate repository and autosave service when userId/characterId available
     if (userId && characterId) {
+      // Reset fingerprint when characterId changes to avoid false positives
+      lastSavedDataRef.current = null;
+      pendingObjRef.current = null;
+      pendingFieldsRef.current = new Set();
+
       repoRef.current = new FirebaseCharacterRepository(userId);
       autoSaveServiceRef.current = new AutoSaveService(async (data) => {
         // enqueue a small patch update to BackgroundPersistence instead of calling repo directly.
         if (!repoRef.current) throw new Error("Repository not initialized");
+
+        // Calculate fingerprint BEFORE save to update after success
+        const fingerprint = getCheapFingerprint(data);
+
+        // Extract fields that were saved (for dirtyFields cleanup)
+        // Use accumulated pendingFieldsRef to capture ALL fields that were scheduled, not just the last patch
+        // This handles the case where AutoSaveService coalesces multiple rapid saves
+        const savedFields: string[] = Array.from(pendingFieldsRef.current);
+        
+        // Also extract from current data as fallback (in case pendingFieldsRef is empty)
+        if (savedFields.length === 0 && data.identity && typeof data.identity === "object") {
+          const identityFields = data.identity as unknown as Record<string, unknown>;
+          Object.keys(identityFields).forEach((key) => {
+            if (!savedFields.includes(key)) {
+              savedFields.push(key);
+            }
+          });
+        }
 
         // The task will call updateCharacter; if it returns a conflict result we throw so AutoSaveService can handle conflict flow.
         const res = await backgroundPersistence.enqueue(characterId, async () => {
@@ -73,24 +130,67 @@ export function useCharacterPersistence(
             throw err;
           }
         }
+
+        // Return both fingerprint and saved fields to onSuccess callback
+        return { fingerprint, savedFields };
       }, {
         debounceMs: 3000,
-        onSuccess: () => {
-          // Fingerprint is already updated in scheduleAutoSave
-          console.debug("[auto-save] success (service)", { userId, characterId });
+        onSuccess: (result?: unknown) => {
+          // Update fingerprint ONLY after successful save
+          let fingerprint: string | null = null;
+          let savedFields: string[] = [];
+          
+          if (result && typeof result === "object") {
+            const res = result as { fingerprint?: string; savedFields?: string[] };
+            fingerprint = res.fingerprint ?? null;
+            savedFields = res.savedFields ?? [];
+          } else if (typeof result === "string") {
+            // Backward compatibility: if result is just a string, treat as fingerprint
+            fingerprint = result;
+          }
+          
+          if (fingerprint) {
+            lastSavedDataRef.current = fingerprint;
+            pendingObjRef.current = null;
+          }
+          
+          // Clear accumulated pending fields after successful save
+          const fieldsToClear = Array.from(pendingFieldsRef.current);
+          pendingFieldsRef.current.clear();
+          
+          // Notify that fields were saved (will be handled by IdentityContext via callback)
+          console.debug("[auto-save] success (service)", { userId, characterId, savedFields: fieldsToClear });
+          
+          // Call callback to notify IdentityContext that fields were saved
+          if (fieldsToClear.length > 0 && onSaveSuccessRef.current) {
+            try {
+              onSaveSuccessRef.current(fieldsToClear);
+            } catch (err) {
+              console.error("[auto-save] Error in onSaveSuccess callback:", err);
+            }
+          }
         },
         onError: (err: unknown) => {
+          // On error, reset fingerprint to allow retry
+          // BUT keep pendingFieldsRef so fields can be retried
+          const savedFingerprint = lastSavedDataRef.current;
+          lastSavedDataRef.current = null;
+          
           const maybeConflict = (err as Error & { conflict?: CharacterDocument }).conflict;
           if (maybeConflict) {
             console.warn("[auto-save] conflict (service)", maybeConflict);
           } else {
-            console.error("[auto-save] error (service)", err);
+            console.error("[auto-save] error (service)", err, { savedFingerprint, pendingFields: Array.from(pendingFieldsRef.current) });
           }
         },
       });
     } else {
       repoRef.current = null;
       autoSaveServiceRef.current = null;
+      // Reset fingerprint when no character is selected
+      lastSavedDataRef.current = null;
+      pendingObjRef.current = null;
+      pendingFieldsRef.current = new Set();
     }
 
     return () => {
@@ -99,43 +199,46 @@ export function useCharacterPersistence(
   }, [userId, characterId]);
 
   /**
-   * Cheap fingerprint for change detection (avoids expensive JSON.stringify in hot path)
-   */
-  const getCheapFingerprint = (obj: Partial<CharacterData>): string => {
-    if (!obj) return "";
-    const keys = Object.keys(obj).sort();
-    const values = keys.map((k) => {
-      const v = (obj as Record<string, unknown>)[k];
-      if (typeof v === "object" && v !== null) {
-        return `obj${Object.keys(v as Record<string, unknown>).length}`;
-      }
-      return String(v).slice(0, 10);
-    });
-    return keys.join(":") + "|" + values.join(":");
-  };
-
-  /**
    * Schedule autosave with 3-second debounce
-   * Uses cheap fingerprint for change detection (avoids JSON.stringify in hot path)
+   * Uses improved fingerprint for change detection
    */
   const scheduleAutoSave = useCallback(
     (data: Partial<CharacterData>) => {
-      if (!userId || !characterId) return;
-
-      const fingerprint = getCheapFingerprint(data);
-
-      // Skip if identical to last saved
-      if (lastSavedDataRef.current === fingerprint) {
+      if (!userId || !characterId) {
+        console.debug("[scheduleAutoSave] Skipping - no userId or characterId", { userId, characterId });
         return;
       }
 
-      // Store fingerprint for onSuccess callback
-      lastSavedDataRef.current = fingerprint;
+      const fingerprint = getCheapFingerprint(data);
+
+      // Skip if identical to last saved (only if save was successful)
+      if (lastSavedDataRef.current === fingerprint) {
+        console.debug("[scheduleAutoSave] Skipping - identical fingerprint", { fingerprint });
+        return;
+      }
+
+      // Store pending data (fingerprint will be updated in onSuccess after save completes)
       pendingObjRef.current = data;
+
+      // Accumulate fields that are being scheduled for saving
+      // This ensures we clear ALL dirtyFields even when AutoSaveService coalesces multiple saves
+      if (data.identity && typeof data.identity === "object") {
+        const identityFields = data.identity as unknown as Record<string, unknown>;
+        Object.keys(identityFields).forEach((key) => {
+          pendingFieldsRef.current.add(key);
+        });
+      }
 
       // Delegate to AutoSaveService
       if (autoSaveServiceRef.current) {
         autoSaveServiceRef.current.schedule(data);
+        console.debug("[scheduleAutoSave] Scheduled", { 
+          fingerprint, 
+          hasPending: !!pendingObjRef.current,
+          pendingFields: Array.from(pendingFieldsRef.current)
+        });
+      } else {
+        console.warn("[scheduleAutoSave] AutoSaveService not initialized", { userId, characterId });
       }
     },
     [userId, characterId],
@@ -156,11 +259,17 @@ export function useCharacterPersistence(
 
   /**
    * Carrega um personagem específico
+   * 
+   * Estratégia de carregamento:
+   * 1. Tenta carregar do localStorage para resposta instantânea
+   * 2. Se encontrar dados stale (>5s), busca dados frescos do Firebase
+   * 3. Se dados são recentes (<5s), retorna imediatamente e atualiza em background
+   * 4. Sempre garante que dados frescos sejam buscados e o estado seja atualizado
    */
   const loadCharacter = useCallback(
-    async (charId: string): Promise<CharacterDocument | null> => {
+    async (charId: string, options?: { forceFresh?: boolean }): Promise<CharacterDocument | null> => {
       if (!userId) throw new Error("Usuário não autenticado");
-      console.debug("[loadCharacter] fetching", { userId, charId });
+      console.debug("[loadCharacter] fetching", { userId, charId, forceFresh: options?.forceFresh });
 
       const perfKey = `loadCharacter:${charId}`;
       try {
@@ -169,9 +278,38 @@ export function useCharacterPersistence(
         // ignore
       }
 
-      // Fast-path: attempt to restore a previously saved full document from localStorage to avoid
-      // the initial network hit on startup. We still revalidate in background to keep it fresh.
       const localStorageKey = `midnight-current-character-doc:${charId}`;
+      const STALE_THRESHOLD_MS = 5000; // Considera stale se > 5 segundos
+
+      // Se forceFresh, pula localStorage e busca direto do Firebase
+      if (options?.forceFresh) {
+        try {
+          const fresh = await CharacterService.getCharacter(userId, charId);
+          if (fresh) {
+            try { setItemAsync(localStorageKey, fresh); } catch {}
+            try { CharacterService.seedCharacterCache(userId, charId, fresh); } catch {}
+          }
+          
+          try {
+            performance.mark(`${perfKey}-end`);
+            performance.measure(perfKey, `${perfKey}-start`, `${perfKey}-end`);
+            const m = performance.getEntriesByName(perfKey)[0];
+            if (m && m.duration > 100) console.warn(`[perf] ${perfKey} took ${Math.round(m.duration)}ms`);
+            performance.clearMarks(`${perfKey}-start`);
+            performance.clearMarks(`${perfKey}-end`);
+            performance.clearMeasures(perfKey);
+          } catch {
+            // ignore
+          }
+          
+          return fresh;
+        } catch (err) {
+          console.error("[loadCharacter] Failed to load fresh data:", err);
+          // Fall through to cached/localStorage approach
+        }
+      }
+
+      // Fast-path: attempt to restore from localStorage
       try {
         const stored = (() => {
           try {
@@ -183,38 +321,91 @@ export function useCharacterPersistence(
         })();
 
         if (stored) {
-          // seed in-memory cache so background revalidation won't immediately hit the network
+          // Check if stored data is stale by checking updatedAt timestamp
+          // Consider stale if updatedAt is more than STALE_THRESHOLD_MS ago
+          const storedUpdatedAt = stored.updatedAt instanceof Date 
+            ? stored.updatedAt.getTime() 
+            : new Date(stored.updatedAt).getTime();
+          const isStale = (Date.now() - storedUpdatedAt) > STALE_THRESHOLD_MS;
+
+          // Seed cache with stored data
           try { CharacterService.seedCharacterCache(userId, charId, stored); } catch {}
 
-          // background refresh to update local cache + localStorage
-          (async () => {
-            try {
-              const fresh = await CharacterService.getCharacterCached(userId, charId, { staleWhileRevalidate: true });
-              if (fresh) {
-                try { setItemAsync(localStorageKey, fresh); } catch {}
-              }
-            } catch {
-              // ignore background error
-            }
-          })();
+          if (isStale) {
+            // Data is stale, fetch fresh data but don't block UI
+            // Start fresh fetch immediately but return stored data
+            console.debug("[loadCharacter] Stale data detected, fetching fresh in background", { charId });
+            
+            // Fetch fresh data (non-blocking but we'll wait a bit for it)
+            const freshPromise = CharacterService.getCharacter(userId, charId).catch(() => null);
+            
+            // Wait up to 500ms for fresh data, then return stored if not ready
+            const fresh = await Promise.race([
+              freshPromise,
+              new Promise<CharacterDocument | null>((resolve) => setTimeout(() => resolve(null), 500))
+            ]);
 
-          try { console.debug(`[perf] loadCharacter:${charId} restored from localStorage`); } catch {}
+            if (fresh) {
+              // Fresh data arrived quickly, use it
+              try { setItemAsync(localStorageKey, fresh); } catch {}
+              try { CharacterService.seedCharacterCache(userId, charId, fresh); } catch {}
+              console.debug("[loadCharacter] Fresh data loaded", { charId });
+              
+              try {
+                performance.mark(`${perfKey}-end`);
+                performance.measure(perfKey, `${perfKey}-start`, `${perfKey}-end`);
+                const m = performance.getEntriesByName(perfKey)[0];
+                if (m && m.duration > 100) console.warn(`[perf] ${perfKey} took ${Math.round(m.duration)}ms`);
+                performance.clearMarks(`${perfKey}-start`);
+                performance.clearMarks(`${perfKey}-end`);
+                performance.clearMeasures(perfKey);
+              } catch {
+                // ignore
+              }
+              
+              return fresh;
+            } else {
+              // Fresh data didn't arrive in time, return stored but continue fetching
+              freshPromise.then((fresh) => {
+                if (fresh) {
+                  try { setItemAsync(localStorageKey, fresh); } catch {}
+                  try { CharacterService.seedCharacterCache(userId, charId, fresh); } catch {}
+                  console.debug("[loadCharacter] Fresh data arrived after initial load", { charId });
+                  // Note: We can't update React state here, but cache is updated for next load
+                }
+              }).catch(() => {});
+            }
+          } else {
+            // Data is fresh, return immediately and update in background
+            (async () => {
+              try {
+                const fresh = await CharacterService.getCharacterCached(userId, charId, { staleWhileRevalidate: true });
+                if (fresh) {
+                  try { setItemAsync(localStorageKey, fresh); } catch {}
+                }
+              } catch {
+                // ignore background error
+              }
+            })();
+          }
+
+          try { console.debug(`[perf] loadCharacter:${charId} restored from localStorage`, { isStale }); } catch {}
           return stored;
         }
       } catch {
         // ignore localStorage errors and fall through to network/cache
       }
 
-      // prefer cached read with SWR behavior for quick responsiveness
+      // No localStorage data, fetch from cache/network
       let res: CharacterDocument | null = null;
       try {
-        res = await CharacterService.getCharacterCached(userId, charId, { staleWhileRevalidate: true });
+        res = await CharacterService.getCharacterCached(userId, charId, { staleWhileRevalidate: false }); // Force fresh on first load
       } catch {
         // fallback to direct repo if available
         if (repoRef.current) res = await repoRef.current.getCharacter(charId);
       }
 
-      // Persist a fresh copy to localStorage for faster future restores (async)
+      // Persist a fresh copy to localStorage for faster future restores
       try {
         if (res) {
           try { setItemAsync(localStorageKey, res); } catch {}
@@ -367,6 +558,14 @@ export function useCharacterPersistence(
     };
   }, []);
 
+  /**
+   * Sets a callback to be called when auto-save succeeds
+   * Used by IdentityContext to clear dirtyFields when fields are saved
+   */
+  const setOnSaveSuccess = useCallback((callback: ((savedFields: string[]) => void) | null) => {
+    onSaveSuccessRef.current = callback;
+  }, []);
+
   return {
     createCharacter,
     loadCharacter,
@@ -378,5 +577,6 @@ export function useCharacterPersistence(
     selectCharacter,
     getLastSelectedId,
     loadLastSelected,
+    setOnSaveSuccess,
   };
 }
