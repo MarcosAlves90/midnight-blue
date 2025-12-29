@@ -412,62 +412,83 @@ export default function AccountSettingsForm() {
               Atualize sua senha e medidas de segurança
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-2">
-              <Label htmlFor="current-password">Senha Atual</Label>
-              <div className="relative">
-                <Shield className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <FormInput
-                  id="current-password"
-                  type="password"
-                  className="pl-8 pr-10"
-                  autoComplete="current-password"
-                  value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
-                />
-              </div>
-            </div>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              updatePassword();
+            }}
+            aria-label="Formulário de atualização de senha"
+          >
+            {/* Hidden/visually-hidden username field to aid password managers and accessibility */}
+            <input
+              id="account-username"
+              name="username"
+              type="text"
+              autoComplete="username"
+              value={email}
+              readOnly
+              aria-hidden="true"
+              className="sr-only"
+            />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <CardContent className="space-y-4 pb-6">
               <div className="grid gap-2">
-                <Label htmlFor="new-password">Nova Senha</Label>
-                <PasswordInput
-                  id="new-password"
-                  autoComplete="new-password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                />
+                <Label htmlFor="current-password">Senha Atual</Label>
+                <div className="relative">
+                  <Shield className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <FormInput
+                    id="current-password"
+                    type="password"
+                    className="pl-8 pr-10"
+                    autoComplete="current-password"
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="new-password">Nova Senha</Label>
+                  <PasswordInput
+                    id="new-password"
+                    autoComplete="new-password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                  />
+                </div>
+
+                <div className="grid gap-2">
+                  <Label htmlFor="confirm-password">Confirmar Nova Senha</Label>
+                  <PasswordInput
+                    id="confirm-password"
+                    autoComplete="new-password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                  />
+                </div>
               </div>
 
               <div className="grid gap-2">
-                <Label htmlFor="confirm-password">Confirmar Nova Senha</Label>
-                <PasswordInput
-                  id="confirm-password"
-                  autoComplete="new-password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                />
+                <div className="h-1 bg-border rounded-md overflow-hidden">
+                  <div
+                    style={{ width: `${(strength / 4) * 100}%` }}
+                    className={`h-1 ${strength <= 1 ? "bg-red-500" : strength === 2 ? "bg-yellow-400" : "bg-green-400"}`}
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Força: {strength}/4
+                </p>
               </div>
-            </div>
+            </CardContent>
 
-            <div className="grid gap-2">
-              <div className="h-1 bg-border rounded-md overflow-hidden">
-                <div
-                  style={{ width: `${(strength / 4) * 100}%` }}
-                  className={`h-1 ${strength <= 1 ? "bg-red-500" : strength === 2 ? "bg-yellow-400" : "bg-green-400"}`}
-                />
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Força: {strength}/4
-              </p>
-            </div>
-          </CardContent>
-          <CardFooter className="border-t px-6 py-4 flex gap-2">
-            <Button variant="outline" onClick={updatePassword}>
-              Atualizar Senha
-            </Button>
-            <Button onClick={saveProfile}>Salvar Alterações</Button>
-          </CardFooter>
+            <CardFooter className="border-t px-6 flex gap-2">
+              <Button type="submit" variant="outline">
+                Atualizar Senha
+              </Button>
+              <Button type="button" onClick={saveProfile}>Salvar Alterações</Button>
+            </CardFooter>
+          </form>
         </Card>
 
         <Card className="border-0 shadow-none">
