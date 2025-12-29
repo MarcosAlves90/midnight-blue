@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { useMemo } from "react";
+import React, { useMemo } from "react";
 
 export interface BreadcrumbItem {
   label: string;
@@ -96,6 +96,11 @@ function getRouteLabel(
 export function useBreadcrumb(config?: BreadcrumbConfig): BreadcrumbItem[] {
   const pathname = usePathname();
 
+  // Cache to return stable array references when segments haven't effectively changed
+  const prevKeyRef = React.useRef<string | null>(null);
+  const prevConfigRef = React.useRef<BreadcrumbConfig | undefined>(undefined);
+  const prevResultRef = React.useRef<BreadcrumbItem[] | null>(null);
+
   return useMemo(() => {
     // Remove barras duplas e divide o pathname em segmentos
     const segments = pathname.split("/").filter(Boolean);
@@ -105,6 +110,13 @@ export function useBreadcrumb(config?: BreadcrumbConfig): BreadcrumbItem[] {
       ? segments.filter((segment) => !config.excludeSegments!.includes(segment))
       : segments;
 
+    const key = filteredSegments.join("/");
+
+    // If key and config reference are unchanged, return the previous array reference
+    if (key === prevKeyRef.current && config === prevConfigRef.current && prevResultRef.current) {
+      return prevResultRef.current;
+    }
+
     // Se estivermos na raiz do dashboard, retorna apenas o Dashboard
     if (filteredSegments.length <= 1) {
       const homeItem = {
@@ -112,7 +124,11 @@ export function useBreadcrumb(config?: BreadcrumbConfig): BreadcrumbItem[] {
         href: "/dashboard",
         isCurrentPage: true,
       };
-      return [homeItem];
+      const res = [homeItem];
+      prevKeyRef.current = key;
+      prevConfigRef.current = config;
+      prevResultRef.current = res;
+      return res;
     }
 
     // Constrói o breadcrumb baseado nos segmentos da URL
@@ -138,6 +154,10 @@ export function useBreadcrumb(config?: BreadcrumbConfig): BreadcrumbItem[] {
         isCurrentPage,
       });
     });
+
+    prevKeyRef.current = key;
+    prevConfigRef.current = config;
+    prevResultRef.current = breadcrumbItems;
 
     return breadcrumbItems;
   }, [pathname, config]);

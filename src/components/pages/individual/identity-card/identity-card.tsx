@@ -30,11 +30,23 @@ export const IdentityCard: React.FC<IdentityCardContainerProps> = ({
 }) => {
   const isMobile = useIsMobile();
 
+  // cache bounding rect to avoid expensive getBoundingClientRect on every mousemove
+  const rectCache = React.useRef<DOMRect | null>(null);
+  const rectCacheTime = React.useRef<number>(0);
   const handleMouseMove = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
       if (isMobile || !cardRef.current) return;
 
-      const rect = cardRef.current.getBoundingClientRect();
+      const now = Date.now();
+      if (!rectCache.current || now - rectCacheTime.current > 200) {
+        // Refresh cached rect at most every 200ms or when missing
+        rectCache.current = cardRef.current.getBoundingClientRect();
+        rectCacheTime.current = now;
+      }
+
+      const rect = rectCache.current;
+      if (!rect) return;
+
       const centerX = rect.left + rect.width / 2;
       const centerY = rect.top + rect.height / 2;
 

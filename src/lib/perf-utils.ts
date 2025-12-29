@@ -21,8 +21,8 @@ export function measureAndWarn(key: string, thresholdMs = 100) {
     const entries = performance.getEntriesByName(measureName);
     const duration = entries.length ? entries[0].duration : 0;
     if (duration > thresholdMs) {
-      // friendly warning with relevant context
-      console.warn(`[perf] ${key} took ${Math.round(duration)}ms`);
+      // friendly warning with relevant context — only in development to avoid noisy logs in prod
+      if (process.env.NODE_ENV === "development") console.warn(`[perf] ${key} took ${Math.round(duration)}ms`);
     }
     // cleanup marks/measures to avoid memory growth in long-running sessions
     try {
