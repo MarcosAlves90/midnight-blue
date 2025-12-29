@@ -2,6 +2,7 @@ import React from "react";
 import { FormInput } from "@/components/ui/form-input";
 import { Tip } from "@/components/ui/tip";
 import { useFieldLocalState } from "@/hooks/use-field-local-state";
+import { useIdentityField } from "@/hooks/use-identity-field";
 import { useIdentityActions } from "@/contexts/IdentityContext";
 
 interface StatFieldProps {
@@ -26,11 +27,32 @@ export const StatField: React.FC<StatFieldProps> = ({
   required = false,
   description,
 }) => {
-  const { markFieldDirty } = useIdentityActions();
-  const { value: localValue, handleChange, handleBlur } = useFieldLocalState(value, parentOnChange, {
+  const { markFieldDirty, updateIdentity } = useIdentityActions();
+
+  // Always call the hook to satisfy rules-of-hooks; if no `fieldKey` is provided we ignore the subscribed value
+  const _subscribedValue = useIdentityField(fieldKey as keyof import("@/contexts/IdentityContext").IdentityData);
+  const extValue = fieldKey ? (_subscribedValue as unknown as string) : value;
+
+  const commit = React.useCallback((v: string) => {
+    if (fieldKey) {
+      // The typed mapping from field -> value is dynamic here; cast safely and keep the rule narrow
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      updateIdentity(fieldKey as any, v as any);
+    } else {
+      parentOnChange(v);
+    }
+  }, [fieldKey, parentOnChange, updateIdentity]);
+
+  const { value: localValue, handleChange, handleBlur } = useFieldLocalState(extValue, commit, {
     debounceMs: 300,
     fieldName: fieldKey ? String(fieldKey) : undefined,
     onDirty: () => fieldKey && markFieldDirty(String(fieldKey)),
+  });
+
+  React.useEffect(() => {
+    if (process.env.NODE_ENV === "development") {
+      console.debug(`[dev-stat-field] render ${fieldKey ?? label}`);
+    }
   });
 
   return (

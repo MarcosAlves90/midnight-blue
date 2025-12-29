@@ -64,11 +64,9 @@ function DynamicBreadcrumbInner() {
       renderCount.current += 1;
       if (renderCount.current <= 10) {
         // Log first few renders to avoid noisy console
-        // eslint-disable-next-line no-console
         console.debug(`[dev-breadcrumb] render #${renderCount.current}`);
       }
       if (renderCount.current === 10) {
-        // eslint-disable-next-line no-console
         console.debug("[dev-breadcrumb] further renders will be suppressed in logs");
       }
     }

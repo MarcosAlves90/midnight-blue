@@ -3,28 +3,26 @@ import Image from "next/image";
 import { normalizeCloudinarySrc } from "@/lib/cloudinary";
 import { Camera, Upload, ChevronUp, ChevronDown } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useIdentityActions } from "@/contexts/IdentityContext";
+import { useIdentityField } from "@/hooks/use-identity-field";
 import GlitchText from "@/components/ui/custom/glitch-text";
 
 interface ImageAreaProps {
-  profileImage?: string;
-  imagePosition?: number;
-  onPositionChange?: (position: number) => void;
   onImageUpload: () => void;
   onFileSelect: (event: React.ChangeEvent<HTMLInputElement>) => void;
   fileInputRef: React.RefObject<HTMLInputElement | null>;
-  favoriteColor: string;
 }
 
 export const ImageArea: React.FC<ImageAreaProps> = ({
-  profileImage,
-  imagePosition = 50,
-  onPositionChange,
   onImageUpload,
   onFileSelect,
   fileInputRef,
-  favoriteColor,
 }) => {
   const isMobile = useIsMobile();
+  const { updateIdentity } = useIdentityActions();
+  const profileImage = useIdentityField("profileImage");
+  const imagePosition = useIdentityField("imagePosition") ?? 50;
+  const favoriteColor = useIdentityField("favoriteColor") || "#1a1a1a";
 
   return (
     <div
@@ -73,32 +71,30 @@ export const ImageArea: React.FC<ImageAreaProps> = ({
             />
 
             {/* Position Controls */}
-            {onPositionChange && (
-              <div className="absolute right-2 top-1/2 -translate-y-1/2 flex flex-col gap-1 opacity-0 group-hover/image:opacity-100 transition-opacity z-30 hide-on-capture">
-                <div
-                  role="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onPositionChange(Math.max(0, imagePosition - 5));
-                  }}
-                  className="p-1.5 bg-black/60 hover:bg-black/80 text-white rounded-t backdrop-blur-sm transition-colors border border-white/10 hover:border-white/30"
-                  aria-label="Mover imagem para cima"
-                >
-                  <ChevronUp className="w-4 h-4" />
-                </div>
-                <div
-                  role="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onPositionChange(Math.min(100, imagePosition + 5));
-                  }}
-                  className="p-1.5 bg-black/60 hover:bg-black/80 text-white rounded-b backdrop-blur-sm transition-colors border border-white/10 hover:border-white/30 border-t-0"
-                  aria-label="Mover imagem para baixo"
-                >
-                  <ChevronDown className="w-4 h-4" />
-                </div>
+            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex flex-col gap-1 opacity-0 group-hover/image:opacity-100 transition-opacity z-30 hide-on-capture">
+              <div
+                role="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  updateIdentity("imagePosition", Math.max(0, imagePosition - 5));
+                }}
+                className="p-1.5 bg-black/60 hover:bg-black/80 text-white rounded-t backdrop-blur-sm transition-colors border border-white/10 hover:border-white/30"
+                aria-label="Mover imagem para cima"
+              >
+                <ChevronUp className="w-4 h-4" />
               </div>
-            )}
+              <div
+                role="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  updateIdentity("imagePosition", Math.min(100, imagePosition + 5));
+                }}
+                className="p-1.5 bg-black/60 hover:bg-black/80 text-white rounded-b backdrop-blur-sm transition-colors border border-white/10 hover:border-white/30 border-t-0"
+                aria-label="Mover imagem para baixo"
+              >
+                <ChevronDown className="w-4 h-4" />
+              </div>
+            </div>
           </div>
         ) : (
           <div className="flex flex-col items-center gap-2 text-muted-foreground">

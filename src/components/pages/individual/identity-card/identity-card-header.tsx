@@ -7,17 +7,14 @@ import { useGlitchColor } from "@/hooks/use-glitch-color";
 import GlitchText from "@/components/ui/custom/glitch-text";
 import { useFieldLocalState } from "@/hooks/use-field-local-state";
 import { useIdentityActions } from "@/contexts/IdentityContext";
+import { useIdentityField } from "@/hooks/use-identity-field";
 
 interface IdentityCardHeaderProps {
-  heroName: string;
-  onChange: (value: string) => void;
   favoriteColor: string;
   onSave: () => void;
 }
 
 export const IdentityCardHeader: React.FC<IdentityCardHeaderProps> = ({
-  heroName,
-  onChange: parentOnChange,
   favoriteColor,
   onSave,
 }) => {
@@ -30,8 +27,9 @@ export const IdentityCardHeader: React.FC<IdentityCardHeaderProps> = ({
     intervalMs: 250,
   });
 
-  const { markFieldDirty } = useIdentityActions();
-  const { value, handleChange, handleBlur } = useFieldLocalState(heroName, parentOnChange, { debounceMs: 300, fieldName: "heroName", onDirty: () => markFieldDirty("heroName") });
+  const { markFieldDirty, updateIdentity } = useIdentityActions();
+  const ext = useIdentityField("heroName");
+  const { value, handleChange, handleBlur } = useFieldLocalState(ext, (v: string) => updateIdentity("heroName", v), { debounceMs: 300, fieldName: "heroName", onDirty: () => markFieldDirty("heroName") });
 
   return (
     <div

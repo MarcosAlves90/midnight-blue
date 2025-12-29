@@ -1,5 +1,5 @@
 import { useCharacter } from "@/contexts/CharacterContext";
-import { useIdentityContext } from "@/contexts/IdentityContext";
+import { useIdentityActions } from "@/contexts/IdentityContext";
 import { useEffect, useState } from "react";
 import type { CharacterDocument } from "@/lib/character-service";
 
@@ -9,7 +9,7 @@ import type { CharacterDocument } from "@/lib/character-service";
  */
 export function useSelectedCharacter() {
   const { selectedCharacter } = useCharacter();
-  const { setCurrentCharacterId } = useIdentityContext();
+  const { setCurrentCharacterId } = useIdentityActions();
 
   const [character, setCharacter] = useState<CharacterDocument | null>(selectedCharacter);
   const [isLoading, setIsLoading] = useState(!selectedCharacter);

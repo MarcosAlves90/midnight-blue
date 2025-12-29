@@ -1,18 +1,13 @@
 import React, { useCallback } from "react";
-import { IdentityData } from "@/contexts/IdentityContext";
 import { ROTATION_MULTIPLIER, SCALE_MULTIPLIER } from "../constants";
 import { IdentityCardHeader } from "./identity-card-header";
 import { ImageArea } from "./image-area";
 import { IdentityCardContent } from "./identity-card-content";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useIdentityField } from "@/hooks/use-identity-field";
 
 interface IdentityCardContainerProps {
-  identity: IdentityData;
   cardRef: React.RefObject<HTMLDivElement | null>;
-  onFieldChange: <K extends keyof IdentityData>(
-    field: K,
-    value: IdentityData[K],
-  ) => void;
   fileInputRef: React.RefObject<HTMLInputElement | null>;
   onImageUpload: () => void;
   onFileSelect: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -20,9 +15,7 @@ interface IdentityCardContainerProps {
 }
 
 export const IdentityCard: React.FC<IdentityCardContainerProps> = ({
-  identity,
   cardRef,
-  onFieldChange,
   fileInputRef,
   onImageUpload,
   onFileSelect,
@@ -77,6 +70,8 @@ export const IdentityCard: React.FC<IdentityCardContainerProps> = ({
     });
   }, [isMobile, cardRef]);
 
+  const favoriteColor = useIdentityField("favoriteColor") || "#1a1a1a";
+
   const boxShadow = isMobile
     ? "0 4px 8px rgba(0, 0, 0, 0.2)"
     : "0 10px 20px rgba(0, 0, 0, 0.4)";
@@ -105,7 +100,7 @@ export const IdentityCard: React.FC<IdentityCardContainerProps> = ({
         <div
           className={`${isMobile ? "p-0.5 shadow-lg" : "p-0.5 shadow-2xl"} relative group`}
           style={{
-            backgroundColor: `var(--identity-theme-color, ${identity.favoriteColor || "#1a1a1a"})`,
+            backgroundColor: `var(--identity-theme-color, ${favoriteColor})`,
             boxShadow: isMobile ? "0 8px 16px rgba(0, 0, 0, 0.3)" : boxShadow,
           }}
         >
@@ -117,20 +112,14 @@ export const IdentityCard: React.FC<IdentityCardContainerProps> = ({
             }}
           >
             <IdentityCardHeader
-              heroName={identity.heroName}
-              onChange={(v) => onFieldChange("heroName", v)}
-              favoriteColor={identity.favoriteColor}
+              favoriteColor={favoriteColor}
               onSave={onSave}
             />
 
             <ImageArea
-              profileImage={identity.profileImage}
-              imagePosition={identity.imagePosition}
-              onPositionChange={(val) => onFieldChange("imagePosition", val)}
               onImageUpload={onImageUpload}
               onFileSelect={onFileSelect}
               fileInputRef={fileInputRef}
-              favoriteColor={identity.favoriteColor}
             />
 
             {/* Terminal Separator Line */}
@@ -150,11 +139,7 @@ export const IdentityCard: React.FC<IdentityCardContainerProps> = ({
               </span>
             </div>
 
-            <IdentityCardContent
-              civilName={identity.name}
-              onChange={(v) => onFieldChange("name", v)}
-              favoriteColor={identity.favoriteColor}
-            />
+            <IdentityCardContent favoriteColor={favoriteColor} />
           </div>
         </div>
       </div>

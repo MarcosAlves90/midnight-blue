@@ -134,7 +134,6 @@ export const IdentityProvider: React.FC<{ children: React.ReactNode }> = ({
 
   // Conflict state (when a save conflicts with server and couldn't be auto-resolved)
   const [conflict, setConflict] = useState<null | { server: import("@/lib/character-service").CharacterDocument; attempted: Partial<import("@/lib/character-service").CharacterData> }>(null);
-  const [, setConflictModalOpen] = useState(false);
 
   const { user } = useAuth();
   const {
@@ -237,7 +236,7 @@ export const IdentityProvider: React.FC<{ children: React.ReactNode }> = ({
       setDirtyFields(new Set());
 
       // also notify all subscribers (character swapped)
-      for (const [field, set] of fieldSubscribersRef.current.entries()) {
+      for (const set of fieldSubscribersRef.current.values()) {
         set.forEach((cb) => cb());
       }
 
@@ -246,9 +245,11 @@ export const IdentityProvider: React.FC<{ children: React.ReactNode }> = ({
 
     // Determine changed fields and notify only them
     const changedFields: string[] = [];
+    const prevRec = prev as unknown as Record<string, unknown>;
+    const nextRec = identity as unknown as Record<string, unknown>;
     for (const key of Object.keys(identity) as Array<keyof IdentityData>) {
-      const prevVal = (prev as any)[key];
-      const nextVal = (identity as any)[key];
+      const prevVal = prevRec[String(key)];
+      const nextVal = nextRec[String(key)];
       // shallow or deep equality where necessary
       if (prevVal !== nextVal) {
         changedFields.push(String(key));
@@ -368,8 +369,6 @@ export const IdentityProvider: React.FC<{ children: React.ReactNode }> = ({
     setConflictModalOpen(false);
   }, [conflict]);
 
-  const openConflictModal = useCallback(() => setConflictModalOpen(true), []);
-  const closeConflictModal = useCallback(() => setConflictModalOpen(false), []);
 
   const setCurrentCharacterId = useCallback((id: string | null) => {
     setCurrentCharacterIdState(id);
@@ -414,8 +413,6 @@ export const IdentityProvider: React.FC<{ children: React.ReactNode }> = ({
       conflict,
       resolveKeepLocal,
       resolveUseServer,
-      openConflictModal,
-      closeConflictModal,
       // subscription APIs
       subscribeToField,
       getField,
@@ -434,8 +431,6 @@ export const IdentityProvider: React.FC<{ children: React.ReactNode }> = ({
       conflict,
       resolveKeepLocal,
       resolveUseServer,
-      openConflictModal,
-      closeConflictModal,
       subscribeToField,
       getField,
     ],
@@ -452,8 +447,6 @@ export const IdentityProvider: React.FC<{ children: React.ReactNode }> = ({
     markFieldsSaved,
     resolveKeepLocal,
     resolveUseServer,
-    openConflictModal,
-    closeConflictModal,
     subscribeToField,
     getField,
   };

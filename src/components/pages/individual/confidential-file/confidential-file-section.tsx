@@ -9,11 +9,8 @@ import { useIdentityField } from "@/hooks/use-identity-field";
 
 // Component now reads individual fields via subscription hooks to avoid re-renders from unrelated identity changes
 function ConfidentialFileSectionInner() {
-  const { markFieldDirty, updateIdentity } = useIdentityActions();
-
   React.useEffect(() => {
     if (process.env.NODE_ENV === "development") {
-      // eslint-disable-next-line no-console
       console.debug("[dev-confidential-file] render");
     }
   });
@@ -26,7 +23,6 @@ function ConfidentialFileSectionInner() {
       const { value, handleChange, handleBlur } = useFieldLocalState(ext, (v: string) => updateIdentity("groupAffiliation", v), { debounceMs: 300, fieldName: "groupAffiliation", onDirty: () => markFieldDirty("groupAffiliation") });
 
       if (process.env.NODE_ENV === "development") {
-        // eslint-disable-next-line no-console
         console.debug("[dev-confidential-file] GroupField render");
       }
 
@@ -72,7 +68,6 @@ function ConfidentialFileSectionInner() {
       const { value, handleChange, handleBlur } = useFieldLocalState(ext, (v: string) => updateIdentity("baseOfOperations", v), { debounceMs: 300, fieldName: "baseOfOperations", onDirty: () => markFieldDirty("baseOfOperations") });
 
       if (process.env.NODE_ENV === "development") {
-        // eslint-disable-next-line no-console
         console.debug("[dev-confidential-file] BaseField render");
       }
 
@@ -118,7 +113,6 @@ function ConfidentialFileSectionInner() {
       const { value, handleChange, handleBlur } = useFieldLocalState(ext, (v: string) => updateIdentity("powerOrigin", v), { debounceMs: 300, fieldName: "powerOrigin", onDirty: () => markFieldDirty("powerOrigin") });
 
       if (process.env.NODE_ENV === "development") {
-        // eslint-disable-next-line no-console
         console.debug("[dev-confidential-file] OriginField render");
       }
 
@@ -164,7 +158,6 @@ function ConfidentialFileSectionInner() {
       const { value, handleChange, handleBlur } = useFieldLocalState(ext, (v: string) => updateIdentity("motivation", v), { debounceMs: 300, fieldName: "motivation", onDirty: () => markFieldDirty("motivation") });
 
       if (process.env.NODE_ENV === "development") {
-        // eslint-disable-next-line no-console
         console.debug("[dev-confidential-file] MotivationField render");
       }
 

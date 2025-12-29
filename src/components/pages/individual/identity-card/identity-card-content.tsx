@@ -5,17 +5,14 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useGlitchColor } from "@/hooks/use-glitch-color";
 import GlitchText from "@/components/ui/custom/glitch-text";
 import { useFieldLocalState } from "@/hooks/use-field-local-state";
+import { useIdentityField } from "@/hooks/use-identity-field";
 import { useIdentityActions } from "@/contexts/IdentityContext";
 
 interface IdentityCardContentProps {
-  civilName: string;
-  onChange: (value: string) => void;
   favoriteColor: string;
 }
 
 export const IdentityCardContent: React.FC<IdentityCardContentProps> = ({
-  civilName,
-  onChange: parentOnChange,
   favoriteColor,
 }) => {
   const isMobile = useIsMobile();
@@ -27,8 +24,9 @@ export const IdentityCardContent: React.FC<IdentityCardContentProps> = ({
     intervalMs: 250,
   });
 
-  const { markFieldDirty } = useIdentityActions();
-  const { value, handleChange, handleBlur } = useFieldLocalState(civilName, parentOnChange, { debounceMs: 300, fieldName: "name", onDirty: () => markFieldDirty("name") });
+  const { markFieldDirty, updateIdentity } = useIdentityActions();
+  const ext = useIdentityField("name");
+  const { value, handleChange, handleBlur } = useFieldLocalState(ext, (v: string) => updateIdentity("name", v), { debounceMs: 300, fieldName: "name", onDirty: () => markFieldDirty("name") });
 
   return (
     <div

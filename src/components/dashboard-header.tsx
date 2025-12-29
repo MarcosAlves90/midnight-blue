@@ -12,11 +12,9 @@ export const DashboardHeader = React.memo(function DashboardHeader() {
     if (process.env.NODE_ENV === "development") {
       renderRef.current += 1;
       if (renderRef.current <= 10) {
-        // eslint-disable-next-line no-console
         console.debug(`[dev-dashboard-header] render #${renderRef.current}`);
       }
       if (renderRef.current === 10) {
-        // eslint-disable-next-line no-console
         console.debug("[dev-dashboard-header] further renders will be suppressed in logs");
       }
     }

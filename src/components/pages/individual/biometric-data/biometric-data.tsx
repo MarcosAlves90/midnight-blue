@@ -8,18 +8,11 @@ import {
   Eye,
   Scissors,
 } from "lucide-react";
-import { IdentityData } from "@/contexts/IdentityContext";
 import { StatField } from "./stat-field";
 
-interface BiometricDataSectionProps {
-  identity: IdentityData;
-  onFieldChange: (field: keyof IdentityData, value: string) => void;
-}
-
-function BiometricDataInner({ identity, onFieldChange }: BiometricDataSectionProps) {
+function BiometricDataInner() {
   React.useEffect(() => {
     if (process.env.NODE_ENV === "development") {
-      // eslint-disable-next-line no-console
       console.debug("[dev-biometric-data] render");
     }
   });
@@ -38,8 +31,6 @@ function BiometricDataInner({ identity, onFieldChange }: BiometricDataSectionPro
           icon={<User className="w-3 h-3" aria-hidden="true" />}
           label="Gênero"
           fieldKey="gender"
-          value={identity.gender}
-          onChange={(v) => onFieldChange("gender", v)}
           placeholder="Ex: Masculino"
           description="O gênero do personagem (Masculino, Feminino, Não-binário, etc)."
         />
@@ -47,8 +38,6 @@ function BiometricDataInner({ identity, onFieldChange }: BiometricDataSectionPro
           icon={<Calendar className="w-3 h-3" aria-hidden="true" />}
           label="Idade"
           fieldKey="age"
-          value={identity.age}
-          onChange={(v) => onFieldChange("age", v)}
           placeholder="Ex: 25"
           description="A idade cronológica ou aparente do personagem."
         />
@@ -56,8 +45,6 @@ function BiometricDataInner({ identity, onFieldChange }: BiometricDataSectionPro
           icon={<Ruler className="w-3 h-3" aria-hidden="true" />}
           label="Altura"
           fieldKey="height"
-          value={identity.height}
-          onChange={(v) => onFieldChange("height", v)}
           placeholder="Ex: 1.80m"
           description="A altura do personagem em metros ou pés."
         />
@@ -65,8 +52,6 @@ function BiometricDataInner({ identity, onFieldChange }: BiometricDataSectionPro
           icon={<Weight className="w-3 h-3" aria-hidden="true" />}
           label="Peso"
           fieldKey="weight"
-          value={identity.weight}
-          onChange={(v) => onFieldChange("weight", v)}
           placeholder="Ex: 75kg"
           description="O peso do personagem em quilogramas ou libras."
         />
@@ -74,8 +59,6 @@ function BiometricDataInner({ identity, onFieldChange }: BiometricDataSectionPro
           icon={<Eye className="w-3 h-3" aria-hidden="true" />}
           label="Olhos"
           fieldKey="eyes"
-          value={identity.eyes}
-          onChange={(v) => onFieldChange("eyes", v)}
           placeholder="Ex: Castanhos"
           description="A cor dos olhos do personagem."
         />
@@ -83,8 +66,6 @@ function BiometricDataInner({ identity, onFieldChange }: BiometricDataSectionPro
           icon={<Scissors className="w-3 h-3" aria-hidden="true" />}
           label="Cabelo"
           fieldKey="hair"
-          value={identity.hair}
-          onChange={(v) => onFieldChange("hair", v)}
           placeholder="Ex: Preto"
           description="A cor e estilo do cabelo do personagem."
         />
@@ -93,14 +74,4 @@ function BiometricDataInner({ identity, onFieldChange }: BiometricDataSectionPro
   );
 }
 
-export const BiometricData = React.memo(
-  BiometricDataInner,
-  (prev, next) =>
-    prev.identity.gender === next.identity.gender &&
-    prev.identity.age === next.identity.age &&
-    prev.identity.height === next.identity.height &&
-    prev.identity.weight === next.identity.weight &&
-    prev.identity.eyes === next.identity.eyes &&
-    prev.identity.hair === next.identity.hair &&
-    prev.onFieldChange === next.onFieldChange
-);
+export const BiometricData = React.memo(BiometricDataInner);

@@ -1,24 +1,18 @@
 import React from "react";
 import { BookOpen } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
-import { IdentityData, useIdentityActions } from "@/contexts/IdentityContext";
+import { useIdentityActions } from "@/contexts/IdentityContext";
 import { useFieldLocalState } from "@/hooks/use-field-local-state";
+import { useIdentityField } from "@/hooks/use-identity-field";
 
-interface HistorySectionProps {
-  identity: IdentityData;
-  onFieldChange: <K extends keyof IdentityData>(
-    field: K,
-    value: IdentityData[K],
-  ) => void;
-}
-
-function HistorySectionInner({ identity, onFieldChange }: HistorySectionProps) {
-  const { markFieldDirty } = useIdentityActions();
-  const { value, handleChange, handleBlur } = useFieldLocalState(identity.history || "", (v: string) => onFieldChange("history", v), { debounceMs: 300, fieldName: "history", onDirty: () => markFieldDirty("history") });
+function HistorySectionInner() {
+  const { markFieldDirty, updateIdentity } = useIdentityActions();
+  const ext = useIdentityField("history");
+  const { value, handleChange, handleBlur } = useFieldLocalState(ext || "", (v: string) => updateIdentity("history", v), { debounceMs: 300, fieldName: "history", onDirty: () => markFieldDirty("history") });
 
   React.useEffect(() => {
     if (process.env.NODE_ENV === "development") {
-      // eslint-disable-next-line no-console
+
       console.debug("[dev-history-section] render");
     }
   });
@@ -48,7 +42,4 @@ function HistorySectionInner({ identity, onFieldChange }: HistorySectionProps) {
   );
 }
 
-export const HistorySection = React.memo(
-  HistorySectionInner,
-  (prev, next) => prev.identity.history === next.identity.history && prev.onFieldChange === next.onFieldChange
-);
+export const HistorySection = React.memo(HistorySectionInner);

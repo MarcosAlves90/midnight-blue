@@ -11,7 +11,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { FormInput } from "@/components/ui/form-input";
 import { Tip } from "@/components/ui/tip";
-import { IdentityData, Complication } from "@/contexts/IdentityContext";
+import { Complication, useIdentityActions } from "@/contexts/IdentityContext";
+import { useIdentityField } from "@/hooks/use-identity-field";
 import { cn } from "@/lib/utils";
 
 const COMPLICATION_TYPES = [
@@ -89,25 +90,15 @@ const COMPLICATION_PLACEHOLDERS: Record<string, string> = {
   Vício: "Do que o herói depende física ou psicologicamente?",
 };
 
-interface ComplicationsSectionProps {
-  identity: IdentityData;
-  onFieldChange: <K extends keyof IdentityData>(
-    field: K,
-    value: IdentityData[K],
-  ) => void;
-}
-
-export const ComplicationsSectionInner: React.FC<ComplicationsSectionProps> = ({
-  identity,
-  onFieldChange,
-}) => {
+export const ComplicationsSectionInner: React.FC = () => {
+  const { updateIdentity } = useIdentityActions();
+  const complications = useIdentityField("complications") || [];
   const [selectedType, setSelectedType] = useState(COMPLICATION_TYPES[0]);
   const [description, setDescription] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
 
   React.useEffect(() => {
     if (process.env.NODE_ENV === "development") {
-      // eslint-disable-next-line no-console
       console.debug("[dev-complications] render");
     }
   });
@@ -115,7 +106,7 @@ export const ComplicationsSectionInner: React.FC<ComplicationsSectionProps> = ({
   const handleAddOrUpdate = () => {
     if (!description.trim()) return;
 
-    let updatedComplications = [...(identity.complications || [])];
+    let updatedComplications = [...(complications || [])];
 
     if (editingId) {
       updatedComplications = updatedComplications.map((comp) =>
@@ -133,7 +124,7 @@ export const ComplicationsSectionInner: React.FC<ComplicationsSectionProps> = ({
       updatedComplications.push(newComplication);
     }
 
-    onFieldChange("complications", updatedComplications);
+    writeComplications(updatedComplications);
     setDescription("");
     setSelectedType(COMPLICATION_TYPES[0]);
   };
@@ -150,18 +141,19 @@ export const ComplicationsSectionInner: React.FC<ComplicationsSectionProps> = ({
     setSelectedType(COMPLICATION_TYPES[0]);
   };
 
+  const writeComplications = (next: Complication[]) => updateIdentity("complications", next);
+
   const handleRemove = (id: string) => {
-    const updatedComplications = (identity.complications || []).filter(
+    const updatedComplications = (complications || []).filter(
       (c) => c.id !== id,
     );
-    onFieldChange("complications", updatedComplications);
+    writeComplications(updatedComplications);
 
     if (editingId === id) {
       handleCancelEdit();
     }
   };
 
-  const complications = identity.complications || [];
   const hasMotivation = complications.some((c) =>
     c.name.startsWith("Motivação"),
   );
@@ -345,7 +337,4 @@ export const ComplicationsSectionInner: React.FC<ComplicationsSectionProps> = ({
   );
 }
 
-export const ComplicationsSection = React.memo(
-  ComplicationsSectionInner,
-  (prev, next) => prev.identity.complications === next.identity.complications && prev.onFieldChange === next.onFieldChange
-);
+export const ComplicationsSection = React.memo(ComplicationsSectionInner);

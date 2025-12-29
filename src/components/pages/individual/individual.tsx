@@ -7,7 +7,6 @@ import { useAvatarUpload } from "@/hooks/use-avatar-upload";
 import { useSelectedCharacter } from "@/hooks/use-selected-character";
 import { IdentityCard } from "@/components/pages/individual/identity-card";
 import { ConflictBanner } from "@/components/ui/conflict-banner";
-import { ConflictModal } from "@/components/ui/conflict-modal";
 import { BiometricDataLazy, PersonalDataLazy, ConfidentialFileLazy, HistoryLazy, ComplicationsLazy } from "@/components/pages/individual/lazy-sections";
 import { deepEqual } from "@/lib/deep-equal";
 import { NoCharacterSelected } from "@/components/config/character";
@@ -92,12 +91,7 @@ export default function Individual() {
     });
   }, [character?.id, character?.identity, setCurrentCharacterId, setIdentity, dirtyFields]);
 
-  const handleChange = useCallback(
-    <K extends keyof IdentityData>(field: K, value: IdentityData[K]) => {
-      updateIdentity(field, value);
-    },
-    [updateIdentity],
-  );
+
 
   const { uploadAvatar } = useAvatarUpload();
 
@@ -166,16 +160,13 @@ export default function Individual() {
       <div className="mb-4">
         {/* Conflict UI */}
         <ConflictBanner />
-        <ConflictModal />
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
         <div className="xl:col-span-3">
           <div className="sticky top-6">
             <IdentityCard
-              identity={identity}
               cardRef={cardRef}
-              onFieldChange={handleChange}
               fileInputRef={fileInputRef}
               onImageUpload={triggerImageUpload}
               onFileSelect={handleImageUpload}
@@ -187,14 +178,8 @@ export default function Individual() {
         <div className="xl:col-span-9 space-y-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <div className="space-y-4">
-              <BiometricDataLazy
-                identity={identity}
-                onFieldChange={handleChange}
-              />
-              <PersonalDataLazy
-                identity={identity}
-                onFieldChange={handleChange}
-              />
+              <BiometricDataLazy />
+              <PersonalDataLazy />
             </div>
 
             <div className="space-y-4">
@@ -205,11 +190,8 @@ export default function Individual() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
-        <ComplicationsLazy
-          identity={identity}
-          onFieldChange={handleChange}
-        />
-        <HistoryLazy identity={identity} onFieldChange={handleChange} />
+        <ComplicationsLazy />
+        <HistoryLazy />
       </div>
     </div>
   );
