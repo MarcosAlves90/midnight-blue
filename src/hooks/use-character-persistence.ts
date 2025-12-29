@@ -13,6 +13,7 @@ import { AutoSaveService } from "@/services/auto-save-simple";
 import { backgroundPersistence } from "@/services/background-persistence";
 import * as CharacterService from "@/lib/character-service";
 import { setItemAsync } from "@/lib/local-storage-async";
+import { measureAndWarn } from "@/lib/perf-utils";
 import type { UpdateResult } from "@/lib/character-service";
 
 export function useCharacterPersistence(
@@ -40,25 +41,42 @@ export function useCharacterPersistence(
    * Must be defined before useEffect to be accessible
    */
   const getCheapFingerprint = (obj: Partial<CharacterData>): string => {
+    // Create a deterministic, sorted serialization of the object and then a
+    // fast non-crypto hash. This avoids collisions when values share the same
+    // prefix (previously we only sliced the first 20 chars which caused false
+    // identical fingerprints when users edited beyond that slice).
     if (!obj) return "";
-    const keys = Object.keys(obj).sort();
-    const values = keys.map((k) => {
-      const v = (obj as Record<string, unknown>)[k];
-      if (typeof v === "object" && v !== null) {
-        // For nested objects, include both key count and a hash of values
-        const nested = v as Record<string, unknown>;
-        const nestedKeys = Object.keys(nested).sort();
-        const nestedValues = nestedKeys.map((nk) => {
-          const nv = nested[nk];
-          return typeof nv === "object" && nv !== null 
-            ? `obj${Object.keys(nv as Record<string, unknown>).length}`
-            : String(nv).slice(0, 20);
+
+    const normalize = (x: unknown): unknown => {
+      if (x === null || typeof x !== "object") return x;
+      if (Array.isArray(x)) return x.map(normalize);
+      const out: Record<string, unknown> = {};
+      Object.keys(x as Record<string, unknown>)
+        .sort()
+        .forEach((k) => {
+          out[k] = normalize((x as Record<string, unknown>)[k]);
         });
-        return `obj${nestedKeys.length}:${nestedValues.join(",")}`;
-      }
-      return String(v).slice(0, 20);
-    });
-    return keys.join(":") + "|" + values.join(":");
+      return out;
+    };
+
+    let str: string;
+    try {
+      str = JSON.stringify(normalize(obj));
+    } catch {
+      // Fall back to a simple join in pathological cases
+      const keys = Object.keys(obj).sort();
+      str = keys.map((k) => `${k}:${String((obj as Record<string, unknown>)[k])}`).join("|");
+    }
+
+    // FNV-1a 32-bit hash (fast, low-collision for small inputs)
+    let h = 2166136261;
+    for (let i = 0; i < str.length; i++) {
+      h = Math.imul(h ^ str.charCodeAt(i), 16777619);
+    }
+    const hash = (h >>> 0).toString(36);
+
+    // Include length to reduce collision chance even further
+    return `${hash}:${str.length}`;
   };
 
   useEffect(() => {
@@ -289,13 +307,7 @@ export function useCharacterPersistence(
           }
           
           try {
-            performance.mark(`${perfKey}-end`);
-            performance.measure(perfKey, `${perfKey}-start`, `${perfKey}-end`);
-            const m = performance.getEntriesByName(perfKey)[0];
-            if (m && m.duration > 100) console.warn(`[perf] ${perfKey} took ${Math.round(m.duration)}ms`);
-            performance.clearMarks(`${perfKey}-start`);
-            performance.clearMarks(`${perfKey}-end`);
-            performance.clearMeasures(perfKey);
+            measureAndWarn(perfKey, 100);
           } catch {
             // ignore
           }
@@ -350,13 +362,7 @@ export function useCharacterPersistence(
               console.debug("[loadCharacter] Fresh data loaded", { charId });
               
               try {
-                performance.mark(`${perfKey}-end`);
-                performance.measure(perfKey, `${perfKey}-start`, `${perfKey}-end`);
-                const m = performance.getEntriesByName(perfKey)[0];
-                if (m && m.duration > 100) console.warn(`[perf] ${perfKey} took ${Math.round(m.duration)}ms`);
-                performance.clearMarks(`${perfKey}-start`);
-                performance.clearMarks(`${perfKey}-end`);
-                performance.clearMeasures(perfKey);
+                measureAndWarn(perfKey, 100);
               } catch {
                 // ignore
               }
@@ -387,7 +393,7 @@ export function useCharacterPersistence(
             })();
           }
 
-          try { console.debug(`[perf] loadCharacter:${charId} restored from localStorage`, { isStale }); } catch {}
+          try { console.debug("[loadCharacter] restored from localStorage", { isStale }); } catch {}
           return stored;
         }
       } catch {
@@ -413,13 +419,7 @@ export function useCharacterPersistence(
       }
 
       try {
-        performance.mark(`${perfKey}-end`);
-        performance.measure(perfKey, `${perfKey}-start`, `${perfKey}-end`);
-        const m = performance.getEntriesByName(perfKey)[0];
-        if (m && m.duration > 100) console.warn(`[perf] ${perfKey} took ${Math.round(m.duration)}ms`);
-        performance.clearMarks(`${perfKey}-start`);
-        performance.clearMarks(`${perfKey}-end`);
-        performance.clearMeasures(perfKey);
+        measureAndWarn(perfKey, 100);
       } catch {
         // ignore
       }
