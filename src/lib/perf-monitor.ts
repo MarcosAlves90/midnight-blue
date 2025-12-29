@@ -9,10 +9,23 @@ export function startDevLongTaskMonitor() {
       const entries = list.getEntries();
       for (const entry of entries) {
         try {
-          const e = entry as PerformanceEntry & { duration?: number; name?: string };
+          const e = entry as PerformanceEntry & { duration?: number; name?: string; attribution?: unknown };
           const duration = e.duration ?? 0;
+
+          // Include attribution details when available to help identify origin
+          let info = `${e.name ?? "task"}`;
+          try {
+            // Some browsers provide attribution array with details
+            const anyEntry = entry as unknown as { attribution?: unknown };
+            if (anyEntry.attribution) {
+              info += ` | attribution=${JSON.stringify(anyEntry.attribution)}`;
+            }
+          } catch {
+            // ignore
+          }
+
           if (duration > 50) {
-            console.warn(`[longtask] ${Math.round(duration)}ms — ${e.name ?? "task"}`);
+            console.warn(`[longtask] ${Math.round(duration)}ms — ${info}`);
           }
         } catch {
           // ignore

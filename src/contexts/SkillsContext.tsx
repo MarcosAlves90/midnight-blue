@@ -51,10 +51,10 @@ export const SkillsProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, []);
 
-  // Persist to localStorage
+  // Persist to localStorage (async/idle to avoid blocking)
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(skills));
+      import("@/lib/local-storage-async").then((m) => m.setItemAsync(STORAGE_KEY, skills)).catch(() => {});
     } catch {
       // ignore errors
     }

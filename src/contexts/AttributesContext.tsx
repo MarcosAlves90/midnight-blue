@@ -45,10 +45,10 @@ export const AttributesProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, []);
 
-  // Persist changes to localStorage
+  // Persist changes to localStorage (async/idle to avoid blocking)
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(attributes));
+      import("@/lib/local-storage-async").then((m) => m.setItemAsync(STORAGE_KEY, attributes)).catch(() => {});
     } catch {
       // ignore quota/permission errors
     }

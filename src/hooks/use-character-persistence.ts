@@ -1,4 +1,4 @@
-import { useCallback, useRef, useEffect, useState } from "react";
+import { useCallback, useRef, useEffect } from "react";
 import {
   setLastSelectedCharacter,
   getLastSelectedCharacterId,
@@ -9,23 +9,19 @@ import {
   type CharacterData,
 } from "@/lib/character-service";
 import { FirebaseCharacterRepository } from "@/services/repository/character-repo";
-import { AutoSaveService } from "@/services/auto-save";
+import { AutoSaveService } from "@/services/auto-save-simple";
 import { backgroundPersistence } from "@/services/background-persistence";
 import * as CharacterService from "@/lib/character-service";
+import { setItemAsync } from "@/lib/local-storage-async";
 import type { UpdateResult } from "@/lib/character-service";
 
 export function useCharacterPersistence(
   userId: string | null,
   characterId?: string,
 ) {
-  const autoSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  // Store last saved snapshot as serialized string to avoid repeated stringify costs
+  // Store last saved fingerprint to avoid repeated stringify costs
   const lastSavedDataRef = useRef<string | null>(null);
-  // Track in-flight save and queued pending save to avoid concurrent writes
-  const inFlightRef = useRef<boolean>(false);
-  const pendingSerializedRef = useRef<string | null>(null);
   const pendingObjRef = useRef<Partial<CharacterData> | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
 
   // Repository + AutoSaveService instances (per hook instance)
   const repoRef = useRef<FirebaseCharacterRepository | null>(null);
@@ -41,11 +37,19 @@ export function useCharacterPersistence(
 
         // The task will call updateCharacter; if it returns a conflict result we throw so AutoSaveService can handle conflict flow.
         const res = await backgroundPersistence.enqueue(characterId, async () => {
+          // Prefer lightweight patch for autosave to avoid transaction overhead
+          if (repoRef.current && typeof repoRef.current.patchCharacter === "function") {
+            await repoRef.current.patchCharacter(characterId, data as Partial<CharacterData>);
+            return { success: true } as const;
+          }
+
+          // fallback to full update if patch not available
           return repoRef.current!.updateCharacter(characterId, data as Partial<CharacterData>);
         }, {
           priority: 5,
           maxRetries: 3,
           initialBackoffMs: 400,
+          coalesceKey: "autosave-patch",
           shouldRetry: (err: unknown) => {
             // If err contains a conflict result (handled by updateCharacter returning { success: false }), we should NOT retry
             if (!err || typeof err !== "object") return true;
@@ -71,11 +75,11 @@ export function useCharacterPersistence(
         }
       }, {
         debounceMs: 3000,
-        onSchedule: () => console.debug("[auto-save] scheduled (service)", { userId, characterId }),
-        onExecute: () => console.debug("[auto-save] executing (service)", { userId, characterId }),
-        onSuccess: () => console.debug("[auto-save] success (service)", { userId, characterId }),
+        onSuccess: () => {
+          // Fingerprint is already updated in scheduleAutoSave
+          console.debug("[auto-save] success (service)", { userId, characterId });
+        },
         onError: (err: unknown) => {
-          // detect conflict and surface it for higher-level handling
           const maybeConflict = (err as Error & { conflict?: CharacterDocument }).conflict;
           if (maybeConflict) {
             console.warn("[auto-save] conflict (service)", maybeConflict);
@@ -95,100 +99,44 @@ export function useCharacterPersistence(
   }, [userId, characterId]);
 
   /**
-   * Inicia auto-save do personagem com debounce de 3 segundos
-   * OTIMIZADO: Não envia dados idênticos (change detection)
+   * Cheap fingerprint for change detection (avoids expensive JSON.stringify in hot path)
+   */
+  const getCheapFingerprint = (obj: Partial<CharacterData>): string => {
+    if (!obj) return "";
+    const keys = Object.keys(obj).sort();
+    const values = keys.map((k) => {
+      const v = (obj as Record<string, unknown>)[k];
+      if (typeof v === "object" && v !== null) {
+        return `obj${Object.keys(v as Record<string, unknown>).length}`;
+      }
+      return String(v).slice(0, 10);
+    });
+    return keys.join(":") + "|" + values.join(":");
+  };
+
+  /**
+   * Schedule autosave with 3-second debounce
+   * Uses cheap fingerprint for change detection (avoids JSON.stringify in hot path)
    */
   const scheduleAutoSave = useCallback(
-    (data: Partial<CharacterData>, onSaved?: () => void, onConflict?: (conflict: import("@/lib/character-service").CharacterDocument, attempted: Partial<CharacterData>) => Promise<{ action: "retry" } | { action: "retryWith"; data: Partial<CharacterData> } | { action: "abort" }>) => {
+    (data: Partial<CharacterData>) => {
       if (!userId || !characterId) return;
 
-      const serialized = JSON.stringify(data);
+      const fingerprint = getCheapFingerprint(data);
 
-      // If nothing changed since last successful save and no pending different change, skip
-      if (!inFlightRef.current && lastSavedDataRef.current === serialized) {
-        console.debug("[auto-save] skip - data identical to last saved", { userId, characterId });
+      // Skip if identical to last saved
+      if (lastSavedDataRef.current === fingerprint) {
         return;
       }
 
-      // Queue this payload as pending (coalescing multiple rapid updates)
-      pendingSerializedRef.current = serialized;
+      // Store fingerprint for onSuccess callback
+      lastSavedDataRef.current = fingerprint;
       pendingObjRef.current = data;
 
-      // delegate to AutoSaveService if available, forwarding onSaved and onConflict
+      // Delegate to AutoSaveService
       if (autoSaveServiceRef.current) {
-        // 'onConflict' has a narrower conflict type here, cast to the generic signature expected by the service
-        autoSaveServiceRef.current.schedule(data as Partial<CharacterData>, onSaved, onConflict as unknown as (conflict: unknown, attempted: Partial<CharacterData>) => Promise<{ action: "retry" } | { action: "retryWith"; data: Partial<CharacterData> } | { action: "abort" }>);
-        return;
+        autoSaveServiceRef.current.schedule(data);
       }
-
-      if (autoSaveTimeoutRef.current) {
-        clearTimeout(autoSaveTimeoutRef.current);
-      }
-
-      console.debug("[auto-save] scheduled in 3s", { userId, characterId });
-      autoSaveTimeoutRef.current = setTimeout(async () => {
-        // If a save is already in flight, do nothing here; the in-flight completion will check pending
-        if (inFlightRef.current) {
-          console.debug("[auto-save] execution deferred - another save in flight", { userId, characterId });
-          return;
-        }
-
-        // Grab the latest pending snapshot
-        const toSave = pendingObjRef.current;
-        const toSaveSerialized = pendingSerializedRef.current;
-
-        // clear pending now - if new updates arrive they'll set pending again
-        pendingObjRef.current = null;
-        pendingSerializedRef.current = null;
-
-        if (!toSave || !toSaveSerialized) {
-          return;
-        }
-
-        inFlightRef.current = true;
-        setIsSaving(true);
-        console.debug("[auto-save] executing (legacy)", { userId, characterId });
-
-        try {
-          let res: UpdateResult | void;
-          if (repoRef.current) {
-            res = await repoRef.current.updateCharacter(characterId, toSave as Partial<CharacterData>);
-          } else {
-            res = await CharacterService.updateCharacter(userId, characterId, toSave as Partial<CharacterData>);
-          }
-
-          if (res && res.success === false) {
-            // Conflict detected - log and surface
-            console.warn("[auto-save] conflict detected (legacy)", res.conflict);
-            // leave pendingObj as-is so user can decide how to resolve later
-          } else {
-            // mark successful save
-            lastSavedDataRef.current = toSaveSerialized;
-
-            // Notify caller that save completed
-            try {
-              onSaved?.();
-            } catch {
-              // ignore callback errors
-            }
-          }
-        } catch (error) {
-          console.error("Erro no auto-save:", error);
-        } finally {
-          setIsSaving(false);
-          inFlightRef.current = false;
-
-          // If there is a pending newer change, schedule it immediately (no extra delay)
-          if (pendingSerializedRef.current && pendingSerializedRef.current !== lastSavedDataRef.current) {
-            console.debug("[auto-save] pending change detected - scheduling immediate save (legacy)", { userId, characterId });
-            if (autoSaveTimeoutRef.current) clearTimeout(autoSaveTimeoutRef.current);
-            autoSaveTimeoutRef.current = setTimeout(() => {
-              // Re-run schedule with the already queued pendingObj (it will take latest pending)
-              scheduleAutoSave(pendingObjRef.current || toSave);
-            }, 0);
-          }
-        }
-      }, 3000);
     },
     [userId, characterId],
   );
@@ -213,8 +161,81 @@ export function useCharacterPersistence(
     async (charId: string): Promise<CharacterDocument | null> => {
       if (!userId) throw new Error("Usuário não autenticado");
       console.debug("[loadCharacter] fetching", { userId, charId });
-      if (repoRef.current) return repoRef.current.getCharacter(charId);
-      return CharacterService.getCharacter(userId, charId);
+
+      const perfKey = `loadCharacter:${charId}`;
+      try {
+        performance.mark(`${perfKey}-start`);
+      } catch {
+        // ignore
+      }
+
+      // Fast-path: attempt to restore a previously saved full document from localStorage to avoid
+      // the initial network hit on startup. We still revalidate in background to keep it fresh.
+      const localStorageKey = `midnight-current-character-doc:${charId}`;
+      try {
+        const stored = (() => {
+          try {
+            const s = localStorage.getItem(localStorageKey);
+            return s ? (JSON.parse(s) as CharacterDocument) : null;
+          } catch {
+            return null;
+          }
+        })();
+
+        if (stored) {
+          // seed in-memory cache so background revalidation won't immediately hit the network
+          try { CharacterService.seedCharacterCache(userId, charId, stored); } catch {}
+
+          // background refresh to update local cache + localStorage
+          (async () => {
+            try {
+              const fresh = await CharacterService.getCharacterCached(userId, charId, { staleWhileRevalidate: true });
+              if (fresh) {
+                try { setItemAsync(localStorageKey, fresh); } catch {}
+              }
+            } catch {
+              // ignore background error
+            }
+          })();
+
+          try { console.debug(`[perf] loadCharacter:${charId} restored from localStorage`); } catch {}
+          return stored;
+        }
+      } catch {
+        // ignore localStorage errors and fall through to network/cache
+      }
+
+      // prefer cached read with SWR behavior for quick responsiveness
+      let res: CharacterDocument | null = null;
+      try {
+        res = await CharacterService.getCharacterCached(userId, charId, { staleWhileRevalidate: true });
+      } catch {
+        // fallback to direct repo if available
+        if (repoRef.current) res = await repoRef.current.getCharacter(charId);
+      }
+
+      // Persist a fresh copy to localStorage for faster future restores (async)
+      try {
+        if (res) {
+          try { setItemAsync(localStorageKey, res); } catch {}
+        }
+      } catch {
+        // ignore
+      }
+
+      try {
+        performance.mark(`${perfKey}-end`);
+        performance.measure(perfKey, `${perfKey}-start`, `${perfKey}-end`);
+        const m = performance.getEntriesByName(perfKey)[0];
+        if (m && m.duration > 100) console.warn(`[perf] ${perfKey} took ${Math.round(m.duration)}ms`);
+        performance.clearMarks(`${perfKey}-start`);
+        performance.clearMarks(`${perfKey}-end`);
+        performance.clearMeasures(perfKey);
+      } catch {
+        // ignore
+      }
+
+      return res;
     },
     [userId],
   );
@@ -235,10 +256,6 @@ export function useCharacterPersistence(
     async (updates: Partial<CharacterData>, options?: { baseVersion?: number }) => {
       if (!userId || !characterId) throw new Error("Dados incompletos");
 
-      if (autoSaveTimeoutRef.current) {
-        clearTimeout(autoSaveTimeoutRef.current);
-      }
-
       console.debug("[saveImmediately] start", { userId, characterId });
       let res: UpdateResult | void;
       if (repoRef.current) {
@@ -254,17 +271,17 @@ export function useCharacterPersistence(
         return res;
       }
 
-      // Clear pending timeout and update lastSavedDataRef to reflect the saved state
-      lastSavedDataRef.current = JSON.stringify(updates);
-      // Clear any pending queued data since we just saved
+      // Clear pending state since we just saved
+      const getFp = (obj: Record<string, unknown>) => {
+        const keys = Object.keys(obj).sort();
+        const vals = keys.map((k) => {
+          const v = obj[k];
+          return typeof v === "object" && v !== null ? `obj${Object.keys(v as Record<string, unknown>).length}` : String(v).slice(0, 10);
+        });
+        return keys.join(":") + "|" + vals.join(":");
+      };
+      lastSavedDataRef.current = getFp(updates as Record<string, unknown>);
       pendingObjRef.current = null;
-      pendingSerializedRef.current = null;
-
-      // if there's an autoSaveService, clear its pending state as well by scheduling a flush
-      if (autoSaveServiceRef.current) {
-        // ensure service knows about the last saved state
-        autoSaveServiceRef.current.markSaved(JSON.stringify(updates));
-      }
 
       console.debug("[saveImmediately] done", { userId, characterId });
       return res;
@@ -322,15 +339,6 @@ export function useCharacterPersistence(
     [userId],
   );
 
-  // Limpa timeout ao desmontar
-  useEffect(() => {
-    return () => {
-      if (autoSaveTimeoutRef.current) {
-        clearTimeout(autoSaveTimeoutRef.current);
-      }
-    };
-  }, []);
-
   // Try to flush pending saves when page is hidden/unloaded to reduce chance of lost edits
   useEffect(() => {
     const flushIfAny = () => {
@@ -370,6 +378,5 @@ export function useCharacterPersistence(
     selectCharacter,
     getLastSelectedId,
     loadLastSelected,
-    isSaving,
   };
 }

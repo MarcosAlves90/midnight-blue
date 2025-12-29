@@ -72,7 +72,6 @@ const FormInput = React.forwardRef<HTMLInputElement, FormInputProps>(
           className={cn(variantClasses[variant], className)}
           value={String(value ?? "")}
           onChange={onChange}
-          onBlur={onBlur}
           {...props}
         />
       );
@@ -94,3 +93,4 @@ const FormInput = React.forwardRef<HTMLInputElement, FormInputProps>(
 FormInput.displayName = "FormInput";
 
 export { FormInput };
+export default React.memo(FormInput);

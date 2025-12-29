@@ -1,14 +1,33 @@
 "use client";
 
 import Image from "next/image";
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo } from "react";
 import { buildImageUrl } from "@/lib/cloudinary";
 
-// Global mouse position state
+// Global mouse position state with RAF-based update
 let globalMousePosition = { x: 0, y: 0 };
+let nextMousePosition = { x: 0, y: 0 };
 let listeners: Array<(pos: { x: number; y: number }) => void> = [];
 let hasGlobalListener = false;
+let rafId: number | null = null;
 let globalHandleMouseMove: ((e: MouseEvent) => void) | null = null;
+
+const updateListeners = () => {
+  if (
+    nextMousePosition.x !== globalMousePosition.x ||
+    nextMousePosition.y !== globalMousePosition.y
+  ) {
+    globalMousePosition = { ...nextMousePosition };
+    listeners.forEach((listener) => listener(globalMousePosition));
+  }
+  rafId = null;
+};
+
+const scheduleUpdate = () => {
+  if (rafId === null) {
+    rafId = requestAnimationFrame(updateListeners);
+  }
+};
 
 const addMouseListener = (
   callback: (pos: { x: number; y: number }) => void,
@@ -20,14 +39,16 @@ const addMouseListener = (
       const { clientX, clientY } = e;
       const { innerWidth, innerHeight } = window;
 
-      const x = (clientX / innerWidth - 0.5) * 2;
-      const y = (clientY / innerHeight - 0.5) * 2;
-
-      globalMousePosition = { x, y };
-      listeners.forEach((listener) => listener(globalMousePosition));
+      nextMousePosition = {
+        x: (clientX / innerWidth - 0.5) * 2,
+        y: (clientY / innerHeight - 0.5) * 2,
+      };
+      scheduleUpdate();
     };
 
-    window.addEventListener("mousemove", globalHandleMouseMove);
+    window.addEventListener("mousemove", globalHandleMouseMove, {
+      passive: true,
+    });
     hasGlobalListener = true;
   }
 
@@ -37,6 +58,10 @@ const addMouseListener = (
       window.removeEventListener("mousemove", globalHandleMouseMove);
       hasGlobalListener = false;
       globalHandleMouseMove = null;
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId);
+        rafId = null;
+      }
     }
   };
 };
@@ -48,7 +73,7 @@ interface ParallaxBackgroundProps {
   overlayType?: "blue" | "black";
 }
 
-export default function ParallaxBackground({
+function ParallaxBackground({
   src,
   alt,
   intensity = 10,
@@ -73,6 +98,7 @@ export default function ParallaxBackground({
       className="absolute inset-0 transition-transform duration-700 ease-out"
       style={{
         transform: `translate(${-mousePosition.x * intensity}px, ${-mousePosition.y * intensity}px) scale(1.05)`,
+        willChange: "transform",
       }}
     >
       <Image
@@ -92,3 +118,5 @@ export default function ParallaxBackground({
     </div>
   );
 }
+
+export default memo(ParallaxBackground);

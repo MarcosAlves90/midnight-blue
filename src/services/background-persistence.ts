@@ -28,8 +28,10 @@ interface QueueTask<T = unknown> {
   initialBackoffMs: number;
   shouldRetry: (err: unknown) => boolean;
   beacon?: EnqueueOptions["beacon"];
-  resolve: (v: T | PromiseLike<T>) => void;
-  reject: (err: unknown) => void;
+  // coalescing key to dedupe similar tasks on the same queue
+  coalesceKey?: string | null;
+  // multiple waiters can attach to the same task if coalesced
+  waiters: Array<{ resolve: (v: T | PromiseLike<T>) => void; reject: (err: unknown) => void }>;
 }
 
 export class BackgroundPersistence {
@@ -44,15 +46,31 @@ export class BackgroundPersistence {
   enqueue<T = unknown>(
     key: string,
     fn: TaskFn<T>,
-    opts?: EnqueueOptions,
+    opts?: EnqueueOptions & { coalesceKey?: string | null },
   ): Promise<T> {
     const id = `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
     const priority = opts?.priority ?? 10;
     const maxRetries = opts?.maxRetries ?? 3;
     const initialBackoffMs = opts?.initialBackoffMs ?? 500;
     const shouldRetry = opts?.shouldRetry ?? (() => true);
+    const coalesceKey = opts?.coalesceKey ?? null;
 
     const queue = this.queues.get(key) ?? [];
+
+    // If coalesceKey provided, try to find an existing queued task and attach as waiter, updating fn
+    if (coalesceKey) {
+      const existing = queue.find((t) => (t.coalesceKey || null) === coalesceKey) as QueueTask<T> | undefined;
+      if (existing) {
+        // attach waiter to existing task and replace the function with the latest
+        return new Promise<T>((resolve, reject) => {
+          existing.waiters.push({ resolve, reject });
+          // replace fn so the executing one will use latest
+          existing.fn = fn;
+          // update priority if higher
+          if (priority < existing.priority) existing.priority = priority;
+        });
+      }
+    }
 
     const taskPromise = new Promise<T>((resolve, reject) => {
       const task: QueueTask<T> = {
@@ -64,8 +82,8 @@ export class BackgroundPersistence {
         initialBackoffMs,
         shouldRetry,
         beacon: opts?.beacon ?? null,
-        resolve,
-        reject,
+        coalesceKey,
+        waiters: [{ resolve, reject }],
       };
 
       // insert respecting priority (simple stable insertion)
@@ -100,17 +118,20 @@ export class BackgroundPersistence {
     const task = queue.shift()!;
     this.activeCounts.set(key, active + 1);
 
-    try {
-      await this.runWithRetries(task);
-    } finally {
-      // decrement active count
-      this.activeCounts.set(key, (this.activeCounts.get(key) ?? 1) - 1);
-      // if there are more tasks, schedule next
-      if ((this.queues.get(key) ?? []).length > 0) {
-        // allow event loop to breathe
-        setTimeout(() => this.processQueue(key), 0);
+    // Schedule execution for next event loop tick (non-blocking)
+    setTimeout(async () => {
+      try {
+        await this.runWithRetries(task);
+      } finally {
+        // decrement active count
+        this.activeCounts.set(key, (this.activeCounts.get(key) ?? 1) - 1);
+        // if there are more tasks, schedule next
+        if ((this.queues.get(key) ?? []).length > 0) {
+          // allow event loop to breathe
+          setTimeout(() => this.processQueue(key), 0);
+        }
       }
-    }
+    }, 0);
   }
 
   private async runWithRetries<T>(task: QueueTask<T>) {
@@ -118,24 +139,29 @@ export class BackgroundPersistence {
       try {
         task.attempt++;
         const res = await task.fn();
-        task.resolve(res as T);
+
+        // Resolve all waiters immediately via microtask
+        for (const w of task.waiters) {
+          try { w.resolve(res as T); } catch { /* ignore */ }
+        }
         return;
       } catch (err) {
         // If not retryable, reject immediately
         try {
           const should = task.shouldRetry(err);
           if (!should) {
-            task.reject(err);
+            // reject all waiters immediately
+            for (const w of task.waiters) { try { w.reject(err); } catch {} }
             return;
           }
         } catch {
           // if the predicate throws, don't retry
-          task.reject(err);
+          for (const w of task.waiters) { try { w.reject(err); } catch {} }
           return;
         }
 
         if (task.attempt > task.maxRetries) {
-          task.reject(err);
+          for (const w of task.waiters) { try { w.reject(err); } catch {} }
           return;
         }
 

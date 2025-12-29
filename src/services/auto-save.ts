@@ -31,6 +31,8 @@ export class AutoSaveService<T extends Record<string, unknown> = Record<string, 
   private pendingOnSaved: (() => void) | null = null;
   private pendingOnConflict: ((conflict: unknown, attempted: T) => Promise<{ action: "retry" } | { action: "retryWith"; data: T } | { action: "abort" }>) | null = null;
   private lastSavedSerialized: string | null = null;
+  private lastSavedFingerprint: string | null = null;
+  private pendingFingerprint: string | null = null;
   private opts: AutoSaveOptions;
 
   constructor(handler: AutoSaveHandler<T>, opts?: AutoSaveOptions) {
@@ -44,46 +46,44 @@ export class AutoSaveService<T extends Record<string, unknown> = Record<string, 
     onSaved?: () => void,
     onConflict?: (conflict: unknown, attempted: T) => Promise<{ action: "retry" } | { action: "retryWith"; data: T } | { action: "abort" }>,
   ) {
-    // Heuristic: avoid serializing very large payloads synchronously (e.g., base64 images).
-    const containsLargeString = (obj: unknown, threshold = 2048): boolean => {
-      if (!obj || typeof obj !== "object") return false;
+    // Cheap fingerprint function: shallowly serialize keys and primitive values to detect no-op
+    const fingerprint = (obj: unknown) => {
       try {
-        for (const k of Object.keys(obj as Record<string, unknown>)) {
+        if (!obj || typeof obj !== "object") return String(obj ?? "");
+        const keys = Object.keys(obj as Record<string, unknown>).sort();
+        const parts: string[] = [];
+        for (const k of keys) {
           const v = (obj as Record<string, unknown>)[k];
-          if (typeof v === "string" && v.length > threshold) return true;
-          if (typeof v === "object" && v !== null) {
-            // one level deep check is sufficient for our use-case
-            for (const kk of Object.keys(v as Record<string, unknown>)) {
-              const vv = (v as Record<string, unknown>)[kk];
-              if (typeof vv === "string" && vv.length > threshold) return true;
-            }
+          if (v === null || v === undefined) {
+            parts.push(`${k}:`);
+          } else if (typeof v === "string" || typeof v === "number" || typeof v === "boolean") {
+            parts.push(`${k}:${String(v)}`);
+          } else if (Array.isArray(v)) {
+            parts.push(`${k}:[len=${v.length}]`);
+          } else if (typeof v === "object") {
+            // shallow object: include number of keys
+            parts.push(`${k}:{keys=${Object.keys(v as Record<string, unknown>).length}}`);
+          } else {
+            parts.push(`${k}:?`);
           }
         }
+        return parts.join("|");
       } catch {
-        // ignore
+        return "";
       }
-      return false;
     };
 
-    const isLarge = containsLargeString(data);
+    const fp = fingerprint(data);
 
-    // If payload is reasonably small, compute serialized snapshot now for simple change-detection
-    if (!isLarge) {
-      const serialized = JSON.stringify(data);
-
-      // If nothing changed since last successful save and there is no in-flight save, skip
-      if (!this.inFlight && this.lastSavedSerialized === serialized) {
-        // no-op
-        return;
-      }
-
-      this.pendingObj = data;
-      this.pendingSerialized = serialized;
-    } else {
-      // For large payloads, avoid synchronous stringify: keep object and defer serialization until execute
-      this.pendingObj = data;
-      this.pendingSerialized = null;
+    // If nothing changed since last successful save and there is no in-flight save, skip
+    if (!this.inFlight && this.lastSavedFingerprint === fp) {
+      return;
     }
+
+    // Always avoid synchronous stringify at schedule time; defer serialization to execute (worker/idle)
+    this.pendingObj = data;
+    this.pendingSerialized = null;
+    this.pendingFingerprint = fp;
 
     // store the callback to notify after success
     this.pendingOnSaved = onSaved ?? null;
@@ -93,8 +93,15 @@ export class AutoSaveService<T extends Record<string, unknown> = Record<string, 
 
     if (this.timeoutId) clearTimeout(this.timeoutId);
 
+    // After debounce, schedule execution during idle so typing stays snappy
     this.timeoutId = setTimeout(() => {
-      this.execute();
+      const win = typeof window !== "undefined" ? (window as unknown as { requestIdleCallback?: (cb: () => void, opts?: { timeout?: number }) => number }) : undefined;
+      if (win && typeof win.requestIdleCallback === "function") {
+        win.requestIdleCallback(() => this.execute(), { timeout: 1000 });
+      } else {
+        // minimal delay to yield
+        setTimeout(() => this.execute(), 0);
+      }
     }, this.debounceMs);
   }
 
@@ -102,63 +109,143 @@ export class AutoSaveService<T extends Record<string, unknown> = Record<string, 
     // If already saving, defer; execute will be triggered when in-flight finishes
     if (this.inFlight) return;
 
-    if (!this.pendingObj || !this.pendingSerialized) return;
+    if (!this.pendingObj) return;
 
     const toSave = this.pendingObj;
     let toSaveSerialized = this.pendingSerialized;
     const onSavedForThis = this.pendingOnSaved;
+    const fingerprintForThis = this.pendingFingerprint;
 
     // clear pending snapshot now (we captured the callback too)
     this.pendingObj = null;
     this.pendingSerialized = null;
     this.pendingOnSaved = null;
+    this.pendingFingerprint = null;
 
-    // If we didn't compute a serialized snapshot earlier (large payload), perform serialization during idle time to avoid blocking input handlers
-    if (!toSaveSerialized && toSave) {
-      const serializeInIdle = (obj: T) =>
-        new Promise<string>((resolve) => {
-          const win = typeof window !== "undefined" ? (window as unknown as { requestIdleCallback?: (cb: () => void, opts?: { timeout?: number }) => number }) : undefined;
-          if (win && typeof win.requestIdleCallback === "function") {
-            win.requestIdleCallback(() => {
+    const perfKey = "AutoSave.execute";
+    try {
+      // mark start for whole execute
+      try {
+        performance.mark(`${perfKey}-start`);
+      } catch {
+        // ignore
+      }
+
+      // If we didn't compute a serialized snapshot earlier (large payload), perform serialization during idle time to avoid blocking input handlers
+      if (!toSaveSerialized && toSave) {
+        const serializeInIdle = async (obj: T) => {
+          // Use worker-based serializer when available to avoid blocking main thread
+          try {
+            // lazy import to reduce bundle cost
+            const mod = await import("@/lib/serializer-worker");
+            try {
+              const s = await mod.serializer.serialize(obj);
+              return s;
+            } catch {
+              // fallback to idle stringify
+            }
+          } catch {
+            // ignore import errors
+          }
+
+          // final fallback: stringify in idle
+          return await new Promise<string>((resolve) => {
+            const win = typeof window !== "undefined" ? (window as unknown as { requestIdleCallback?: (cb: () => void, opts?: { timeout?: number }) => number }) : undefined;
+            if (win && typeof win.requestIdleCallback === "function") {
+              win.requestIdleCallback(() => {
+                try {
+                  resolve(JSON.stringify(obj));
+                } catch {
+                  resolve("");
+                }
+              }, { timeout: 500 });
+              return;
+            }
+
+            // Fallback: defer to next tick
+            setTimeout(() => {
               try {
                 resolve(JSON.stringify(obj));
               } catch {
                 resolve("");
               }
-            }, { timeout: 500 });
-            return;
+            }, 0);
+          });
+        };
+
+        try {
+          // measure serialization separately
+          try {
+            performance.mark(`${perfKey}-serialize-start`);
+          } catch {
+            // ignore
           }
-
-          // Fallback: defer to next tick
-          setTimeout(() => {
-            try {
-              resolve(JSON.stringify(obj));
-            } catch {
-              resolve("");
+          toSaveSerialized = await serializeInIdle(toSave);
+          try {
+            performance.mark(`${perfKey}-serialize-end`);
+            performance.measure(`${perfKey}-serialize`, `${perfKey}-serialize-start`, `${perfKey}-serialize-end`);
+            const m = performance.getEntriesByName(`${perfKey}-serialize`)[0];
+            if (m) {
+              if (m.duration > 100) console.warn(`[perf] ${perfKey} serialization took ${Math.round(m.duration)}ms`);
+              if (process.env.NODE_ENV === "development") console.debug(`[perf] ${perfKey} serialization ${Math.round(m.duration)}ms`);
             }
-          }, 0);
-        });
+            performance.clearMarks(`${perfKey}-serialize-start`);
+            performance.clearMarks(`${perfKey}-serialize-end`);
+            performance.clearMeasures(`${perfKey}-serialize`);
+          } catch {
+            // ignore
+          }
+        } catch {
+          toSaveSerialized = "";
+        }
+      }
+
+      // If we computed a serialized snapshot (or got one earlier), use it for change-detection later
+      const fingerprintToSet = fingerprintForThis ?? null;
+
+
+      this.inFlight = true;
+      this.opts.onExecute?.({});
 
       try {
-        toSaveSerialized = await serializeInIdle(toSave);
-      } catch {
-        toSaveSerialized = "";
-      }
-    }
+        // measure handler execution
+        try {
+          performance.mark(`${perfKey}-handler-start`);
+        } catch {
+          // ignore
+        }
+        await this.handler(toSave); // handler receives the object payload
+        try {
+          performance.mark(`${perfKey}-handler-end`);
+          performance.measure(`${perfKey}-handler`, `${perfKey}-handler-start`, `${perfKey}-handler-end`);
+          const mh = performance.getEntriesByName(`${perfKey}-handler`)[0];
+          if (mh && mh.duration > 100) console.warn(`[perf] ${perfKey} handler took ${Math.round(mh.duration)}ms`);
+          performance.clearMarks(`${perfKey}-handler-start`);
+          performance.clearMarks(`${perfKey}-handler-end`);
+          performance.clearMeasures(`${perfKey}-handler`);
+        } catch {
+          // ignore
+        }
 
-    this.inFlight = true;
-    this.opts.onExecute?.({});
-
-    try {
-      await this.handler(toSave); // handler receives the object payload
-      this.lastSavedSerialized = toSaveSerialized;
-      this.opts.onSuccess?.({});
-      try {
-        onSavedForThis?.();
-      } catch {
-        // ignore callback errors
-      }
-    } catch (err) {
+        this.lastSavedSerialized = toSaveSerialized;
+        // set fingerprint of last saved to avoid future no-op saves
+        try { this.lastSavedFingerprint = fingerprintToSet ?? null; } catch {}
+        this.opts.onSuccess?.({});
+        // invoke onSaved in idle to avoid blocking UI handlers
+        try {
+          const runSaved = () => {
+            try { onSavedForThis?.(); } catch {}
+          };
+          const win = typeof window !== "undefined" ? (window as unknown as { requestIdleCallback?: (cb: () => void, opts?: { timeout?: number }) => number }) : undefined;
+          if (win && typeof win.requestIdleCallback === "function") {
+            win.requestIdleCallback(runSaved, { timeout: 1000 });
+          } else {
+            setTimeout(runSaved, 0);
+          }
+        } catch {
+          // ignore
+        }
+      } catch (err) {
       // Detect conflict payload inside error object and give caller a chance to resolve
       const conflict = (err as unknown as { conflict?: unknown }).conflict;
       if (conflict && this.pendingOnConflict) {
@@ -185,9 +272,9 @@ export class AutoSaveService<T extends Record<string, unknown> = Record<string, 
             this.opts.onError?.(err);
             return;
           }
-        } catch (e) {
+        } catch {
           // if conflict handler throws, fall back to generic error handling
-          this.opts.onError?.(e);
+          this.opts.onError?.(err);
         }
       }
 
@@ -207,6 +294,10 @@ export class AutoSaveService<T extends Record<string, unknown> = Record<string, 
         // schedule next immediately (allow event loop to breathe)
         setTimeout(() => this.execute(), 0);
       }
+    }
+    } catch (e) {
+      // outer try: report and forward
+      this.opts.onError?.(e);
     }
   }
 

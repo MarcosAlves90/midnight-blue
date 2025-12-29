@@ -87,3 +87,4 @@ function Textarea({ className, debounceMs, value, onChange, onBlur, ...props }: 
 }
 
 export { Textarea };
+export default React.memo(Textarea);

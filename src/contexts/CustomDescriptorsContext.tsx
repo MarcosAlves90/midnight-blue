@@ -40,14 +40,11 @@ export function CustomDescriptorsProvider({
     setIsLoaded(true);
   }, []);
 
-  // Salvar descritores no localStorage quando mudam
+  // Salvar descritores no localStorage quando mudam (async/idle to avoid blocking)
   useEffect(() => {
     if (isLoaded) {
       try {
-        localStorage.setItem(
-          "customDescriptors",
-          JSON.stringify(customDescriptors),
-        );
+        import("@/lib/local-storage-async").then((m) => m.setItemAsync("customDescriptors", customDescriptors)).catch(() => {});
       } catch (error) {
         console.error("Erro ao salvar descritores customizados:", error);
       }

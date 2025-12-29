@@ -4,6 +4,8 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import type { CharacterDocument } from "@/lib/character-service";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCharacterPersistence } from "@/hooks/use-character-persistence";
+import * as CharacterService from "@/lib/character-service";
+import { setItemAsync, setStringItemAsync, removeItemAsync } from "@/lib/local-storage-async";
 
 interface CharacterContextType {
   selectedCharacter: CharacterDocument | null;
@@ -27,8 +29,18 @@ export function CharacterProvider({ children }: { children: React.ReactNode }) {
   const setSelectedCharacter = React.useCallback((character: CharacterDocument | null) => {
     internalSetSelectedCharacter(character);
     try {
-      if (character) localStorage.setItem(CURRENT_CHAR_KEY, character.id);
-      else localStorage.removeItem(CURRENT_CHAR_KEY);
+      if (character) {
+        try { setStringItemAsync(CURRENT_CHAR_KEY, character.id); } catch {}
+        try { setItemAsync(`midnight-current-character-doc:${character.id}`, character); } catch {}
+        try { CharacterService.seedCharacterCache(character.userId, character.id, character); } catch {}
+      } else {
+        // remove id and any persisted document
+        try {
+          const prev = (() => { try { return localStorage.getItem(CURRENT_CHAR_KEY); } catch { return null; } })();
+          if (prev) try { removeItemAsync(`midnight-current-character-doc:${prev}`); } catch {}
+        } catch {}
+        try { removeItemAsync(CURRENT_CHAR_KEY); } catch {}
+      }
     } catch {
       // ignore
     }
@@ -58,14 +70,40 @@ export function CharacterProvider({ children }: { children: React.ReactNode }) {
         if (localId) {
           const char = await loadCharacter(localId);
           if (!cancelled && char) {
-            internalSetSelectedCharacter(char);
+            // apply selection non-urgently to avoid blocking UI
+            try {
+              // React 18 startTransition (typed)
+              const rt = (React as unknown as { startTransition?: (fn: () => void) => void }).startTransition;
+              if (typeof rt === "function") {
+                try {
+                  rt(() => internalSetSelectedCharacter(char));
+                } catch {
+                  internalSetSelectedCharacter(char);
+                }
+              } else internalSetSelectedCharacter(char);
+            } catch {
+              internalSetSelectedCharacter(char);
+            }
             return;
           }
         }
 
         // Fallback: busca último selecionado no servidor
         const last = await loadLastSelected();
-        if (!cancelled && last) internalSetSelectedCharacter(last);
+        if (!cancelled && last) {
+          try {
+            const rt = (React as unknown as { startTransition?: (fn: () => void) => void }).startTransition;
+            if (typeof rt === "function") {
+              try {
+                rt(() => internalSetSelectedCharacter(last));
+              } catch {
+                internalSetSelectedCharacter(last);
+              }
+            } else internalSetSelectedCharacter(last);
+          } catch {
+            internalSetSelectedCharacter(last);
+          }
+        }
       } catch (err) {
         // Fallback silencioso
         console.error("Falha ao restaurar seleção de personagem:", err);

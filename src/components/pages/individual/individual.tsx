@@ -1,18 +1,14 @@
 "use client";
 
 import React, { useRef, useCallback, useEffect } from "react";
-import { toPng } from "html-to-image";
+import { captureElementAsPng } from "@/lib/image-utils";
 import { useIdentityContext, IdentityData } from "@/contexts/IdentityContext";
 import { useAvatarUpload } from "@/hooks/use-avatar-upload";
 import { useSelectedCharacter } from "@/hooks/use-selected-character";
 import { IdentityCard } from "@/components/pages/individual/identity-card";
 import { ConflictBanner } from "@/components/ui/conflict-banner";
 import { ConflictModal } from "@/components/ui/conflict-modal";
-import { BiometricData } from "@/components/pages/individual/biometric-data";
-import { PersonalData } from "@/components/pages/individual/personal-data";
-import { ConfidentialFileSection } from "@/components/pages/individual/confidential-file";
-import { HistorySection } from "@/components/pages/individual/history-data";
-import { ComplicationsSection } from "@/components/pages/individual/complications";
+import { BiometricDataLazy, PersonalDataLazy, ConfidentialFileLazy, HistoryLazy, ComplicationsLazy } from "@/components/pages/individual/lazy-sections";
 import { deepEqual } from "@/lib/deep-equal";
 import { NoCharacterSelected } from "@/components/config/character";
 
@@ -104,16 +100,20 @@ export default function Individual() {
   const handleSaveImage = useCallback(async () => {
     if (!cardRef.current) return;
     try {
-      const dataUrl = await toPng(cardRef.current, {
+      // Use idle-friendly capture helper
+      const dataUrl = await captureElementAsPng(cardRef.current, {
         cacheBust: true,
         pixelRatio: 2,
         backgroundColor: "transparent",
         style: { transform: "none" },
-        filter: (node) => {
-          const element = node as HTMLElement;
-          return !element.classList?.contains("hide-on-capture");
+        filter: (node: Node) => {
+          if (node instanceof HTMLElement) {
+            return !node.classList.contains("hide-on-capture");
+          }
+          return true;
         },
       });
+
       const link = document.createElement("a");
       link.download = "identity-card.png";
       link.href = dataUrl;
@@ -162,18 +162,18 @@ export default function Individual() {
         <div className="xl:col-span-9 space-y-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <div className="space-y-4">
-              <BiometricData
+              <BiometricDataLazy
                 identity={identity}
                 onFieldChange={handleChange}
               />
-              <PersonalData
+              <PersonalDataLazy
                 identity={identity}
                 onFieldChange={handleChange}
               />
             </div>
 
             <div className="space-y-4">
-              <ConfidentialFileSection
+              <ConfidentialFileLazy
                 identity={identity}
                 onFieldChange={handleChange}
               />
@@ -183,11 +183,11 @@ export default function Individual() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
-        <ComplicationsSection
+        <ComplicationsLazy
           identity={identity}
           onFieldChange={handleChange}
         />
-        <HistorySection identity={identity} onFieldChange={handleChange} />
+        <HistoryLazy identity={identity} onFieldChange={handleChange} />
       </div>
     </div>
   );

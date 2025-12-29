@@ -88,9 +88,16 @@ function hydrateSkills(saved: SavedSkill[] = []): Skill[] {
 }
 
 function mapFirestoreToCharacter(id: string, data: Record<string, unknown>): CharacterDocument {
+  const perfKey = `mapFirestoreToCharacter:${id}`;
+  try {
+    performance.mark(`${perfKey}-start`);
+  } catch {
+    // ignore
+  }
+
   const identity = normalizeIdentity((data.identity as Record<string, unknown>) || data);
 
-  return {
+  const result: CharacterDocument = {
     id,
     userId: String(data.userId),
     createdAt: toDateSafe(data.createdAt),
@@ -102,6 +109,18 @@ function mapFirestoreToCharacter(id: string, data: Record<string, unknown>): Cha
     powers: (data.powers as Power[]) || [],
     status: (data.status as Record<string, unknown>) || {},
   };
+
+  try {
+    performance.mark(`${perfKey}-end`);
+    performance.measure(perfKey, `${perfKey}-start`, `${perfKey}-end`);
+    performance.clearMarks(`${perfKey}-start`);
+    performance.clearMarks(`${perfKey}-end`);
+    performance.clearMeasures(perfKey);
+  } catch {
+    // ignore
+  }
+
+  return result;
 }
 
 /**
@@ -144,10 +163,76 @@ export async function saveCharacter(userId: string, data: CharacterData, charact
  * @param userId ID do usuário
  * @param characterId ID do personagem
  */
+const characterCache = new Map<string, { doc: CharacterDocument; fetchedAt: number }>();
+const DEFAULT_CACHE_TTL_MS = 5000;
+
+export function invalidateCharacterCache(userId: string, characterId: string) {
+  try {
+    characterCache.delete(`${userId}:${characterId}`);
+  } catch {
+    // ignore
+  }
+}
+
+export function seedCharacterCache(userId: string, characterId: string, doc: CharacterDocument) {
+  try { characterCache.set(`${userId}:${characterId}`, { doc, fetchedAt: Date.now() }); } catch {}
+}
+
+export async function getCharacterCached(userId: string, characterId: string, opts?: { ttlMs?: number; staleWhileRevalidate?: boolean; }): Promise<CharacterDocument | null> {
+  const key = `${userId}:${characterId}`;
+  const now = Date.now();
+  const ttl = opts?.ttlMs ?? DEFAULT_CACHE_TTL_MS;
+
+  const entry = characterCache.get(key);
+  if (entry) {
+    const age = now - entry.fetchedAt;
+    if (age < ttl) {
+      // fresh
+      return entry.doc;
+    }
+
+    if (opts?.staleWhileRevalidate) {
+      // return stale immediately and refresh in background
+      (async () => {
+        try {
+          const fresh = await getCharacter(userId, characterId);
+          if (fresh) characterCache.set(key, { doc: fresh, fetchedAt: Date.now() });
+        } catch {
+          // ignore background error
+        }
+      })();
+      return entry.doc;
+    }
+  }
+
+  // No cache or sync refresh required
+  const result = await getCharacter(userId, characterId);
+  if (result) {
+    characterCache.set(key, { doc: result, fetchedAt: Date.now() });
+  }
+  return result;
+}
+
 export async function getCharacter(userId: string, characterId: string): Promise<CharacterDocument | null> {
   const docRef = doc(db, USERS_COLLECTION, userId, CHARACTERS_SUBCOLLECTION, characterId);
+
+  // Instrumentation: measure network (getDoc) separately from mapping
+  const netKey = `getCharacter:${characterId}:network`;
+  try { performance.mark(`${netKey}-start`); } catch {}
+
   try {
     const snap = await getDoc(docRef);
+
+    try {
+      performance.mark(`${netKey}-end`);
+      performance.measure(netKey, `${netKey}-start`, `${netKey}-end`);
+      performance.clearMarks(`${netKey}-start`);
+      performance.clearMarks(`${netKey}-end`);
+      performance.clearMeasures(netKey);
+    } catch {
+      // ignore
+    }
+
     if (!snap.exists()) return null;
     return mapFirestoreToCharacter(snap.id, snap.data());
   } catch (err) {
@@ -242,6 +327,9 @@ export async function updateCharacter(userId: string, characterId: string, updat
 
   // Use transaction to perform optimistic locking based on numeric 'version'
   try {
+    const perfKey = `CharacterService.updateCharacter:${characterId}`;
+    try { performance.mark(`${perfKey}-start`); } catch {}
+
     const res = await (async () => {
       try {
         const result = await import("firebase/firestore").then(({ runTransaction, serverTimestamp }) =>
@@ -268,6 +356,13 @@ export async function updateCharacter(userId: string, characterId: string, updat
         throw err;
       }
     })();
+
+    try { performance.mark(`${perfKey}-end`); performance.measure(perfKey, `${perfKey}-start`, `${perfKey}-end`); performance.clearMarks(`${perfKey}-start`); performance.clearMarks(`${perfKey}-end`); performance.clearMeasures(perfKey); } catch {
+      // ignore
+    }
+
+    // invalidate cache to ensure subsequent reads are fresh
+    try { invalidateCharacterCache(userId, characterId); } catch {}
 
     return res;
   } catch (err) {
@@ -296,10 +391,75 @@ export async function deleteCharacter(userId: string, characterId: string): Prom
  */
 export async function autoSaveCharacter(userId: string, characterId: string, data: Partial<CharacterData>): Promise<void> {
   try {
-    console.debug("[autoSaveCharacter] calling updateCharacter", { userId, characterId });
-    await updateCharacter(userId, characterId, data);
+    console.debug("[autoSaveCharacter] calling patchCharacter", { userId, characterId });
+    await patchCharacter(userId, characterId, data);
   } catch (err) {
     console.error("autoSaveCharacter failed:", err);
+  }
+}
+
+/**
+ * Patch update using updateDoc (non-transactional) to reduce latency for autosave
+ */
+export async function patchCharacter(userId: string, characterId: string, updates: Partial<CharacterData>): Promise<void> {
+  const docRef = doc(db, USERS_COLLECTION, userId, CHARACTERS_SUBCOLLECTION, characterId);
+  const payload: Record<string, unknown> = {};
+  const updatesRecord = updates as Record<string, unknown>;
+
+  if (Object.prototype.hasOwnProperty.call(updatesRecord, "attributes")) {
+    payload.attributes = serializeAttributes(updates.attributes as Attribute[]);
+  }
+  if (Object.prototype.hasOwnProperty.call(updatesRecord, "skills")) {
+    payload.skills = serializeSkills(updates.skills as Skill[]);
+  }
+
+  Object.keys(updatesRecord).forEach((key) => {
+    const val = updatesRecord[key];
+
+    if (key === "attributes" || key === "skills") return;
+    if (key === "powers") {
+      payload.powers = val;
+      return;
+    }
+    if (key === "status") {
+      payload.status = val;
+      return;
+    }
+
+    if (key.includes(".")) {
+      payload[key] = val;
+      return;
+    }
+
+    if (key === "identity" && typeof val === "object" && val !== null) {
+      try {
+        const identityPart = val as Record<string, unknown>;
+        Object.keys(identityPart).forEach((k) => {
+          payload[`identity.${k}`] = identityPart[k as keyof typeof identityPart];
+        });
+      } catch {
+        payload.identity = normalizeIdentity(updates.identity as Partial<IdentityData>);
+      }
+      return;
+    }
+
+    if (key === "heroName") {
+      payload[`identity.heroName`] = String(val);
+      return;
+    }
+
+    payload[key] = val;
+  });
+
+  try {
+    await import("firebase/firestore").then(({ updateDoc, serverTimestamp, increment }) =>
+      updateDoc(docRef, { ...payload, updatedAt: serverTimestamp(), version: increment(1) }),
+    );
+    // invalidate cache to ensure subsequent reads pick up changes
+    try { invalidateCharacterCache(userId, characterId); } catch {}
+  } catch (err) {
+    console.error("patchCharacter failed:", err);
+    throw err;
   }
 }
 

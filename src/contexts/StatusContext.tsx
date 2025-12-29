@@ -40,13 +40,10 @@ export const StatusProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, []);
 
-  // Save to localStorage
+  // Save to localStorage (async/idle to avoid blocking)
   useEffect(() => {
     try {
-      localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify({ powerLevel, extraPoints }),
-      );
+      import("@/lib/local-storage-async").then((m) => m.setItemAsync(STORAGE_KEY, { powerLevel, extraPoints })).catch(() => {});
     } catch (e) {
       console.error("Failed to save status to localStorage", e);
     }
