@@ -362,6 +362,7 @@ export default function AccountSettingsForm() {
                     id="email"
                     type="email"
                     className="pl-8"
+                    autoComplete="email"
                     value={email}
                     disabled
                   />
@@ -420,6 +421,7 @@ export default function AccountSettingsForm() {
                   id="current-password"
                   type="password"
                   className="pl-8 pr-10"
+                  autoComplete="current-password"
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
                 />
@@ -431,6 +433,7 @@ export default function AccountSettingsForm() {
                 <Label htmlFor="new-password">Nova Senha</Label>
                 <PasswordInput
                   id="new-password"
+                  autoComplete="new-password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                 />
@@ -440,6 +443,7 @@ export default function AccountSettingsForm() {
                 <Label htmlFor="confirm-password">Confirmar Nova Senha</Label>
                 <PasswordInput
                   id="confirm-password"
+                  autoComplete="new-password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                 />

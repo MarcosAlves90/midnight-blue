@@ -106,6 +106,7 @@ export default function LoginForm({
                   type="email"
                   placeholder="midnight@exemplo.com"
                   required
+                  autoComplete="username"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
@@ -123,6 +124,7 @@ export default function LoginForm({
                 <PasswordInput
                   id="password"
                   required
+                  autoComplete="current-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />

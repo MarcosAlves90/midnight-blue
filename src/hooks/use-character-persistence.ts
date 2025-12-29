@@ -138,12 +138,10 @@ export function useCharacterPersistence(
         onSuccess: (result?: unknown) => {
           // Update fingerprint ONLY after successful save
           let fingerprint: string | null = null;
-          let savedFields: string[] = [];
           
           if (result && typeof result === "object") {
             const res = result as { fingerprint?: string; savedFields?: string[] };
             fingerprint = res.fingerprint ?? null;
-            savedFields = res.savedFields ?? [];
           } else if (typeof result === "string") {
             // Backward compatibility: if result is just a string, treat as fingerprint
             fingerprint = result;

@@ -96,6 +96,7 @@ export default function SignupForm({
                   type="text"
                   placeholder="Seu nome"
                   required
+                  autoComplete="name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                 />
@@ -107,6 +108,7 @@ export default function SignupForm({
                   type="email"
                   placeholder="midnight@exemplo.com"
                   required
+                  autoComplete="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
@@ -118,6 +120,7 @@ export default function SignupForm({
                     <PasswordInput
                       id="password"
                       required
+                      autoComplete="new-password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                     />
@@ -129,6 +132,7 @@ export default function SignupForm({
                     <PasswordInput
                       id="confirm-password"
                       required
+                      autoComplete="new-password"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                     />
