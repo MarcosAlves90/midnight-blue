@@ -97,13 +97,20 @@ interface ComplicationsSectionProps {
   ) => void;
 }
 
-export const ComplicationsSection: React.FC<ComplicationsSectionProps> = ({
+export const ComplicationsSectionInner: React.FC<ComplicationsSectionProps> = ({
   identity,
   onFieldChange,
 }) => {
   const [selectedType, setSelectedType] = useState(COMPLICATION_TYPES[0]);
   const [description, setDescription] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (process.env.NODE_ENV === "development") {
+      // eslint-disable-next-line no-console
+      console.debug("[dev-complications] render");
+    }
+  });
 
   const handleAddOrUpdate = () => {
     if (!description.trim()) return;
@@ -336,4 +343,9 @@ export const ComplicationsSection: React.FC<ComplicationsSectionProps> = ({
       </div>
     </div>
   );
-};
+}
+
+export const ComplicationsSection = React.memo(
+  ComplicationsSectionInner,
+  (prev, next) => prev.identity.complications === next.identity.complications && prev.onFieldChange === next.onFieldChange
+);

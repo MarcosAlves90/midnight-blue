@@ -2,7 +2,7 @@ import React from "react";
 import { FileText, MapPin, Briefcase } from "lucide-react";
 import { FormInput } from "@/components/ui/form-input";
 import { Tip } from "@/components/ui/tip";
-import { IdentityData, useIdentityContext } from "@/contexts/IdentityContext";
+import { IdentityData, useIdentityActions } from "@/contexts/IdentityContext";
 import { useFieldLocalState } from "@/hooks/use-field-local-state";
 import { ColorPickerDropdown } from "./color-picker-dropdown";
 
@@ -11,13 +11,17 @@ interface PersonalDataSectionProps {
   onFieldChange: (field: keyof IdentityData, value: string) => void;
 }
 
-export const PersonalData: React.FC<PersonalDataSectionProps> = ({
-  identity,
-  onFieldChange,
-}) => {
-  const { markFieldDirty } = useIdentityContext();
+function PersonalDataInner({ identity, onFieldChange }: PersonalDataSectionProps) {
+  const { markFieldDirty } = useIdentityActions();
   const { value: placeValue, handleChange: handlePlaceChange, handleBlur: handlePlaceBlur } = useFieldLocalState(identity.placeOfBirth, (v: string) => onFieldChange("placeOfBirth", v), { debounceMs: 300, fieldName: "placeOfBirth", onDirty: () => markFieldDirty("placeOfBirth") });
   const { value: occupationValue, handleChange: handleOccupationChange, handleBlur: handleOccupationBlur } = useFieldLocalState(identity.occupation, (v: string) => onFieldChange("occupation", v), { debounceMs: 300, fieldName: "occupation", onDirty: () => markFieldDirty("occupation") });
+
+  React.useEffect(() => {
+    if (process.env.NODE_ENV === "development") {
+      // eslint-disable-next-line no-console
+      console.debug("[dev-personal-data] render");
+    }
+  });
 
   return (
     <div className="bg-muted/50 rounded-xl p-6">
@@ -93,4 +97,13 @@ export const PersonalData: React.FC<PersonalDataSectionProps> = ({
       </div>
     </div>
   );
-};
+}
+
+export const PersonalData = React.memo(
+  PersonalDataInner,
+  (prev, next) =>
+    prev.identity.placeOfBirth === next.identity.placeOfBirth &&
+    prev.identity.occupation === next.identity.occupation &&
+    prev.identity.favoriteColor === next.identity.favoriteColor &&
+    prev.onFieldChange === next.onFieldChange
+);

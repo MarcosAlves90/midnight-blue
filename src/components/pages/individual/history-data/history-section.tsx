@@ -1,7 +1,7 @@
 import React from "react";
 import { BookOpen } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
-import { IdentityData, useIdentityContext } from "@/contexts/IdentityContext";
+import { IdentityData, useIdentityActions } from "@/contexts/IdentityContext";
 import { useFieldLocalState } from "@/hooks/use-field-local-state";
 
 interface HistorySectionProps {
@@ -12,12 +12,16 @@ interface HistorySectionProps {
   ) => void;
 }
 
-export const HistorySection: React.FC<HistorySectionProps> = ({
-  identity,
-  onFieldChange,
-}) => {
-  const { markFieldDirty } = useIdentityContext();
+function HistorySectionInner({ identity, onFieldChange }: HistorySectionProps) {
+  const { markFieldDirty } = useIdentityActions();
   const { value, handleChange, handleBlur } = useFieldLocalState(identity.history || "", (v: string) => onFieldChange("history", v), { debounceMs: 300, fieldName: "history", onDirty: () => markFieldDirty("history") });
+
+  React.useEffect(() => {
+    if (process.env.NODE_ENV === "development") {
+      // eslint-disable-next-line no-console
+      console.debug("[dev-history-section] render");
+    }
+  });
 
   return (
     <div className="bg-muted/50 rounded-xl p-6">
@@ -42,4 +46,9 @@ export const HistorySection: React.FC<HistorySectionProps> = ({
       </div>
     </div>
   );
-};
+}
+
+export const HistorySection = React.memo(
+  HistorySectionInner,
+  (prev, next) => prev.identity.history === next.identity.history && prev.onFieldChange === next.onFieldChange
+);

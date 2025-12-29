@@ -198,10 +198,7 @@ export default function Individual() {
             </div>
 
             <div className="space-y-4">
-              <ConfidentialFileLazy
-                identity={identity}
-                onFieldChange={handleChange}
-              />
+              <ConfidentialFileLazy />
             </div>
           </div>
         </div>

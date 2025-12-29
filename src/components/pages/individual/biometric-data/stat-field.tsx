@@ -2,7 +2,7 @@ import React from "react";
 import { FormInput } from "@/components/ui/form-input";
 import { Tip } from "@/components/ui/tip";
 import { useFieldLocalState } from "@/hooks/use-field-local-state";
-import { useIdentityContext } from "@/contexts/IdentityContext";
+import { useIdentityActions } from "@/contexts/IdentityContext";
 
 interface StatFieldProps {
   icon: React.ReactNode;
@@ -26,7 +26,7 @@ export const StatField: React.FC<StatFieldProps> = ({
   required = false,
   description,
 }) => {
-  const { markFieldDirty } = useIdentityContext();
+  const { markFieldDirty } = useIdentityActions();
   const { value: localValue, handleChange, handleBlur } = useFieldLocalState(value, parentOnChange, {
     debounceMs: 300,
     fieldName: fieldKey ? String(fieldKey) : undefined,

@@ -3,34 +3,34 @@ import { Shield, Users, MapPin, Zap, Heart } from "lucide-react";
 import { FormInput } from "@/components/ui/form-input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tip } from "@/components/ui/tip";
-import { IdentityData, useIdentityContext } from "@/contexts/IdentityContext";
+import { useIdentityActions } from "@/contexts/IdentityContext";
 import { useFieldLocalState } from "@/hooks/use-field-local-state";
+import { useIdentityField } from "@/hooks/use-identity-field";
 
-interface ConfidentialFileSectionProps {
-  identity: IdentityData;
-  onFieldChange: (field: keyof IdentityData, value: string) => void;
-}
+// Component now reads individual fields via subscription hooks to avoid re-renders from unrelated identity changes
+function ConfidentialFileSectionInner() {
+  const { markFieldDirty, updateIdentity } = useIdentityActions();
 
-export const ConfidentialFileSection: React.FC<
-  ConfidentialFileSectionProps
-> = ({ identity, onFieldChange }) => {
-  const { markFieldDirty } = useIdentityContext();
+  React.useEffect(() => {
+    if (process.env.NODE_ENV === "development") {
+      // eslint-disable-next-line no-console
+      console.debug("[dev-confidential-file] render");
+    }
+  });
 
-  const { value: groupValue, handleChange: handleGroupChange, handleBlur: handleGroupBlur } = useFieldLocalState(identity.groupAffiliation, (v: string) => onFieldChange("groupAffiliation", v), { debounceMs: 300, fieldName: "groupAffiliation", onDirty: () => markFieldDirty("groupAffiliation") });
-  const { value: baseValue, handleChange: handleBaseChange, handleBlur: handleBaseBlur } = useFieldLocalState(identity.baseOfOperations, (v: string) => onFieldChange("baseOfOperations", v), { debounceMs: 300, fieldName: "baseOfOperations", onDirty: () => markFieldDirty("baseOfOperations") });
-  const { value: originValue, handleChange: handleOriginChange, handleBlur: handleOriginBlur } = useFieldLocalState(identity.powerOrigin, (v: string) => onFieldChange("powerOrigin", v), { debounceMs: 300, fieldName: "powerOrigin", onDirty: () => markFieldDirty("powerOrigin") });
-  const { value: motivationValue, handleChange: handleMotivationChange, handleBlur: handleMotivationBlur } = useFieldLocalState(identity.motivation, (v: string) => onFieldChange("motivation", v), { debounceMs: 300, fieldName: "motivation", onDirty: () => markFieldDirty("motivation") });
+  // Per-field memoized subcomponents which subscribe to their own field value
+  const GroupField = React.useMemo(() => {
+    const C: React.FC = () => {
+      const { markFieldDirty, updateIdentity } = useIdentityActions();
+      const ext = useIdentityField("groupAffiliation");
+      const { value, handleChange, handleBlur } = useFieldLocalState(ext, (v: string) => updateIdentity("groupAffiliation", v), { debounceMs: 300, fieldName: "groupAffiliation", onDirty: () => markFieldDirty("groupAffiliation") });
 
-  return (
-    <div className="bg-muted/50 rounded-xl p-6 h-full">
-      <div className="flex items-center gap-2 mb-6 pb-2 border-b border-border/40">
-        <Shield className="w-4 h-4 text-primary" aria-hidden="true" />
-        <h3 className="text-sm font-bold uppercase tracking-wider">
-          Arquivo Confidencial
-        </h3>
-      </div>
+      if (process.env.NODE_ENV === "development") {
+        // eslint-disable-next-line no-console
+        console.debug("[dev-confidential-file] GroupField render");
+      }
 
-      <div className="space-y-5">
+      return (
         <div className="space-y-1.5">
           <Tip
             content={
@@ -52,14 +52,31 @@ export const ConfidentialFileSection: React.FC<
           <FormInput
             id="groupAffiliation"
             name="groupAffiliation"
-            value={groupValue}
-            onChange={(e) => handleGroupChange(e)}
-            onBlur={handleGroupBlur}
+            value={value}
+            onChange={(e) => handleChange(e)}
+            onBlur={handleBlur}
             placeholder="Ex: Liga da Justiça..."
             aria-label="Afiliação ou grupo do personagem"
           />
         </div>
+      );
+    };
 
+    return React.memo(C);
+  }, []);
+
+  const BaseField = React.useMemo(() => {
+    const C: React.FC = () => {
+      const { markFieldDirty, updateIdentity } = useIdentityActions();
+      const ext = useIdentityField("baseOfOperations");
+      const { value, handleChange, handleBlur } = useFieldLocalState(ext, (v: string) => updateIdentity("baseOfOperations", v), { debounceMs: 300, fieldName: "baseOfOperations", onDirty: () => markFieldDirty("baseOfOperations") });
+
+      if (process.env.NODE_ENV === "development") {
+        // eslint-disable-next-line no-console
+        console.debug("[dev-confidential-file] BaseField render");
+      }
+
+      return (
         <div className="space-y-1.5">
           <Tip
             content={
@@ -81,14 +98,31 @@ export const ConfidentialFileSection: React.FC<
           <FormInput
             id="baseOfOperations"
             name="baseOfOperations"
-            value={baseValue}
-            onChange={(e) => handleBaseChange(e)}
-            onBlur={handleBaseBlur}
+            value={value}
+            onChange={(e) => handleChange(e)}
+            onBlur={handleBlur}
             placeholder="Ex: Batcaverna..."
             aria-label="Base de operações do personagem"
           />
         </div>
+      );
+    };
 
+    return React.memo(C);
+  }, []);
+
+  const OriginField = React.useMemo(() => {
+    const C: React.FC = () => {
+      const { markFieldDirty, updateIdentity } = useIdentityActions();
+      const ext = useIdentityField("powerOrigin");
+      const { value, handleChange, handleBlur } = useFieldLocalState(ext, (v: string) => updateIdentity("powerOrigin", v), { debounceMs: 300, fieldName: "powerOrigin", onDirty: () => markFieldDirty("powerOrigin") });
+
+      if (process.env.NODE_ENV === "development") {
+        // eslint-disable-next-line no-console
+        console.debug("[dev-confidential-file] OriginField render");
+      }
+
+      return (
         <div className="space-y-1.5">
           <Tip
             content={
@@ -110,20 +144,36 @@ export const ConfidentialFileSection: React.FC<
           <FormInput
             id="powerOrigin"
             name="powerOrigin"
-            value={originValue}
-            onChange={(e) => handleOriginChange(e)}
-            onBlur={handleOriginBlur}
+            value={value}
+            onChange={(e) => handleChange(e)}
+            onBlur={handleBlur}
             placeholder="Ex: Acidente Químico..."
             aria-label="Origem dos poderes do personagem"
           />
         </div>
+      );
+    };
 
+    return React.memo(C);
+  }, []);
+
+  const MotivationField = React.useMemo(() => {
+    const C: React.FC = () => {
+      const { markFieldDirty, updateIdentity } = useIdentityActions();
+      const ext = useIdentityField("motivation");
+      const { value, handleChange, handleBlur } = useFieldLocalState(ext, (v: string) => updateIdentity("motivation", v), { debounceMs: 300, fieldName: "motivation", onDirty: () => markFieldDirty("motivation") });
+
+      if (process.env.NODE_ENV === "development") {
+        // eslint-disable-next-line no-console
+        console.debug("[dev-confidential-file] MotivationField render");
+      }
+
+      return (
         <div className="space-y-1.5">
           <Tip
             content={
               <div className="max-w-xs text-xs">
-                A razão pela qual o personagem age como herói (ex:
-                Responsabilidade, Justiça, Vingança).
+                A razão pela qual o personagem age como herói (ex: Responsabilidade, Justiça, Vingança).
               </div>
             }
             side="top"
@@ -139,15 +189,40 @@ export const ConfidentialFileSection: React.FC<
           <Textarea
             id="motivation"
             name="motivation"
-            value={motivationValue}
-            onChange={(e) => handleMotivationChange(e)}
-            onBlur={handleMotivationBlur}
+            value={value}
+            onChange={(e) => handleChange(e)}
+            onBlur={handleBlur}
             className="bg-muted/20 border-transparent focus:bg-background min-h-[100px] resize-none"
             placeholder="O que move seu personagem?"
             aria-label="Motivação do personagem"
           />
         </div>
+      );
+    };
+
+    return React.memo(C);
+  }, []);
+
+  return (
+    <div className="bg-muted/50 rounded-xl p-6 h-full">
+      <div className="flex items-center gap-2 mb-6 pb-2 border-b border-border/40">
+        <Shield className="w-4 h-4 text-primary" aria-hidden="true" />
+        <h3 className="text-sm font-bold uppercase tracking-wider">
+          Arquivo Confidencial
+        </h3>
+      </div>
+
+      <div className="space-y-5">
+        <GroupField />
+
+        <BaseField />
+
+        <OriginField />
+
+        <MotivationField />
       </div>
     </div>
   );
-};
+}
+
+export const ConfidentialFileSection = React.memo(ConfidentialFileSectionInner);

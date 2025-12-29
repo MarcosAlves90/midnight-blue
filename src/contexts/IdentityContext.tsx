@@ -93,6 +93,32 @@ const IdentityContext = createContext<IdentityContextType | undefined>(
   undefined,
 );
 
+// Separamos ações em um contexto próprio para evitar que consumidores de ações
+// re-renderizem quando o objeto de estado `identity` muda de referência.
+type IdentityActions = Pick<
+  IdentityContextType,
+  | "updateIdentity"
+  | "setIdentity"
+  | "setCurrentCharacterId"
+  | "saveIdentityNow"
+  | "markFieldDirty"
+  | "markFieldsSaved"
+  | "resolveKeepLocal"
+  | "resolveUseServer"
+  | "openConflictModal"
+  | "closeConflictModal"
+  | "subscribeToField"
+  | "getField"
+>;
+
+const IdentityActionsContext = createContext<IdentityActions | undefined>(undefined);
+
+export const useIdentityActions = () => {
+  const ctx = useContext(IdentityActionsContext);
+  if (!ctx) throw new Error("useIdentityActions must be used within IdentityProvider");
+  return ctx;
+};
+
 const STORAGE_KEY = "midnight-identity";
 const CURRENT_CHAR_KEY = "midnight-current-character-id";
 
@@ -125,6 +151,25 @@ export const IdentityProvider: React.FC<{ children: React.ReactNode }> = ({
   const scheduleAutoSaveRef = useRef(scheduleAutoSave);
   // Rastreia a identity atual para detecção de mudanças SEM depender do efeito
   const identityRef = useRef<IdentityData>(identity);
+  // Subscriptores por campo para atualização seletiva (evita re-renders de campos não afetados)
+  const fieldSubscribersRef = useRef<Map<string, Set<() => void>>>(new Map());
+
+  const subscribeToField = useCallback((field: string, cb: () => void) => {
+    let s = fieldSubscribersRef.current.get(field);
+    if (!s) {
+      s = new Set();
+      fieldSubscribersRef.current.set(field, s);
+    }
+    s.add(cb);
+    return () => {
+      s!.delete(cb);
+      if (s && s.size === 0) fieldSubscribersRef.current.delete(field);
+    };
+  }, []);
+
+  const getField = useCallback(<K extends keyof IdentityData>(field: K) => {
+    return identityRef.current[field];
+  }, []);
 
 
 
@@ -171,6 +216,8 @@ export const IdentityProvider: React.FC<{ children: React.ReactNode }> = ({
   // Manage persisted state without triggering expensive work on every identity change.
   // We keep a ref to the identity snapshot for conflict handling and only run light per-field patches on updates.
   useEffect(() => {
+    // compute diffs against previous snapshot and notify field subscribers selectively
+    const prev = identityRef.current;
     identityRef.current = identity;
 
     if (!currentCharacterId || !user) {
@@ -188,7 +235,31 @@ export const IdentityProvider: React.FC<{ children: React.ReactNode }> = ({
       hasPendingChangesRef.current = false;
       // clear dirtyFields on character switch
       setDirtyFields(new Set());
+
+      // also notify all subscribers (character swapped)
+      for (const [field, set] of fieldSubscribersRef.current.entries()) {
+        set.forEach((cb) => cb());
+      }
+
       return;
+    }
+
+    // Determine changed fields and notify only them
+    const changedFields: string[] = [];
+    for (const key of Object.keys(identity) as Array<keyof IdentityData>) {
+      const prevVal = (prev as any)[key];
+      const nextVal = (identity as any)[key];
+      // shallow or deep equality where necessary
+      if (prevVal !== nextVal) {
+        changedFields.push(String(key));
+      }
+    }
+
+    if (changedFields.length > 0) {
+      changedFields.forEach((f) => {
+        const subs = fieldSubscribersRef.current.get(f);
+        if (subs) subs.forEach((cb) => cb());
+      });
     }
 
     // Do NOT schedule a full-object save here. Field updates call scheduleAutoSave directly (see updateIdentity).
@@ -345,6 +416,9 @@ export const IdentityProvider: React.FC<{ children: React.ReactNode }> = ({
       resolveUseServer,
       openConflictModal,
       closeConflictModal,
+      // subscription APIs
+      subscribeToField,
+      getField,
     }),
     [
       identity,
@@ -362,13 +436,34 @@ export const IdentityProvider: React.FC<{ children: React.ReactNode }> = ({
       resolveUseServer,
       openConflictModal,
       closeConflictModal,
+      subscribeToField,
+      getField,
     ],
   );
 
+  // Provide both contexts: the full context (for consumers that need identity state)
+  // and a lightweight actions context (for consumers that only need action callbacks)
+  const actionsValue: IdentityActions = {
+    updateIdentity,
+    setIdentity,
+    setCurrentCharacterId,
+    saveIdentityNow,
+    markFieldDirty,
+    markFieldsSaved,
+    resolveKeepLocal,
+    resolveUseServer,
+    openConflictModal,
+    closeConflictModal,
+    subscribeToField,
+    getField,
+  };
+
   return (
-    <IdentityContext.Provider value={contextValue}>
-      {children}
-    </IdentityContext.Provider>
+    <IdentityActionsContext.Provider value={actionsValue}>
+      <IdentityContext.Provider value={contextValue}>
+        {children}
+      </IdentityContext.Provider>
+    </IdentityActionsContext.Provider>
   );
 };
 
