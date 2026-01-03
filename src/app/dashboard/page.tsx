@@ -18,7 +18,7 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { useCharacter } from "@/contexts/CharacterContext";
 import { useGalleryState, useGalleryActions } from "@/components/pages/gallery/use-gallery";
-import type { CharacterDocument } from "@/lib/character-service";
+import type { CharacterDocument } from "@/lib/types/character";
 
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";

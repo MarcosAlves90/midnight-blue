@@ -10,7 +10,7 @@ import { NewFolderDialog } from "@/components/pages/gallery/new-folder-dialog";
 import { DeleteFolderDialog } from "@/components/pages/gallery/delete-folder-dialog";
 import { useCharacter } from "@/contexts/CharacterContext";
 import { CharacterCard } from "./character-card";
-import { FolderCard } from "./folder-card";
+import { FolderCard } from "@/components/ui/custom/folder-card";
 import { useGalleryState, useGalleryActions } from "./use-gallery";
 import { 
   LoadingState, 

@@ -2,7 +2,7 @@
 
 import { useState, type Dispatch, type SetStateAction } from "react";
 import { useCharacterPersistence } from "@/hooks/use-character-persistence";
-import type { CharacterDocument, Folder } from "@/lib/character-service";
+import type { CharacterDocument, Folder } from "@/lib/types/character";
 
 export function useGalleryState() {
   const [characters, setCharacters] = useState<CharacterDocument[]>([]);

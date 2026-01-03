@@ -7,7 +7,7 @@ import { useCharacterPersistence } from "@/hooks/use-character-persistence";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Loader2, User, Fingerprint, AlertCircle } from "lucide-react";
-import type { CharacterData } from "@/lib/character-service";
+import type { CharacterData } from "@/lib/types/character";
 import { cn } from "@/lib/utils";
 import {
   INITIAL_ATTRIBUTES,

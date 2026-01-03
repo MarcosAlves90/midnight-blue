@@ -22,7 +22,7 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { useCharacter } from "@/contexts/CharacterContext";
 import { useCharacterPersistence } from "@/hooks/use-character-persistence";
-import type { CharacterDocument } from "@/lib/character-service";
+import type { CharacterDocument } from "@/lib/types/character";
 
 // Componente para item de personagem (DRY: elimina duplicação)
 function CharacterDropdownItem({ character, onClick }: { character: CharacterDocument; onClick: () => void }) {
