@@ -1,18 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import { Shield, Trash2, Loader2 } from "lucide-react";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+import { DeleteCharacterDialog } from "./delete-character-dialog";
 import type { CharacterDocument } from "@/lib/character-service";
 
 interface CharacterCardProps {
@@ -28,6 +19,7 @@ export function CharacterCard({
   onDelete,
   isDeleting,
 }: CharacterCardProps) {
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const heroName = character.identity?.heroName || character.identity?.name || "UNKNOWN";
   const civilName = character.identity?.name || "CLASSIFIED";
   const powerLevel = (character.status as { powerLevel?: number }).powerLevel ?? 0;
@@ -39,45 +31,54 @@ export function CharacterCard({
   });
 
   return (
-    <div
-      onClick={onSelect}
-      className="group relative rounded-lg border border-border bg-card overflow-hidden hover:border-primary/50 transition-all duration-300 flex flex-col shadow-md hover:shadow-primary/5 cursor-pointer"
-    >
-      <MugshotArea character={character} heroName={heroName} />
-      
-      <div className="p-2.5 flex flex-col flex-1 gap-2.5">
-        <CharacterInfo 
-          heroName={heroName} 
-          fileId={fileId} 
-          civilName={civilName} 
-          powerLevel={powerLevel} 
-          updatedAt={updatedAt} 
-        />
+    <>
+      <div
+        onClick={onSelect}
+        className="group relative rounded-lg border border-border bg-card overflow-hidden hover:border-primary/50 transition-all duration-300 flex flex-col shadow-md hover:shadow-primary/5 cursor-default"
+      >
+        <MugshotArea character={character} heroName={heroName} />
         
-        <CharacterActions 
-          heroName={heroName} 
-          isDeleting={isDeleting} 
-          onDelete={onDelete} 
+        <div className="p-2.5 flex flex-col flex-1 gap-2.5">
+          <CharacterInfo 
+            heroName={heroName} 
+            fileId={fileId} 
+            civilName={civilName} 
+            powerLevel={powerLevel} 
+            updatedAt={updatedAt} 
+          />
+          
+          <CharacterActions 
+            isDeleting={isDeleting} 
+            onDelete={() => setIsDeleteDialogOpen(true)} 
+          />
+        </div>
+
+        {/* Invisible link for accessibility and SEO */}
+        <a
+          href={`/dashboard/personagem/individual/${character.id}`}
+          onClick={(e) => {
+            e.preventDefault();
+            onSelect();
+          }}
+          className="absolute inset-0 z-0"
+          aria-label={`Acessar ficha de ${heroName}`}
         />
       </div>
 
-      {/* Invisible link for accessibility and SEO */}
-      <a
-        href={`/dashboard/personagem/individual/${character.id}`}
-        onClick={(e) => {
-          e.preventDefault();
-          onSelect();
-        }}
-        className="absolute inset-0 z-0"
-        aria-label={`Acessar ficha de ${heroName}`}
+      <DeleteCharacterDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        onConfirm={onDelete}
+        heroName={heroName}
+        isDeleting={isDeleting}
       />
-    </div>
+    </>
   );
 }
 
 function MugshotArea({ character, heroName }: { character: CharacterDocument; heroName: string }) {
   return (
-    <div className="h-40 w-full bg-muted/20 overflow-hidden relative border-b border-border">
+    <div className="h-40 w-full bg-muted/20 overflow-hidden relative border-b border-border cursor-pointer">
       {/* Height Scale Visual Effect */}
       <div className="absolute inset-0 opacity-10 pointer-events-none flex flex-col justify-between py-2 px-1 font-mono">
         {[...Array(8)].map((_, i) => (
@@ -109,7 +110,7 @@ function MugshotArea({ character, heroName }: { character: CharacterDocument; he
         </p>
       </div>
 
-      <div className="absolute top-2 left-2 -rotate-12 border-2 border-destructive/40 px-1.5 py-0.5 rounded-sm pointer-events-none font-mono">
+      <div className="absolute top-2 left-2 -rotate-12 border-2 border-destructive/40 px-1.5 py-0.5 invert rounded-sm pointer-events-none font-mono">
         <span className="text-[8px] font-black text-destructive/60 tracking-tighter uppercase">Confidencial</span>
       </div>
     </div>
@@ -130,7 +131,7 @@ function CharacterInfo({
   updatedAt: string; 
 }) {
   return (
-    <div className="space-y-1.5">
+    <div className="flex flex-col gap-2 cursor-pointer">
       <div className="flex justify-between items-start gap-2">
         <div className="flex-1 min-w-0">
           <p className="text-[8px] text-primary font-bold uppercase tracking-tight opacity-80">Codinome / Alias</p>
@@ -170,58 +171,31 @@ function CharacterInfo({
 }
 
 function CharacterActions({ 
-  heroName, 
   isDeleting, 
   onDelete 
 }: { 
-  heroName: string; 
   isDeleting: boolean; 
   onDelete: () => void; 
 }) {
   return (
     <div className="flex items-center justify-end mt-auto pt-1.5 border-t border-border relative z-10">
-      <AlertDialog>
-        <AlertDialogTrigger asChild>
-          <button
-            onClick={(e) => e.stopPropagation()}
-            disabled={isDeleting}
-            className="flex items-center gap-1.5 px-2 py-1 bg-destructive/5 hover:bg-destructive/15 text-destructive border border-destructive/20 hover:border-destructive/40 rounded-md transition-all duration-200 disabled:opacity-50 group/del"
-          >
-            {isDeleting ? (
-              <Loader2 className="w-3 h-3 animate-spin" />
-            ) : (
-              <>
-                <Trash2 className="w-3 h-3" />
-                <span className="text-[9px] font-bold uppercase">Eliminar</span>
-              </>
-            )}
-          </button>
-        </AlertDialogTrigger>
-        <AlertDialogContent onClick={(e) => e.stopPropagation()} className="border-border bg-card">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-destructive uppercase tracking-widest font-bold">
-              Confirmar Eliminação?
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              EXCLUINDO ARQUIVO: <span className="text-foreground font-bold">[{heroName}]</span>
-              <br />
-              Esta ação é irreversível. Todos os dados serão expurgados do sistema.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Abortar</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={(e) => {
-                e.stopPropagation();
-                onDelete();
-              }}
-              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
-            >
-              Executar Expurgo
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          onDelete();
+        }}
+        disabled={isDeleting}
+        className="flex items-center gap-1.5 px-2 py-1 bg-destructive/5 hover:bg-destructive/15 text-destructive border border-destructive/20 hover:border-destructive/40 rounded-md transition-all duration-200 disabled:opacity-50 group/del"
+      >
+        {isDeleting ? (
+          <Loader2 className="w-3 h-3 animate-spin" />
+        ) : (
+          <>
+            <Trash2 className="w-3 h-3" />
+            <span className="text-[9px] font-bold uppercase">Eliminar</span>
+          </>
+        )}
+      </button>
     </div>
   );
 }

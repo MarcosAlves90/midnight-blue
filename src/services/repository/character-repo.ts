@@ -1,6 +1,6 @@
 "use client";
 
-import type { CharacterDocument, CharacterData } from "@/lib/character-service";
+import type { CharacterDocument, CharacterData, Folder } from "@/lib/character-service";
 import * as CharacterService from "@/lib/character-service";
 
 export interface CharacterRepository {
@@ -10,6 +10,13 @@ export interface CharacterRepository {
   updateCharacter: (characterId: string, updates: Partial<CharacterData>, options?: { baseVersion?: number }) => Promise<import("@/lib/character-service").UpdateResult>;
   patchCharacter?: (characterId: string, updates: Partial<CharacterData>) => Promise<void>;
   deleteCharacter: (characterId: string) => Promise<void>;
+  
+  // Folder management
+  createFolder: (name: string, parentId?: string | null) => Promise<string>;
+  deleteFolder: (folderId: string) => Promise<void>;
+  listFolders: () => Promise<Folder[]>;
+  moveCharacterToFolder: (characterId: string, folderId: string | null) => Promise<void>;
+  listenToFolders: (callback: (folders: Folder[]) => void) => () => void;
 }
 
 export class FirebaseCharacterRepository implements CharacterRepository {
@@ -71,5 +78,30 @@ export class FirebaseCharacterRepository implements CharacterRepository {
   async deleteCharacter(characterId: string) {
     if (!this.userId) throw new Error("User not authenticated");
     return CharacterService.deleteCharacter(this.userId, characterId);
+  }
+
+  async createFolder(name: string, parentId: string | null = null) {
+    if (!this.userId) throw new Error("User not authenticated");
+    return CharacterService.createFolder(this.userId, name, parentId);
+  }
+
+  async deleteFolder(folderId: string) {
+    if (!this.userId) throw new Error("User not authenticated");
+    return CharacterService.deleteFolder(this.userId, folderId);
+  }
+
+  async listFolders() {
+    if (!this.userId) throw new Error("User not authenticated");
+    return CharacterService.listFolders(this.userId);
+  }
+
+  async moveCharacterToFolder(characterId: string, folderId: string | null) {
+    if (!this.userId) throw new Error("User not authenticated");
+    return CharacterService.moveCharacterToFolder(this.userId, characterId, folderId);
+  }
+
+  listenToFolders(callback: (folders: Folder[]) => void) {
+    if (!this.userId) return () => {};
+    return CharacterService.onFoldersChange(this.userId, callback);
   }
 }

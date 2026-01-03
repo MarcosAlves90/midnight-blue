@@ -32,7 +32,10 @@ export function NewCharacterDialog({ open, onOpenChange, onCharacterCreated }: N
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[450px] p-0 overflow-hidden border-primary/20 bg-card">
+      <DialogContent 
+        className="sm:max-w-[450px] p-0 overflow-hidden border-primary/20 bg-card"
+        onCloseAutoFocus={(e) => e.preventDefault()}
+      >
         <div className="absolute top-0 left-0 w-full h-1 bg-primary/50" />
         
         <DialogHeader className="p-6 pb-0">
@@ -41,19 +44,25 @@ export function NewCharacterDialog({ open, onOpenChange, onCharacterCreated }: N
               <Shield className="w-4 h-4" />
             </div>
             <span className="text-[10px] font-bold tracking-[0.2em] text-muted-foreground uppercase">
-              Departamento de Registro de Ultra-Humanos
+              Departamento de Registro de Super-Humanos
             </span>
           </div>
           <DialogTitle className="text-2xl font-black tracking-tighter uppercase italic">
             Novo Dossiê
           </DialogTitle>
-          <DialogDescription className="font-mono text-[11px] uppercase tracking-wider">
+          <DialogDescription className="sr-only">
             Iniciando processo de catalogação de novo indivíduo.
           </DialogDescription>
         </DialogHeader>
 
         <div className="p-6 pt-4">
           <NewCharacterForm onSuccess={handleSuccess} onCancel={handleCancel} />
+        </div>
+
+        {/* Decorative footer */}
+        <div className="px-6 py-3 border-t border-primary/5 flex justify-between items-center opacity-30 bg-muted/10">
+          <span className="text-[8px] font-mono uppercase tracking-tighter">Status: Aguardando Entrada de Dados</span>
+          <span className="text-[8px] font-mono uppercase tracking-tighter">Ref: REG-{Math.random().toString(36).substring(2, 6).toUpperCase()}</span>
         </div>
       </DialogContent>
     </Dialog>

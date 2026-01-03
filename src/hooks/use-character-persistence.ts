@@ -528,6 +528,42 @@ export function useCharacterPersistence(
     [userId],
   );
 
+  /**
+   * Cria uma nova pasta
+   */
+  const createFolder = useCallback(async (name: string, parentId: string | null = null) => {
+    if (!userId) throw new Error("Usuário não autenticado");
+    const repo = new FirebaseCharacterRepository(userId);
+    return repo.createFolder(name, parentId);
+  }, [userId]);
+
+  /**
+   * Deleta uma pasta
+   */
+  const deleteFolder = useCallback(async (folderId: string) => {
+    if (!userId) throw new Error("Usuário não autenticado");
+    const repo = new FirebaseCharacterRepository(userId);
+    return repo.deleteFolder(folderId);
+  }, [userId]);
+
+  /**
+   * Move um personagem para uma pasta
+   */
+  const moveCharacterToFolder = useCallback(async (characterId: string, folderId: string | null) => {
+    if (!userId) throw new Error("Usuário não autenticado");
+    const repo = new FirebaseCharacterRepository(userId);
+    return repo.moveCharacterToFolder(characterId, folderId);
+  }, [userId]);
+
+  /**
+   * Escuta mudanças em tempo real nas pastas
+   */
+  const listenToFolders = useCallback((callback: (folders: CharacterService.Folder[]) => void) => {
+    if (!userId) return () => {};
+    const repo = new FirebaseCharacterRepository(userId);
+    return repo.listenToFolders(callback);
+  }, [userId]);
+
   // Try to flush pending saves when page is hidden/unloaded to reduce chance of lost edits
   useEffect(() => {
     const flushIfAny = () => {
@@ -576,5 +612,9 @@ export function useCharacterPersistence(
     getLastSelectedId,
     loadLastSelected,
     setOnSaveSuccess,
+    createFolder,
+    deleteFolder,
+    moveCharacterToFolder,
+    listenToFolders,
   };
 }

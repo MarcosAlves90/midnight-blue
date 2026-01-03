@@ -21,6 +21,7 @@ import { INITIAL_SKILLS } from "@/components/pages/status/skills/constants";
 
 const USERS_COLLECTION = "users";
 const CHARACTERS_SUBCOLLECTION = "characters";
+const FOLDERS_SUBCOLLECTION = "folders";
 
 export interface SavedAttribute {
   id: string;
@@ -46,6 +47,15 @@ export interface CharacterDocument {
   skills: Skill[];
   powers: Power[];
   status: Record<string, unknown>;
+  folderId?: string;
+}
+
+export interface Folder {
+  id: string;
+  name: string;
+  createdAt: Date;
+  updatedAt: Date;
+  parentId?: string | null;
 }
 
 export type CharacterData = Omit<CharacterDocument, "id">;
@@ -108,6 +118,7 @@ function mapFirestoreToCharacter(id: string, data: Record<string, unknown>): Cha
     skills: hydrateSkills((data.skills as unknown) as SavedSkill[] || []),
     powers: (data.powers as Power[]) || [],
     status: (data.status as Record<string, unknown>) || {},
+    folderId: data.folderId ? String(data.folderId) : undefined,
   };
 
   try {
@@ -147,6 +158,7 @@ export async function saveCharacter(userId: string, data: CharacterData, charact
     skills: serializeSkills((data.skills as Skill[]) ?? INITIAL_SKILLS),
     powers: data.powers ?? [],
     status: data.status ?? {},
+    folderId: data.folderId ?? null,
   };
 
   try {
@@ -247,11 +259,13 @@ export async function getCharacter(userId: string, characterId: string): Promise
  */
 export async function listCharacters(userId: string): Promise<CharacterDocument[]> {
   const collectionRef = collection(db, USERS_COLLECTION, userId, CHARACTERS_SUBCOLLECTION);
-  const q = query(collectionRef, orderBy("updatedAt", "desc"));
+  const q = query(collectionRef);
 
   try {
     const snapshot = await getDocs(q);
-    return snapshot.docs.map((d) => mapFirestoreToCharacter(d.id, d.data()));
+    return snapshot.docs
+      .map((d) => mapFirestoreToCharacter(d.id, d.data()))
+      .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
   } catch (err) {
     console.error("listCharacters failed:", err);
     throw err;
@@ -528,10 +542,13 @@ export async function getLastSelectedCharacter(userId: string): Promise<Characte
  */
 export function onCharactersChange(userId: string, callback: (characters: CharacterDocument[]) => void): Unsubscribe {
   const collectionRef = collection(db, USERS_COLLECTION, userId, CHARACTERS_SUBCOLLECTION);
-  const q = query(collectionRef, orderBy("updatedAt", "desc"));
+  // Removido orderBy para garantir que fichas antigas sem o campo updatedAt também sejam carregadas
+  const q = query(collectionRef);
 
   return onSnapshot(q, (snapshot) => {
-    const chars = snapshot.docs.map((d) => mapFirestoreToCharacter(d.id, d.data()));
+    const chars = snapshot.docs
+      .map((d) => mapFirestoreToCharacter(d.id, d.data()))
+      .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
     callback(chars);
   }, (err) => {
     console.error("onCharactersChange failed:", err);
@@ -560,5 +577,89 @@ export function onCharacterChange(
     }
   }, (err) => {
     console.error("onCharacterChange failed:", err);
+  });
+}
+
+/* --------------------------- Folder Management --------------------------- */
+
+/**
+ * Cria uma nova pasta para organizar personagens
+ */
+export async function createFolder(userId: string, name: string, parentId: string | null = null): Promise<string> {
+  const id = doc(collection(db, USERS_COLLECTION, userId, FOLDERS_SUBCOLLECTION)).id;
+  const docRef = doc(db, USERS_COLLECTION, userId, FOLDERS_SUBCOLLECTION, id);
+  const now = new Date();
+
+  const folder: Folder = {
+    id,
+    name,
+    createdAt: now,
+    updatedAt: now,
+    parentId,
+  };
+
+  await setDoc(docRef, folder);
+  return id;
+}
+
+/**
+ * Deleta uma pasta e remove a referência dela de todos os personagens
+ */
+export async function deleteFolder(userId: string, folderId: string): Promise<void> {
+  const folderRef = doc(db, USERS_COLLECTION, userId, FOLDERS_SUBCOLLECTION, folderId);
+  
+  // Buscar personagens que estão nesta pasta
+  const charsRef = collection(db, USERS_COLLECTION, userId, CHARACTERS_SUBCOLLECTION);
+  const q = query(charsRef, orderBy("updatedAt", "desc"));
+  const snapshot = await getDocs(q);
+  
+  const batchUpdates = snapshot.docs
+    .filter(d => d.data().folderId === folderId)
+    .map(d => updateDoc(doc(db, USERS_COLLECTION, userId, CHARACTERS_SUBCOLLECTION, d.id), { folderId: null }));
+
+  await Promise.all([...batchUpdates, deleteDoc(folderRef)]);
+}
+
+/**
+ * Lista todas as pastas do usuário
+ */
+export async function listFolders(userId: string): Promise<Folder[]> {
+  const collectionRef = collection(db, USERS_COLLECTION, userId, FOLDERS_SUBCOLLECTION);
+  const q = query(collectionRef, orderBy("name", "asc"));
+  const snapshot = await getDocs(q);
+  
+  return snapshot.docs.map(d => ({
+    ...d.data(),
+    id: d.id,
+    createdAt: toDateSafe(d.data().createdAt),
+    updatedAt: toDateSafe(d.data().updatedAt),
+  } as Folder));
+}
+
+/**
+ * Move um personagem para uma pasta
+ */
+export async function moveCharacterToFolder(userId: string, characterId: string, folderId: string | null): Promise<void> {
+  const docRef = doc(db, USERS_COLLECTION, userId, CHARACTERS_SUBCOLLECTION, characterId);
+  await updateDoc(docRef, { folderId, updatedAt: new Date() });
+}
+
+/**
+ * Escuta mudanças em tempo real nas pastas do usuário
+ */
+export function onFoldersChange(userId: string, callback: (folders: Folder[]) => void): Unsubscribe {
+  const collectionRef = collection(db, USERS_COLLECTION, userId, FOLDERS_SUBCOLLECTION);
+  const q = query(collectionRef, orderBy("name", "asc"));
+
+  return onSnapshot(q, (snapshot) => {
+    const folders = snapshot.docs.map((d) => ({
+      ...d.data(),
+      id: d.id,
+      createdAt: toDateSafe(d.data().createdAt),
+      updatedAt: toDateSafe(d.data().updatedAt),
+    } as Folder));
+    callback(folders);
+  }, (err) => {
+    console.error("onFoldersChange failed:", err);
   });
 }
