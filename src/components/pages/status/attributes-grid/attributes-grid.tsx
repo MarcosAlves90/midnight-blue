@@ -23,7 +23,7 @@ export const AttributesGrid = memo(function AttributesGrid({
 > = {}) {
   const [isEditMode, setIsEditMode] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const { attributes, setAttributes } = useAttributesContext();
+  const { attributes, updateAttributes } = useAttributesContext();
 
   useEffect(() => {
     setMounted(true);
@@ -37,11 +37,11 @@ export const AttributesGrid = memo(function AttributesGrid({
 
   const updateAttribute = useCallback(
     (id: string, changes: Partial<Attribute>) => {
-      setAttributes((prev) =>
+      updateAttributes((prev) =>
         prev.map((attr) => (attr.id === id ? { ...attr, ...changes } : attr)),
       );
     },
-    [setAttributes],
+    [updateAttributes],
   );
 
   const renderCards = (forceDisabled = false) => (

@@ -161,7 +161,7 @@ function useEditableNumber(initial: number, min: number = 0) {
 export default function AdvancedStatus() {
   const { attributes } = useAttributesContext();
   const { skills } = useSkillsContext();
-  const { powerLevel, setPowerLevel, extraPoints, setExtraPoints } =
+  const { powerLevel, updatePowerLevel, extraPoints, updateExtraPoints } =
     useStatusContext();
 
   const [isEditMode, setIsEditMode] = useState(false);
@@ -172,26 +172,26 @@ export default function AdvancedStatus() {
 
   const handleAddPoint = () => {
     if (extraPoints >= 14) {
-      setExtraPoints(0);
-      setPowerLevel(powerLevel + 1);
+      updateExtraPoints(0);
+      updatePowerLevel(powerLevel + 1);
     } else {
-      setExtraPoints(extraPoints + 1);
+      updateExtraPoints(extraPoints + 1);
     }
   };
 
   const handleRemovePoint = () => {
     if (extraPoints <= 0) {
       if (powerLevel > 1) {
-        setExtraPoints(14);
-        setPowerLevel(powerLevel - 1);
+        updateExtraPoints(14);
+        updatePowerLevel(powerLevel - 1);
       }
     } else {
-      setExtraPoints(extraPoints - 1);
+      updateExtraPoints(extraPoints - 1);
     }
   };
 
   const handleResetPoints = () => {
-    setExtraPoints(0);
+    updateExtraPoints(0);
   };
 
   const totalPowerPoints = powerLevel * 15 + extraPoints;
@@ -340,7 +340,7 @@ export default function AdvancedStatus() {
             type="number"
             min={1}
             value={nivelInput}
-            onChange={(e) => setPowerLevel(Number(e.target.value) || 1)}
+            onChange={(e) => updatePowerLevel(Number(e.target.value) || 1)}
             disabled={!isEditMode}
             className="text-center text-sm font-mono bg-primary/10 rounded-md focus:bg-primary/15 border-0 outline-none transition-colors h-8 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
           />

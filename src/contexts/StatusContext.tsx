@@ -14,9 +14,13 @@ import { useCharacterPersistence } from "@/hooks/use-character-persistence";
 interface StatusContextType {
   powerLevel: number;
   setPowerLevel: (level: number) => void;
+  updatePowerLevel: (level: number) => void;
   extraPoints: number;
   setExtraPoints: (points: number) => void;
+  updateExtraPoints: (points: number) => void;
   isSyncing: boolean;
+  dirtyFields: Set<string>;
+  markFieldDirty: (field: string) => void;
 }
 
 const StatusContext = createContext<StatusContextType | undefined>(undefined);
@@ -26,10 +30,10 @@ const STORAGE_KEY = "midnight-status";
 export const StatusProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [powerLevel, setPowerLevelState] = useState(10);
-  const [extraPoints, setExtraPointsState] = useState(0);
+  const [powerLevel, setPowerLevel] = useState(10);
+  const [extraPoints, setExtraPoints] = useState(0);
   const [isSyncing, setIsSyncing] = useState(false);
-  const lastVersionRef = useRef<number>(0);
+  const [dirtyFields, setDirtyFields] = useState<Set<string>>(new Set());
 
   const { user } = useAuth();
   const { selectedCharacter } = useCharacter();
@@ -38,35 +42,20 @@ export const StatusProvider: React.FC<{ children: React.ReactNode }> = ({
     selectedCharacter?.id
   );
 
-  // Inbound Sync: Listen to selectedCharacter changes from server
-  useEffect(() => {
-    if (selectedCharacter && selectedCharacter.status) {
-      // Only update if server version is newer than what we last processed
-      if (selectedCharacter.version > lastVersionRef.current) {
-        console.debug("[StatusContext] Inbound sync", { 
-          version: selectedCharacter.version, 
-          prevVersion: lastVersionRef.current 
-        });
-        if (typeof selectedCharacter.status.powerLevel === "number") {
-          setPowerLevelState(selectedCharacter.status.powerLevel);
-        }
-        if (typeof selectedCharacter.status.extraPoints === "number") {
-          setExtraPointsState(selectedCharacter.status.extraPoints);
-        }
-        lastVersionRef.current = selectedCharacter.version;
-      }
-    } else if (!selectedCharacter) {
-      setPowerLevelState(10);
-      setExtraPointsState(0);
-      lastVersionRef.current = 0;
-    }
-  }, [selectedCharacter]);
-
   // Setup save success callback
   useEffect(() => {
     setOnSaveSuccess((fields) => {
       if (fields.some(f => f.startsWith("status."))) {
         setIsSyncing(false);
+        setDirtyFields((prev) => {
+          const next = new Set(prev);
+          fields.forEach(f => {
+            if (f.startsWith("status.")) {
+              next.delete(f.split(".")[1]);
+            }
+          });
+          return next;
+        });
       }
     });
     return () => setOnSaveSuccess(null);
@@ -79,9 +68,9 @@ export const StatusProvider: React.FC<{ children: React.ReactNode }> = ({
       if (stored) {
         const parsed = JSON.parse(stored);
         if (typeof parsed.powerLevel === "number")
-          setPowerLevelState(parsed.powerLevel);
+          setPowerLevel(parsed.powerLevel);
         if (typeof parsed.extraPoints === "number")
-          setExtraPointsState(parsed.extraPoints);
+          setExtraPoints(parsed.extraPoints);
       }
     } catch (e) {
       console.error("Failed to load status from localStorage", e);
@@ -97,25 +86,44 @@ export const StatusProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, [powerLevel, extraPoints]);
 
-  const setPowerLevel = useCallback((level: number) => {
-    setPowerLevelState(level);
+  const updatePowerLevel = useCallback((level: number) => {
+    setPowerLevel(level);
     if (selectedCharacter?.id) {
       setIsSyncing(true);
+      setDirtyFields((prev) => {
+        const next = new Set(prev);
+        next.add("powerLevel");
+        return next;
+      });
       scheduleAutoSave({ status: { powerLevel: level } });
     }
   }, [selectedCharacter?.id, scheduleAutoSave]);
 
-  const setExtraPoints = useCallback((points: number) => {
-    setExtraPointsState(points);
+  const updateExtraPoints = useCallback((points: number) => {
+    setExtraPoints(points);
     if (selectedCharacter?.id) {
       setIsSyncing(true);
+      setDirtyFields((prev) => {
+        const next = new Set(prev);
+        next.add("extraPoints");
+        return next;
+      });
       scheduleAutoSave({ status: { extraPoints: points } });
     }
   }, [selectedCharacter?.id, scheduleAutoSave]);
 
+  const markFieldDirty = useCallback((field: string) => {
+    setDirtyFields((prev) => {
+      if (prev.has(field)) return prev;
+      const next = new Set(prev);
+      next.add(field);
+      return next;
+    });
+  }, []);
+
   return (
     <StatusContext.Provider
-      value={{ powerLevel, setPowerLevel, extraPoints, setExtraPoints, isSyncing }}
+      value={{ powerLevel, setPowerLevel, updatePowerLevel, extraPoints, setExtraPoints, updateExtraPoints, isSyncing, dirtyFields, markFieldDirty }}
     >
       {children}
     </StatusContext.Provider>

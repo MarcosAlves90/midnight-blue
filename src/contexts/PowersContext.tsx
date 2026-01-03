@@ -9,10 +9,13 @@ import { useCharacterPersistence } from "@/hooks/use-character-persistence";
 interface PowersContextType {
   powers: Power[];
   setPowers: React.Dispatch<React.SetStateAction<Power[]>>;
+  updatePowers: (action: React.SetStateAction<Power[]>) => void;
   addPower: (power: Power) => void;
   updatePower: (power: Power) => void;
   deletePower: (id: string) => void;
   isSyncing: boolean;
+  dirtyFields: Set<string>;
+  markFieldDirty: (field: string) => void;
 }
 
 const PowersContext = createContext<PowersContextType | undefined>(undefined);
@@ -22,9 +25,9 @@ const STORAGE_KEY = "midnight-powers";
 export const PowersProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [powers, setPowersState] = useState<Power[]>([]);
+  const [powers, setPowers] = useState<Power[]>([]);
   const [isSyncing, setIsSyncing] = useState(false);
-  const lastVersionRef = useRef<number>(0);
+  const [dirtyFields, setDirtyFields] = useState<Set<string>>(new Set());
 
   const { user } = useAuth();
   const { selectedCharacter } = useCharacter();
@@ -33,29 +36,16 @@ export const PowersProvider: React.FC<{ children: React.ReactNode }> = ({
     selectedCharacter?.id
   );
 
-  // Inbound Sync: Listen to selectedCharacter changes from server
-  useEffect(() => {
-    if (selectedCharacter && selectedCharacter.powers) {
-      // Only update if server version is newer than what we last processed
-      if (selectedCharacter.version > lastVersionRef.current) {
-        console.debug("[PowersContext] Inbound sync", { 
-          version: selectedCharacter.version, 
-          prevVersion: lastVersionRef.current 
-        });
-        setPowersState(selectedCharacter.powers);
-        lastVersionRef.current = selectedCharacter.version;
-      }
-    } else if (!selectedCharacter) {
-      setPowersState([]);
-      lastVersionRef.current = 0;
-    }
-  }, [selectedCharacter]);
-
   // Setup save success callback
   useEffect(() => {
     setOnSaveSuccess((fields) => {
       if (fields.includes("powers")) {
         setIsSyncing(false);
+        setDirtyFields((prev) => {
+          const next = new Set(prev);
+          next.delete("powers");
+          return next;
+        });
       }
     });
     return () => setOnSaveSuccess(null);
@@ -68,7 +58,7 @@ export const PowersProvider: React.FC<{ children: React.ReactNode }> = ({
       if (stored) {
         const parsed = JSON.parse(stored);
         if (Array.isArray(parsed)) {
-          setPowersState(parsed);
+          setPowers(parsed);
         }
       }
     } catch {
@@ -85,12 +75,17 @@ export const PowersProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, [powers]);
 
-  const setPowers = useCallback((action: React.SetStateAction<Power[]>) => {
-    setPowersState((prev) => {
+  const updatePowers = useCallback((action: React.SetStateAction<Power[]>) => {
+    setPowers((prev) => {
       const next = typeof action === "function" ? action(prev) : action;
       
       if (selectedCharacter?.id) {
         setIsSyncing(true);
+        setDirtyFields((prevDirty) => {
+          const nextDirty = new Set(prevDirty);
+          nextDirty.add("powers");
+          return nextDirty;
+        });
         scheduleAutoSave({ powers: next });
       }
       
@@ -99,19 +94,28 @@ export const PowersProvider: React.FC<{ children: React.ReactNode }> = ({
   }, [selectedCharacter?.id, scheduleAutoSave]);
 
   const addPower = useCallback((power: Power) => {
-    setPowers((prev) => [...prev, power]);
-  }, [setPowers]);
+    updatePowers((prev) => [...prev, power]);
+  }, [updatePowers]);
 
   const updatePower = useCallback((power: Power) => {
-    setPowers((prev) => prev.map((p) => (p.id === power.id ? power : p)));
-  }, [setPowers]);
+    updatePowers((prev) => prev.map((p) => (p.id === power.id ? power : p)));
+  }, [updatePowers]);
 
   const deletePower = useCallback((id: string) => {
-    setPowers((prev) => prev.filter((p) => p.id !== id));
-  }, [setPowers]);
+    updatePowers((prev) => prev.filter((p) => p.id !== id));
+  }, [updatePowers]);
+
+  const markFieldDirty = useCallback((field: string) => {
+    setDirtyFields((prev) => {
+      if (prev.has(field)) return prev;
+      const next = new Set(prev);
+      next.add(field);
+      return next;
+    });
+  }, []);
 
   return (
-    <PowersContext.Provider value={{ powers, setPowers, addPower, updatePower, deletePower, isSyncing }}>
+    <PowersContext.Provider value={{ powers, setPowers, updatePowers, addPower, updatePower, deletePower, isSyncing, dirtyFields, markFieldDirty }}>
       {children}
     </PowersContext.Provider>
   );

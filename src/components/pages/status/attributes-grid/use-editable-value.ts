@@ -7,6 +7,7 @@ export function useEditableValue(
   onChange?: (value: number) => void,
   disabled = false,
   customLimits?: { MIN_VALUE?: number; MAX_VALUE?: number },
+  onDirty?: () => void,
 ): EditableValueHook {
   const [value, setValue] = useState(initialValue);
   const [inputValue, setInputValue] = useState(initialValue.toString());
@@ -45,9 +46,10 @@ export function useEditableValue(
         (/^\d+$/.test(inputVal) && parseInt(inputVal, 10) <= limits.MAX_VALUE)
       ) {
         setInputValue(inputVal);
+        onDirty?.();
       }
     },
-    [disabled, limits],
+    [disabled, limits, onDirty],
   );
 
   const handleBlur = useCallback(() => {

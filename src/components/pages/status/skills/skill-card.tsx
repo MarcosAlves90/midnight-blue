@@ -6,6 +6,7 @@ import { Tip } from "@/components/ui/tip";
 import { getColorClasses } from "@/lib/colors";
 import { useAttributesContext } from "@/contexts/AttributesContext";
 import { useStatusContext } from "@/contexts/StatusContext";
+import { useSkillsContext } from "@/contexts/SkillsContext";
 import { rollDice } from "@/lib/dice-system";
 import { DiceIcon } from "@/components/ui/icons/dice-icon";
 import { useEditableValue } from "../attributes-grid/use-editable-value";
@@ -35,15 +36,21 @@ export function SkillCard({
   onRemove,
   disabled = false,
 }: SkillCardProps) {
+  const { markFieldDirty } = useSkillsContext();
+
   const valueState = useEditableValue(
     value,
     (v) => onChange?.(id, "value", v),
     disabled,
+    undefined,
+    () => markFieldDirty("skills")
   );
   const othersState = useEditableValue(
     others ?? 0,
     (v) => onChange?.(id, "others", v),
     disabled,
+    undefined,
+    () => markFieldDirty("skills")
   );
 
   const { attributes } = useAttributesContext();

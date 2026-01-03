@@ -85,7 +85,10 @@ export const NavMain = React.memo(function NavMain({
                   <SidebarMenuSub>
                     {item.items?.map((subItem) => {
                       const isIndividual = subItem.url === "/dashboard/personagem/individual";
-                      const href = isIndividual && selectedCharacter ? `/dashboard/personagem/individual/${selectedCharacter.id}` : subItem.url;
+                      const isStatus = subItem.url === "/dashboard/personagem/status";
+                      const href = (isIndividual || isStatus) && selectedCharacter 
+                        ? `${subItem.url}/${selectedCharacter.id}` 
+                        : subItem.url;
                       return (
                         <SidebarMenuSubItem key={subItem.title}>
                           <SidebarMenuSubButton asChild>

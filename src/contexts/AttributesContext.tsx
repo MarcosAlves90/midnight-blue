@@ -9,8 +9,11 @@ import { useCharacterPersistence } from "@/hooks/use-character-persistence";
 interface AttributesContextType {
   attributes: Attribute[];
   setAttributes: React.Dispatch<React.SetStateAction<Attribute[]>>;
+  updateAttributes: (action: React.SetStateAction<Attribute[]>) => void;
   resetAttributes: () => void;
   isSyncing: boolean;
+  dirtyFields: Set<string>;
+  markFieldDirty: (field: string) => void;
 }
 
 const AttributesContext = createContext<AttributesContextType | undefined>(
@@ -23,9 +26,9 @@ export const AttributesProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   // Start with server-safe initial value so SSR and first client render match.
-  const [attributes, setAttributesState] = useState<Attribute[]>(INITIAL_ATTRIBUTES);
+  const [attributes, setAttributes] = useState<Attribute[]>(INITIAL_ATTRIBUTES);
   const [isSyncing, setIsSyncing] = useState(false);
-  const lastVersionRef = useRef<number>(0);
+  const [dirtyFields, setDirtyFields] = useState<Set<string>>(new Set());
 
   const { user } = useAuth();
   const { selectedCharacter } = useCharacter();
@@ -34,29 +37,16 @@ export const AttributesProvider: React.FC<{ children: React.ReactNode }> = ({
     selectedCharacter?.id
   );
 
-  // Inbound Sync: Listen to selectedCharacter changes from server
-  useEffect(() => {
-    if (selectedCharacter && selectedCharacter.attributes) {
-      // Only update if server version is newer than what we last processed
-      if (selectedCharacter.version > lastVersionRef.current) {
-        console.debug("[AttributesContext] Inbound sync", { 
-          version: selectedCharacter.version, 
-          prevVersion: lastVersionRef.current 
-        });
-        setAttributesState(selectedCharacter.attributes);
-        lastVersionRef.current = selectedCharacter.version;
-      }
-    } else if (!selectedCharacter) {
-      setAttributesState(INITIAL_ATTRIBUTES);
-      lastVersionRef.current = 0;
-    }
-  }, [selectedCharacter]);
-
   // Setup save success callback
   useEffect(() => {
     setOnSaveSuccess((fields) => {
       if (fields.includes("attributes")) {
         setIsSyncing(false);
+        setDirtyFields((prev) => {
+          const next = new Set(prev);
+          next.delete("attributes");
+          return next;
+        });
       }
     });
     return () => setOnSaveSuccess(null);
@@ -75,10 +65,10 @@ export const AttributesProvider: React.FC<{ children: React.ReactNode }> = ({
           currentIds.size === storedIds.size &&
           [...currentIds].every((id) => storedIds.has(id));
         if (idsMatch) {
-          setAttributesState(parsedAttributes);
+          setAttributes(parsedAttributes);
         } else {
           // Reset to new INITIAL_ATTRIBUTES if structure changed
-          setAttributesState(INITIAL_ATTRIBUTES);
+          setAttributes(INITIAL_ATTRIBUTES);
         }
       }
     } catch {
@@ -95,13 +85,18 @@ export const AttributesProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, [attributes]);
 
-  const setAttributes = useCallback((action: React.SetStateAction<Attribute[]>) => {
-    setAttributesState((prev) => {
+  const updateAttributes = useCallback((action: React.SetStateAction<Attribute[]>) => {
+    setAttributes((prev) => {
       const next = typeof action === "function" ? action(prev) : action;
       
       // Schedule auto-save if we have a character selected
       if (selectedCharacter?.id) {
         setIsSyncing(true);
+        setDirtyFields((prevDirty) => {
+          const nextDirty = new Set(prevDirty);
+          nextDirty.add("attributes");
+          return nextDirty;
+        });
         scheduleAutoSave({ attributes: next });
       }
       
@@ -109,11 +104,20 @@ export const AttributesProvider: React.FC<{ children: React.ReactNode }> = ({
     });
   }, [selectedCharacter?.id, scheduleAutoSave]);
 
-  const resetAttributes = () => setAttributes(INITIAL_ATTRIBUTES);
+  const markFieldDirty = useCallback((field: string) => {
+    setDirtyFields((prev) => {
+      if (prev.has(field)) return prev;
+      const next = new Set(prev);
+      next.add(field);
+      return next;
+    });
+  }, []);
+
+  const resetAttributes = () => updateAttributes(INITIAL_ATTRIBUTES);
 
   return (
     <AttributesContext.Provider
-      value={{ attributes, setAttributes, resetAttributes, isSyncing }}
+      value={{ attributes, setAttributes, updateAttributes, resetAttributes, isSyncing, dirtyFields, markFieldDirty }}
     >
       {children}
     </AttributesContext.Provider>

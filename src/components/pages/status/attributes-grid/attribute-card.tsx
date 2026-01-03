@@ -7,6 +7,7 @@ import { getColorClasses } from "../../../../lib/colors";
 import { DiceIcon } from "../../../ui/icons/dice-icon";
 import { rollDice } from "../../../../lib/dice-system";
 import { Tip } from "@/components/ui/tip";
+import { useAttributesContext } from "@/contexts/AttributesContext";
 
 export interface AttributeFieldConfig {
   key: string;
@@ -49,17 +50,21 @@ export const AttributeCard = memo(function AttributeCard({
   fields,
   inputLimits,
 }: AttributeCardProps) {
+  const { markFieldDirty } = useAttributesContext();
+
   const baseValueState = useEditableValue(
     value,
     onValueChange,
     disabled || !editable,
     inputLimits,
+    () => markFieldDirty("attributes")
   );
   const bonusValueState = useEditableValue(
     bonus ?? 0,
     onBonusChange,
     disabled || !editable,
     inputLimits,
+    () => markFieldDirty("attributes")
   );
 
   const colorClasses = useMemo(() => getColorClasses(color), [color]);

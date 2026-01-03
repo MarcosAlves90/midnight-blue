@@ -9,10 +9,13 @@ import { useCharacterPersistence } from "@/hooks/use-character-persistence";
 interface SkillsContextType {
   skills: Skill[];
   setSkills: React.Dispatch<React.SetStateAction<Skill[]>>;
+  updateSkills: (action: React.SetStateAction<Skill[]>) => void;
   updateSkill: (id: string, field: "value" | "others", value: number) => void;
   addSpecialization: (templateId: string, name: string) => void;
   removeSkill: (id: string) => void;
   isSyncing: boolean;
+  dirtyFields: Set<string>;
+  markFieldDirty: (field: string) => void;
 }
 
 const SkillsContext = createContext<SkillsContextType | undefined>(undefined);
@@ -23,7 +26,7 @@ export const SkillsProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   // Initialize with default values, ensuring value and others are 0 if undefined
-  const [skills, setSkillsState] = useState<Skill[]>(
+  const [skills, setSkills] = useState<Skill[]>(
     INITIAL_SKILLS.map((s) => ({
       ...s,
       value: s.value ?? 0,
@@ -31,7 +34,7 @@ export const SkillsProvider: React.FC<{ children: React.ReactNode }> = ({
     })),
   );
   const [isSyncing, setIsSyncing] = useState(false);
-  const lastVersionRef = useRef<number>(0);
+  const [dirtyFields, setDirtyFields] = useState<Set<string>>(new Set());
 
   const { user } = useAuth();
   const { selectedCharacter } = useCharacter();
@@ -40,33 +43,16 @@ export const SkillsProvider: React.FC<{ children: React.ReactNode }> = ({
     selectedCharacter?.id
   );
 
-  // Inbound Sync: Listen to selectedCharacter changes from server
-  useEffect(() => {
-    if (selectedCharacter && selectedCharacter.skills) {
-      // Only update if server version is newer than what we last processed
-      if (selectedCharacter.version > lastVersionRef.current) {
-        console.debug("[SkillsContext] Inbound sync", { 
-          version: selectedCharacter.version, 
-          prevVersion: lastVersionRef.current 
-        });
-        setSkillsState(selectedCharacter.skills);
-        lastVersionRef.current = selectedCharacter.version;
-      }
-    } else if (!selectedCharacter) {
-      setSkillsState(INITIAL_SKILLS.map((s) => ({
-        ...s,
-        value: s.value ?? 0,
-        others: s.others ?? 0,
-      })));
-      lastVersionRef.current = 0;
-    }
-  }, [selectedCharacter]);
-
   // Setup save success callback
   useEffect(() => {
     setOnSaveSuccess((fields) => {
       if (fields.includes("skills")) {
         setIsSyncing(false);
+        setDirtyFields((prev) => {
+          const next = new Set(prev);
+          next.delete("skills");
+          return next;
+        });
       }
     });
     return () => setOnSaveSuccess(null);
@@ -95,7 +81,7 @@ export const SkillsProvider: React.FC<{ children: React.ReactNode }> = ({
           // 2. Add back specializations that were in stored but not in INITIAL_SKILLS
           const specializations = parsedSkills.filter(s => s.parentId);
           
-          setSkillsState([...baseSkills, ...specializations]);
+          setSkills([...baseSkills, ...specializations]);
         }
       }
     } catch {
@@ -112,13 +98,18 @@ export const SkillsProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, [skills]);
 
-  const setSkills = useCallback((action: React.SetStateAction<Skill[]>) => {
-    setSkillsState((prev) => {
+  const updateSkills = useCallback((action: React.SetStateAction<Skill[]>) => {
+    setSkills((prev) => {
       const next = typeof action === "function" ? action(prev) : action;
       
       // Schedule auto-save if we have a character selected
       if (selectedCharacter?.id) {
         setIsSyncing(true);
+        setDirtyFields((prevDirty) => {
+          const nextDirty = new Set(prevDirty);
+          nextDirty.add("skills");
+          return nextDirty;
+        });
         scheduleAutoSave({ skills: next });
       }
       
@@ -131,10 +122,10 @@ export const SkillsProvider: React.FC<{ children: React.ReactNode }> = ({
     field: "value" | "others",
     value: number,
   ) => {
-    setSkills((prev) =>
+    updateSkills((prev) =>
       prev.map((s) => (s.id === id ? { ...s, [field]: value } : s)),
     );
-  }, [setSkills]);
+  }, [updateSkills]);
 
   const addSpecialization = useCallback((templateId: string, specialization: string) => {
     const template = INITIAL_SKILLS.find((s) => s.id === templateId);
@@ -151,15 +142,24 @@ export const SkillsProvider: React.FC<{ children: React.ReactNode }> = ({
       isTemplate: false,
     };
 
-    setSkills((prev) => [...prev, newSkill]);
-  }, [setSkills]);
+    updateSkills((prev) => [...prev, newSkill]);
+  }, [updateSkills]);
 
   const removeSkill = useCallback((id: string) => {
-    setSkills((prev) => prev.filter((s) => s.id !== id));
-  }, [setSkills]);
+    updateSkills((prev) => prev.filter((s) => s.id !== id));
+  }, [updateSkills]);
+
+  const markFieldDirty = useCallback((field: string) => {
+    setDirtyFields((prev) => {
+      if (prev.has(field)) return prev;
+      const next = new Set(prev);
+      next.add(field);
+      return next;
+    });
+  }, []);
 
   return (
-    <SkillsContext.Provider value={{ skills, setSkills, updateSkill, addSpecialization, removeSkill, isSyncing }}>
+    <SkillsContext.Provider value={{ skills, setSkills, updateSkills, updateSkill, addSpecialization, removeSkill, isSyncing, dirtyFields, markFieldDirty }}>
       {children}
     </SkillsContext.Provider>
   );
