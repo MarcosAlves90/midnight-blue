@@ -22,6 +22,16 @@ service cloud.firestore {
         allow read: if request.auth != null && request.auth.uid == userId;
         allow write: if request.auth != null && request.auth.uid == userId;
       }
+
+      // Subcoleção de anotações do usuário
+      match /notes/{noteId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+
+      // Subcoleção de pastas de anotações do usuário
+      match /note_folders/{folderId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
     }
 
     // Bloquear tudo mais por padrão
