@@ -4,13 +4,10 @@ import * as React from "react";
 import {
   BookOpenText,
   Store,
-  Frame,
-  Map,
-  PieChart,
   BookMarked,
   VenetianMask,
 } from "lucide-react";
-import { NavMain, NavProjects, NavUser, CharacterSwitcher } from ".";
+import { NavMain, NavUser, CharacterSwitcher } from ".";
 import {
   Sidebar,
   SidebarContent,
@@ -66,12 +63,6 @@ const navMain = [
   },
 ];
 
-const projects = [
-  { name: "Design Engineering", url: "#", icon: Frame },
-  { name: "Sales & Marketing", url: "#", icon: PieChart },
-  { name: "Travel", url: "#", icon: Map },
-];
-
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user } = useAuth();
 
@@ -90,7 +81,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={navMain} />
-        <NavProjects projects={projects} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={userData} />

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { 
   Users, 
@@ -30,10 +30,200 @@ import GlitchText from "@/components/ui/custom/glitch-text";
 import { OperationsBulletin } from "@/components/pages/dashboard/operations-bulletin";
 import { QuickActionLink } from "@/components/pages/dashboard/dashboard-cards";
 
+// --- Constants & Configuration ---
+
+const BACKGROUND_ROTATION_TEXTS = ["Sevastopol", "Infinity Corp", "USC Terminal", "Nexus", "Black TMW"];
+const ENCRYPTION_PROTOCOLS = ["AES-256", "RSA-4096", "SHA-512", "ECC-384", "CHACHA20"];
+const RECENT_DOSSIERS_LIMIT = 3;
+
+// --- Custom Hooks ---
+
+/**
+ * Hook para gerenciar a rotação de textos decorativos no fundo.
+ */
+function useBackgroundRotation(texts: string[], intervalMs = 5000) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % texts.length);
+    }, intervalMs);
+    return () => clearInterval(interval);
+  }, [texts.length, intervalMs]);
+
+  return texts[currentIndex];
+}
+
+/**
+ * Hook para simular dados dinâmicos de um terminal operacional.
+ */
+function useTerminalStatus() {
+  const [status, setStatus] = useState({
+    latency: 14,
+    encryption: "AES-256",
+    terminalId: ""
+  });
+
+  useEffect(() => {
+    const generateId = () => Math.random().toString(36).substring(7).toUpperCase();
+    setStatus(prev => ({ ...prev, terminalId: generateId() }));
+
+    const interval = setInterval(() => {
+      setStatus(prev => ({
+        latency: Math.floor(Math.random() * 40) + 10,
+        encryption: Math.random() > 0.8 
+          ? ENCRYPTION_PROTOCOLS[Math.floor(Math.random() * ENCRYPTION_PROTOCOLS.length)] 
+          : prev.encryption,
+        terminalId: Math.random() > 0.95 ? generateId() : prev.terminalId
+      }));
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  return status;
+}
+
+// --- Sub-components ---
+
+function DashboardBackground({ display }: { display: string }) {
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-10 -z-10">
+      <div className="absolute top-0 right-0 text-[15vw] font-black tracking-tighter text-primary/5 select-none leading-none uppercase italic transition-all duration-1000">
+        {display}
+      </div>
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:60px_60px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
+    </div>
+  );
+}
+
+function ScanlineOverlay() {
+  return <div className="pointer-events-none fixed inset-0 z-50 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.05)_50%),linear-gradient(90deg,rgba(255,0,0,0.01),rgba(0,255,0,0.005),rgba(0,0,255,0.01))] bg-[size:100%_4px,3px_100%] opacity-20" />;
+}
+
+function HeroBadges() {
+  return (
+    <div className="flex flex-wrap gap-2">
+      <Badge icon={<Shield className="h-3 w-3" />} label="Sevastopol Intelligence" color="blue" />
+      <Badge icon={<Cpu className="h-3 w-3" />} label="Infinity Corp Uplink" color="indigo" />
+      <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-500/10 border border-green-500/20 text-green-400 text-[10px] font-bold tracking-wider uppercase animate-pulse">
+        <Activity className="h-3 w-3" /> Sincronizado
+      </div>
+    </div>
+  );
+}
+
+function TerminalStatusBar({ latency, encryption, terminalId }: { latency: number, encryption: string, terminalId: string }) {
+  return (
+    <div className="absolute bottom-4 left-12 right-12 hidden md:flex items-center justify-between opacity-30 font-mono text-[8px] uppercase tracking-widest">
+      <div className="flex gap-4">
+        <span>Latência: {latency}ms</span>
+        <span>Criptografia: {encryption}</span>
+      </div>
+      <div className="flex gap-4">
+        <span>ID: {terminalId}</span>
+        <span>V: 2.4.0</span>
+      </div>
+    </div>
+  );
+}
+
+function HeroSection({ 
+  agentName, onNewCharacter, onViewGallery, bulletin
+}: { 
+  agentName: string, onNewCharacter: () => void, onViewGallery: () => void, bulletin?: React.ReactNode
+}) {
+  const status = useTerminalStatus();
+
+  return (
+    <div className="relative h-full overflow-hidden bg-muted/10 backdrop-blur-md border border-primary/10 p-6 md:p-10 shadow-2xl shadow-primary/5 group">
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:32px_32px] opacity-50 pointer-events-none" />
+      
+      {/* Decorative corner elements */}
+      <div className="absolute top-0 left-0 w-16 h-16 border-t-2 border-l-2 border-primary/20 group-hover:border-primary/40 transition-colors" />
+      <div className="absolute bottom-0 right-0 w-16 h-16 border-b-2 border-r-2 border-primary/20 group-hover:border-primary/40 transition-colors" />
+      
+      <div className="relative z-10 grid gap-8 lg:grid-cols-12 items-center h-full">
+        <div className="lg:col-span-7 space-y-6">
+          <HeroBadges />
+          
+          <div className="space-y-1">
+            <GlitchText className="text-3xl md:text-5xl font-black tracking-tighter italic uppercase leading-none text-primary" glitchChance={0.03}>
+              Terminal de Comando
+            </GlitchText>
+            <div className="flex items-center gap-3">
+              <div className="h-px w-10 bg-primary/30" />
+              <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-muted-foreground/60">
+                Acesso Autorizado: Agente {agentName}
+              </p>
+            </div>
+          </div>
+
+          <p className="text-sm md:text-base text-muted-foreground max-w-md leading-relaxed font-medium">
+            Bem-vindo ao nexo operacional. Gerencie dossiês de indivíduos ultra-humanos e monitore atividades em tempo real.
+          </p>
+          
+          <div className="flex flex-wrap gap-3">
+            <Button size="lg" onClick={onNewCharacter} className="h-12 px-6 gap-2 font-bold uppercase tracking-tight bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]">
+              <PlusCircle className="h-5 w-5" /> Registrar Indivíduo
+            </Button>
+            <Button size="lg" variant="outline" onClick={onViewGallery} className="h-12 px-6 gap-2 font-bold uppercase tracking-tight border-primary/20 bg-primary/5 hover:bg-primary/10 hover:border-primary/40 transition-all">
+              <FileText className="h-5 w-5" /> Arquivos de Caso
+            </Button>
+          </div>
+        </div>
+
+        {bulletin && (
+          <div className="lg:col-span-5 h-full flex flex-col justify-center">
+            <div className="relative">
+              {/* Subtle glow behind bulletin */}
+              <div className="absolute inset-0 bg-primary/5 blur-2xl rounded-3xl -z-10" />
+              {bulletin}
+            </div>
+          </div>
+        )}
+      </div>
+      
+      {/* Background elements for Hero */}
+      <div className="absolute top-0 right-0 -mt-20 -mr-20 h-80 w-80 rounded-full bg-primary/10 blur-[100px] animate-pulse" />
+      <div className="absolute bottom-0 right-0 -mb-20 -mr-20 h-96 w-96 rounded-full bg-primary/5 blur-[120px]" />
+      
+      <div className="absolute top-1/2 right-12 -translate-y-1/2 hidden lg:block opacity-[0.03] group-hover:opacity-[0.07] transition-opacity duration-700">
+        <Terminal className="h-80 w-80 text-primary" strokeWidth={0.5} />
+      </div>
+
+      <TerminalStatusBar {...status} />
+    </div>
+  );
+}
+
+function ProtocolSection() {
+  return (
+    <div className="space-y-3">
+      <h2 className="text-xl font-black tracking-tighter uppercase italic opacity-80">Protocolos</h2>
+      <div className="grid gap-2">
+        <QuickActionLink 
+          href="/dashboard/loja" 
+          icon={<Store className="h-5 w-5" />} 
+          title="Arsenal & Tecnologia" 
+          description="Equipamentos fornecidos pela Infinity Corp."
+        />
+        <QuickActionLink 
+          href="/dashboard/wiki" 
+          icon={<BookOpen className="h-5 w-5" />} 
+          title="Base de Dados USC" 
+          description="Arquivos históricos e diretrizes da Sevastopol."
+        />
+      </div>
+    </div>
+  );
+}
+
 export default function DashboardPage() {
   const router = useRouter();
   const { user } = useAuth();
   const { setSelectedCharacter } = useCharacter();
+  const bgText = useBackgroundRotation(BACKGROUND_ROTATION_TEXTS);
   
   const { 
     characters, 
@@ -78,29 +268,24 @@ export default function DashboardPage() {
     };
   }, [user?.uid, listenToCharacters, listenToFolders, setCharacters, setFolders, setIsLoading]);
 
-  // Derived State
-  const recentCharacters = [...characters]
-    .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())
-    .slice(0, 3);
+  // Derived State (Memoized for performance)
+  const recentCharacters = useMemo(() => 
+    [...characters]
+      .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())
+      .slice(0, RECENT_DOSSIERS_LIMIT),
+    [characters]
+  );
 
-  const userName = user?.displayName?.split(' ')[0] || 'OPERACIONAL';
+  const agentName = user?.displayName?.split(' ')[0] || 'OPERACIONAL';
 
   return (
     <div className="relative min-h-screen space-y-6 pb-10 animate-in fade-in duration-700 overflow-hidden">
-      {/* Background Decorative Elements - Following Not Found Design */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-10 -z-10">
-        <div className="absolute top-0 right-0 text-[15vw] font-black tracking-tighter text-primary/5 select-none leading-none uppercase italic">
-          Sevastopol
-        </div>
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:60px_60px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
-      </div>
-
-      {/* Scanline effect overlay */}
-      <div className="pointer-events-none fixed inset-0 z-50 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.05)_50%),linear-gradient(90deg,rgba(255,0,0,0.01),rgba(0,255,0,0.005),rgba(0,0,255,0.01))] bg-[size:100%_4px,3px_100%] opacity-20" />
+      <DashboardBackground display={bgText} />
+      <ScanlineOverlay />
 
       <div className="grid gap-6 items-stretch">
         <HeroSection 
-          userName={userName} 
+          agentName={agentName} 
           onNewCharacter={() => setDialogOpen(true)} 
           onViewGallery={() => router.push('/dashboard/galeria')}
           bulletin={<OperationsBulletin embedded />}
@@ -126,23 +311,7 @@ export default function DashboardPage() {
         </section>
 
         <aside className="md:col-span-3 space-y-4">
-          <div className="space-y-3">
-            <h2 className="text-xl font-black tracking-tighter uppercase italic opacity-80">Protocolos</h2>
-            <div className="grid gap-2">
-              <QuickActionLink 
-                href="/dashboard/loja" 
-                icon={<Store className="h-5 w-5" />} 
-                title="Arsenal & Tecnologia" 
-                description="Equipamentos fornecidos pela Infinity Corp."
-              />
-              <QuickActionLink 
-                href="/dashboard/wiki" 
-                icon={<BookOpen className="h-5 w-5" />} 
-                title="Base de Dados USC" 
-                description="Arquivos históricos e diretrizes da Sevastopol."
-              />
-            </div>
-          </div>
+          <ProtocolSection />
         </aside>
       </div>
 
@@ -151,104 +320,6 @@ export default function DashboardPage() {
         onOpenChange={setDialogOpen}
         onCharacterCreated={() => {}}
       />
-    </div>
-  );
-}
-
-// --- Sub-components for better organization ---
-
-function HeroSection({ 
-  userName, 
-  onNewCharacter, 
-  onViewGallery,
-  bulletin
-}: { 
-  userName: string, 
-  onNewCharacter: () => void, 
-  onViewGallery: () => void,
-  bulletin?: React.ReactNode
-}) {
-  return (
-    <div className="relative h-full overflow-hidden bg-muted/10 backdrop-blur-md border border-primary/10 p-6 md:p-10 shadow-2xl shadow-primary/5 group">
-      {/* Grid Background for Terminal */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:32px_32px] opacity-50 pointer-events-none" />
-      
-      {/* Decorative corner elements */}
-      <div className="absolute top-0 left-0 w-16 h-16 border-t-2 border-l-2 border-primary/20 group-hover:border-primary/40 transition-colors" />
-      <div className="absolute bottom-0 right-0 w-16 h-16 border-b-2 border-r-2 border-primary/20 group-hover:border-primary/40 transition-colors" />
-      
-      <div className="relative z-10 grid gap-8 lg:grid-cols-12 items-center h-full">
-        <div className="lg:col-span-7 space-y-6">
-          <div className="flex flex-wrap gap-2">
-            <Badge icon={<Shield className="h-3 w-3" />} label="Sevastopol Intelligence" color="blue" />
-            <Badge icon={<Cpu className="h-3 w-3" />} label="Infinity Corp Uplink" color="indigo" />
-            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-500/10 border border-green-500/20 text-green-400 text-[10px] font-bold tracking-wider uppercase animate-pulse">
-              <Activity className="h-3 w-3" />
-              Sincronizado
-            </div>
-          </div>
-          
-          <div className="space-y-1">
-            <GlitchText 
-              className="text-3xl md:text-5xl font-black tracking-tighter italic uppercase leading-none text-primary"
-              glitchChance={0.03}
-            >
-              Terminal de Comando
-            </GlitchText>
-            <div className="flex items-center gap-3">
-              <div className="h-px w-10 bg-primary/30" />
-              <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-muted-foreground/60">
-                Acesso Autorizado: Agente {userName}
-              </p>
-            </div>
-          </div>
-
-          <p className="text-sm md:text-base text-muted-foreground max-w-md leading-relaxed font-medium">
-            Bem-vindo ao nexo operacional. Gerencie dossiês de indivíduos ultra-humanos e monitore atividades em tempo real.
-          </p>
-          
-          <div className="flex flex-wrap gap-3">
-            <Button size="lg" onClick={onNewCharacter} className="h-12 px-6 gap-2 font-bold uppercase tracking-tight bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]">
-              <PlusCircle className="h-5 w-5" />
-              Registrar Indivíduo
-            </Button>
-            <Button size="lg" variant="outline" onClick={onViewGallery} className="h-12 px-6 gap-2 font-bold uppercase tracking-tight border-primary/20 bg-primary/5 hover:bg-primary/10 hover:border-primary/40 transition-all">
-              <FileText className="h-5 w-5" />
-              Arquivos de Caso
-            </Button>
-          </div>
-        </div>
-
-        {bulletin && (
-          <div className="lg:col-span-5 h-full flex flex-col justify-center">
-            <div className="relative">
-              {/* Subtle glow behind bulletin */}
-              <div className="absolute inset-0 bg-primary/5 blur-2xl rounded-3xl -z-10" />
-              {bulletin}
-            </div>
-          </div>
-        )}
-      </div>
-      
-      {/* Background elements for Hero */}
-      <div className="absolute top-0 right-0 -mt-20 -mr-20 h-80 w-80 rounded-full bg-primary/10 blur-[100px] animate-pulse" />
-      <div className="absolute bottom-0 right-0 -mb-20 -mr-20 h-96 w-96 rounded-full bg-primary/5 blur-[120px]" />
-      
-      <div className="absolute top-1/2 right-12 -translate-y-1/2 hidden lg:block opacity-[0.03] group-hover:opacity-[0.07] transition-opacity duration-700">
-        <Terminal className="h-80 w-80 text-primary" strokeWidth={0.5} />
-      </div>
-
-      {/* Terminal-like status bar at bottom */}
-      <div className="absolute bottom-4 left-12 right-12 hidden md:flex items-center justify-between opacity-30 font-mono text-[8px] uppercase tracking-widest">
-        <div className="flex gap-4">
-          <span>Latência: 14ms</span>
-          <span>Criptografia: AES-256</span>
-        </div>
-        <div className="flex gap-4">
-          <span>ID: {Math.random().toString(36).substring(7).toUpperCase()}</span>
-          <span>V: 2.4.0</span>
-        </div>
-      </div>
     </div>
   );
 }
