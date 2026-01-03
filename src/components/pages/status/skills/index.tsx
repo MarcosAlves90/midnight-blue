@@ -190,16 +190,16 @@ export function SkillsList() {
         name="skill-sort"
         value={sortOption}
         onChange={(e) => setSortOption(e.target.value as SortOption)}
-        className="appearance-none px-3 py-2 rounded text-sm bg-muted-foreground/20 text-muted-foreground border-0 outline-none cursor-pointer hover:bg-muted-foreground/30 transition-colors pr-8"
+        className="flex h-8 w-full items-center justify-between rounded-md border border-input bg-transparent px-3 py-1 text-xs shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 appearance-none pr-8 cursor-pointer hover:bg-accent/50"
         aria-label="Ordenar perícias"
       >
-        <option value="name-asc">Nome (A-Z)</option>
-        <option value="name-desc">Nome (Z-A)</option>
-        <option value="attribute">Por Atributo</option>
-        <option value="value-asc">Valor (↑)</option>
-        <option value="value-desc">Valor (↓)</option>
-        <option value="others-asc">Bônus (↑)</option>
-        <option value="others-desc">Bônus (↓)</option>
+        <option value="name-asc" className="bg-background">Nome (A-Z)</option>
+        <option value="name-desc" className="bg-background">Nome (Z-A)</option>
+        <option value="attribute" className="bg-background">Por Atributo</option>
+        <option value="value-asc" className="bg-background">Valor (↑)</option>
+        <option value="value-desc" className="bg-background">Valor (↓)</option>
+        <option value="others-asc" className="bg-background">Bônus (↑)</option>
+        <option value="others-desc" className="bg-background">Bônus (↓)</option>
       </select>
       <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
     </div>
@@ -207,15 +207,15 @@ export function SkillsList() {
 
   const renderSearchInput = () => (
     <div className="relative">
-      <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-      <input
+      <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none z-10" />
+      <Input
         id="skill-search"
         name="skill-search"
         type="text"
         placeholder="Buscar perícia..."
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
-        className="pl-8 pr-8 py-2 rounded text-sm bg-muted-foreground/20 text-muted-foreground placeholder:text-muted-foreground/60 border-0 outline-none hover:bg-muted-foreground/30 transition-colors"
+        className="pl-8 pr-8 h-8 text-xs bg-transparent"
         aria-label="Buscar perícias"
       />
       {searchTerm && (
