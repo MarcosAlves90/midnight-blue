@@ -72,7 +72,7 @@ export function OperationsBulletin() {
   const renderNews = (item: NewsItem, isVisible: boolean) => {
     return (
       <div className={cn(
-        "space-y-1 border-l-2 pl-3 transition-all duration-500 relative group min-h-[50px]",
+        "space-y-1 border-l-2 pl-3 transition-all duration-500 relative group",
         item.type === 'alert' ? "border-red-500/50" : item.type === 'warning' ? "border-amber-500/50" : "border-blue-500/50",
         isVisible ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-2"
       )}>
@@ -105,19 +105,21 @@ export function OperationsBulletin() {
   };
 
   return (
-    <Card className="bg-blue-950/20 border-blue-500/30 overflow-hidden relative shadow-lg shadow-blue-900/10">
+    <Card className="bg-blue-950/20 border-blue-500/30 overflow-hidden relative shadow-lg shadow-blue-900/10 py-0 gap-0">
       <div className="absolute top-0 left-0 w-1 h-full bg-blue-600" />
-      <CardHeader className="pb-2">
+      <CardHeader className="pb-2 pt-4 px-4">
         <CardTitle className="flex items-center gap-2 text-blue-400 font-black tracking-tighter uppercase italic text-sm">
           <AlertTriangle className="h-4 w-4" />
           Boletim de Operações
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6 min-h-[200px] flex flex-col justify-center">
-        {renderNews(news1, fade1)}
-        {renderNews(news2, fade2)}
+      <CardContent className="min-h-[150px] flex flex-col px-4 pb-4">
+        <div className="flex-1 flex flex-col gap-4 pt-2">
+          {renderNews(news1, fade1)}
+          {renderNews(news2, fade2)}
+        </div>
         
-        <div className="pt-2 mt-auto">
+        <div className="pt-2 mt-2 border-t border-blue-500/10">
           <div className="flex items-center justify-between text-[9px] font-mono text-blue-500/50 uppercase tracking-widest">
             <span className="flex items-center gap-1">
               <span className="h-1 w-1 rounded-full bg-blue-500 animate-pulse" />
