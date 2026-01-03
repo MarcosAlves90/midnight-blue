@@ -46,6 +46,8 @@ export const ImageArea: React.FC<ImageAreaProps> = ({
               src={profileImage}
               alt="Imagem de perfil do personagem"
               fill
+              priority
+              sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
               className="w-full h-full object-cover transition-all duration-200"
               style={{
                 objectPosition: `center ${imagePosition}%`,

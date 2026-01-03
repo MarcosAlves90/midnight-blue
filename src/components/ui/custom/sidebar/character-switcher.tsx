@@ -38,6 +38,7 @@ function CharacterDropdownItem({ character, onClick }: { character: CharacterDoc
             src={profileImage}
             alt={civil || hero}
             fill
+            sizes="24px"
             className="object-cover"
           />
         ) : (
@@ -178,6 +179,7 @@ export function CharacterSwitcher() {
                     src={selectedProfileImage}
                     alt={selectedCharacterName}
                     fill
+                    sizes="32px"
                     className="object-cover"
                   />
                 ) : (

@@ -93,6 +93,7 @@ function MugshotArea({ character, heroName }: { character: CharacterDocument; he
           src={character.identity.profileImage}
           alt={heroName}
           fill
+          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, (max-width: 1280px) 25vw, (max-width: 1536px) 20vw, 16vw"
           className="object-cover grayscale contrast-110 brightness-90 group-hover:grayscale-0 transition-all duration-500"
           style={{
             objectPosition: `center ${character.identity.imagePosition || 50}%`,

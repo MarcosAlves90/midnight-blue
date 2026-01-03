@@ -196,13 +196,13 @@ export default function CharacterGallery() {
       </div>
 
       {/* Breadcrumb Navigation */}
-      <div className="flex items-center gap-2 text-sm font-mono overflow-x-auto pb-2 scrollbar-hide">
+      <div className="flex items-center gap-2 text-sm font-mono overflow-x-auto pb-2 scrollbar-hide uppercase">
         <Button
           variant="ghost"
           size="sm"
           onClick={() => setCurrentFolderId(null)}
           className={cn(
-            "h-8 px-2 flex items-center gap-1.5",
+            "h-8 px-2 flex items-center gap-1.5 uppercase",
             !currentFolderId ? "text-primary font-bold" : "text-muted-foreground"
           )}
         >
@@ -218,11 +218,11 @@ export default function CharacterGallery() {
               size="sm"
               onClick={() => setCurrentFolderId(folder.id)}
               className={cn(
-                "h-8 px-2 flex items-center gap-1.5",
+                "h-8 px-2 flex items-center gap-1.5 uppercase",
                 index === folderPath.length - 1 ? "text-primary font-bold" : "text-muted-foreground"
               )}
             >
-              {folder.name}
+              {folder.name.toUpperCase()}
             </Button>
           </div>
         ))}
