@@ -3,7 +3,7 @@
 import React from "react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
-import { DynamicBreadcrumb } from "@/components/dynamic-breadcrumb";
+import { DynamicBreadcrumb } from "@/components/ui/custom/dynamic-breadcrumb";
 import { useIdentityContext } from "@/contexts/IdentityContext";
 import { useAttributesContext } from "@/contexts/AttributesContext";
 import { useSkillsContext } from "@/contexts/SkillsContext";

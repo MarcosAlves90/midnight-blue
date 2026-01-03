@@ -11,7 +11,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { PasswordInput } from "@/components/ui/password-input";
+import { PasswordInput } from "@/components/ui/custom/password-input";
 import {
   Tooltip,
   TooltipTrigger,

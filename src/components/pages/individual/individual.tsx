@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useRef, useCallback, useEffect } from "react";
+import React, { useRef, useCallback } from "react";
 import { captureElementAsPng } from "@/lib/image-utils";
-import { useIdentityContext, IdentityData } from "@/contexts/IdentityContext";
+import { useIdentityContext } from "@/contexts/IdentityContext";
 import { useCharacterUpload } from "@/hooks/use-character-upload";
 import { useCharacterSync } from "@/hooks/use-character-sync";
 import { IdentityCard } from "@/components/pages/individual/identity-card";
@@ -12,7 +12,7 @@ import { NoCharacterSelected } from "@/components/config/character";
 
 export default function Individual() {
   const { identity, updateIdentity } = useIdentityContext();
-  const { character, isLoading, error } = useCharacterSync();
+  const { isLoading, error } = useCharacterSync();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const cardRef = useRef<HTMLDivElement | null>(null);
 
