@@ -29,6 +29,7 @@ import {
   GoogleAuthProvider,
 } from "firebase/auth";
 import { getClientAuth } from "@/lib/firebase";
+import { ForgotPasswordDialog } from "./forgot-password-dialog";
 
 export default function LoginForm({
   className,
@@ -114,12 +115,7 @@ export default function LoginForm({
               <Field>
                 <div className="flex items-center">
                   <FieldLabel htmlFor="password">Senha</FieldLabel>
-                  <a
-                    href="#"
-                    className="ml-auto text-sm underline-offset-4 hover:underline"
-                  >
-                    Esqueceu sua senha?
-                  </a>
+                  <ForgotPasswordDialog />
                 </div>
                 <PasswordInput
                   id="password"

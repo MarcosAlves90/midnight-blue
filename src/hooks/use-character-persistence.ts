@@ -234,7 +234,18 @@ export function useCharacterPersistence(
       }
 
       // Store pending data (fingerprint will be updated in onSuccess after save completes)
-      pendingObjRef.current = data;
+      if (!pendingObjRef.current) {
+        pendingObjRef.current = { ...data };
+      } else {
+        pendingObjRef.current = { ...pendingObjRef.current, ...data };
+        // Deep merge for identity and status if needed
+        if (data.identity && pendingObjRef.current.identity) {
+          pendingObjRef.current.identity = { ...pendingObjRef.current.identity, ...data.identity };
+        }
+        if (data.status && pendingObjRef.current.status) {
+          pendingObjRef.current.status = { ...pendingObjRef.current.status, ...data.status };
+        }
+      }
 
       // Accumulate fields that are being scheduled for saving
       // This ensures we clear ALL dirtyFields even when AutoSaveService coalesces multiple saves
@@ -244,6 +255,18 @@ export function useCharacterPersistence(
           pendingFieldsRef.current.add(key);
         });
       }
+      
+      // Also track other top-level fields
+      if (data.status && typeof data.status === "object") {
+        const statusFields = data.status as unknown as Record<string, unknown>;
+        Object.keys(statusFields).forEach((key) => {
+          pendingFieldsRef.current.add(`status.${key}`);
+        });
+      }
+      if (data.attributes) pendingFieldsRef.current.add("attributes");
+      if (data.skills) pendingFieldsRef.current.add("skills");
+      if (data.powers) pendingFieldsRef.current.add("powers");
+      if (data.customDescriptors) pendingFieldsRef.current.add("customDescriptors");
 
       // Delegate to AutoSaveService
       if (autoSaveServiceRef.current) {

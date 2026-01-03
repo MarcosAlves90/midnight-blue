@@ -6,11 +6,12 @@ import { PowerCard } from "./power-card";
 import { PowerBuilderModal } from "./power-builder-modal";
 import { Plus, Edit3, Lock, AlertTriangle } from "lucide-react";
 import { useStatusContext } from "@/contexts/StatusContext";
+import { usePowersContext } from "@/contexts/PowersContext";
 import { checkPowerLimit } from "@/lib/powers/utils";
 
 export default function PowersSection() {
   const { powerLevel } = useStatusContext();
-  const [powers, setPowers] = useState<Power[]>([]);
+  const { powers, addPower, updatePower, deletePower } = usePowersContext();
   const [isEditMode, setIsEditMode] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPower, setEditingPower] = useState<Power | undefined>();
@@ -22,11 +23,11 @@ export default function PowersSection() {
   const handleAddPower = (power: Power) => {
     if (editingPower) {
       // Update existing power
-      setPowers((prev) => prev.map((p) => (p.id === power.id ? power : p)));
+      updatePower(power);
       setEditingPower(undefined);
     } else {
       // Add new power
-      setPowers((prev) => [...prev, power]);
+      addPower(power);
     }
   };
 
@@ -36,7 +37,7 @@ export default function PowersSection() {
   }, []);
 
   const handleDeletePower = (id: string) => {
-    setPowers((prev) => prev.filter((p) => p.id !== id));
+    deletePower(id);
   };
 
   const handleCloseModal = () => {

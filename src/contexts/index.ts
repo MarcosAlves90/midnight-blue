@@ -5,3 +5,4 @@ export {
   useCustomDescriptors,
 } from "./CustomDescriptorsContext";
 export { StatusProvider, useStatusContext } from "./StatusContext";
+export { PowersProvider, usePowersContext } from "./PowersContext";

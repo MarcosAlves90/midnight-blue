@@ -4,6 +4,41 @@ import React from "react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
 import { DynamicBreadcrumb } from "@/components/dynamic-breadcrumb";
+import { useIdentityContext } from "@/contexts/IdentityContext";
+import { useAttributesContext } from "@/contexts/AttributesContext";
+import { useSkillsContext } from "@/contexts/SkillsContext";
+import { useStatusContext } from "@/contexts/StatusContext";
+import { usePowersContext } from "@/contexts/PowersContext";
+import { useCustomDescriptors } from "@/contexts/CustomDescriptorsContext";
+import { Cloud, CloudOff, RefreshCw } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+const SyncStatus = () => {
+  const { isSyncing: identitySyncing } = useIdentityContext();
+  const { isSyncing: attributesSyncing } = useAttributesContext();
+  const { isSyncing: skillsSyncing } = useSkillsContext();
+  const { isSyncing: statusSyncing } = useStatusContext();
+  const { isSyncing: powersSyncing } = usePowersContext();
+  const { isSyncing: descriptorsSyncing } = useCustomDescriptors();
+
+  const isSyncing = identitySyncing || attributesSyncing || skillsSyncing || statusSyncing || powersSyncing || descriptorsSyncing;
+
+  return (
+    <div className="flex items-center gap-2 px-2 text-xs text-muted-foreground transition-opacity duration-300">
+      {isSyncing ? (
+        <>
+          <RefreshCw className="h-3 w-3 animate-spin text-blue-500" />
+          <span className="hidden sm:inline">Sincronizando...</span>
+        </>
+      ) : (
+        <>
+          <Cloud className="h-3 w-3 text-green-500" />
+          <span className="hidden sm:inline">Sincronizado</span>
+        </>
+      )}
+    </div>
+  );
+};
 
 export const DashboardHeader = React.memo(function DashboardHeader() {
   const renderRef = React.useRef(0);
@@ -21,7 +56,7 @@ export const DashboardHeader = React.memo(function DashboardHeader() {
   });
 
   return (
-    <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
+    <header className="flex h-16 shrink-0 items-center justify-between gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
       <div className="flex items-center gap-2 px-4">
         <SidebarTrigger className="-ml-1" />
         <Separator
@@ -29,6 +64,9 @@ export const DashboardHeader = React.memo(function DashboardHeader() {
           className="mr-2 data-[orientation=vertical]:h-4"
         />
         <DynamicBreadcrumb />
+      </div>
+      <div className="flex items-center gap-4 px-4">
+        <SyncStatus />
       </div>
     </header>
   );

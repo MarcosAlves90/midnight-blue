@@ -46,7 +46,12 @@ export interface CharacterDocument {
   attributes: Attribute[];
   skills: Skill[];
   powers: Power[];
-  status: Record<string, unknown>;
+  status: {
+    powerLevel: number;
+    extraPoints: number;
+    [key: string]: unknown;
+  };
+  customDescriptors: string[];
   folderId?: string;
 }
 
@@ -117,7 +122,12 @@ function mapFirestoreToCharacter(id: string, data: Record<string, unknown>): Cha
     attributes: hydrateAttributes((data.attributes as unknown) as SavedAttribute[] || []),
     skills: hydrateSkills((data.skills as unknown) as SavedSkill[] || []),
     powers: (data.powers as Power[]) || [],
-    status: (data.status as Record<string, unknown>) || {},
+    status: {
+      powerLevel: 10,
+      extraPoints: 0,
+      ...((data.status as Record<string, unknown>) || {}),
+    },
+    customDescriptors: (data.customDescriptors as string[]) || [],
     folderId: data.folderId ? String(data.folderId) : undefined,
   };
 
@@ -157,7 +167,8 @@ export async function saveCharacter(userId: string, data: CharacterData, charact
     attributes: serializeAttributes((data.attributes as Attribute[]) ?? INITIAL_ATTRIBUTES),
     skills: serializeSkills((data.skills as Skill[]) ?? INITIAL_SKILLS),
     powers: data.powers ?? [],
-    status: data.status ?? {},
+    status: data.status ?? { powerLevel: 10, extraPoints: 0 },
+    customDescriptors: data.customDescriptors ?? [],
     folderId: data.folderId ?? null,
   };
 
@@ -303,8 +314,19 @@ export async function updateCharacter(userId: string, characterId: string, updat
       payload.powers = val;
       return;
     }
-    if (key === "status") {
-      payload.status = val;
+    if (key === "status" && typeof val === "object" && val !== null) {
+      try {
+        const statusPart = val as Record<string, unknown>;
+        Object.keys(statusPart).forEach((k) => {
+          payload[`status.${k}`] = statusPart[k];
+        });
+      } catch {
+        payload.status = val;
+      }
+      return;
+    }
+    if (key === "customDescriptors") {
+      payload.customDescriptors = val;
       return;
     }
 
@@ -435,8 +457,19 @@ export async function patchCharacter(userId: string, characterId: string, update
       payload.powers = val;
       return;
     }
-    if (key === "status") {
-      payload.status = val;
+    if (key === "status" && typeof val === "object" && val !== null) {
+      try {
+        const statusPart = val as Record<string, unknown>;
+        Object.keys(statusPart).forEach((k) => {
+          payload[`status.${k}`] = statusPart[k];
+        });
+      } catch {
+        payload.status = val;
+      }
+      return;
+    }
+    if (key === "customDescriptors") {
+      payload.customDescriptors = val;
       return;
     }
 

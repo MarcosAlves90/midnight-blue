@@ -31,6 +31,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   async function signOut() {
     const auth = getClientAuth();
+    try {
+      // Clear character-related data from localStorage
+      const keysToClear = [
+        "midnight-current-character-id",
+        "midnight-identity",
+        "midnight-attributes",
+        "midnight-skills",
+        "midnight-status",
+        "midnight-powers",
+        "customDescriptors"
+      ];
+      
+      keysToClear.forEach(key => {
+        try { localStorage.removeItem(key); } catch {}
+      });
+
+      // Clear character document cache from localStorage
+      try {
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && key.startsWith("midnight-current-character-doc:")) {
+            localStorage.removeItem(key);
+          }
+        }
+      } catch {}
+
+    } catch (err) {
+      console.error("Error clearing localStorage on signOut:", err);
+    }
+
     await firebaseSignOut(auth);
   }
 

@@ -78,10 +78,14 @@ export function CharacterProvider({ children }: { children: React.ReactNode }) {
 
   // Ao logar / montar, restaura última seleção: prefer localStorage para responsividade, fallback para servidor
   useEffect(() => {
+    if (!user?.uid) {
+      internalSetSelectedCharacter(null);
+      return;
+    }
+
     let cancelled = false;
 
     const restoreSelection = async () => {
-      if (!user?.uid) return;
 
       try {
         // Tenta restore rápido via localStorage

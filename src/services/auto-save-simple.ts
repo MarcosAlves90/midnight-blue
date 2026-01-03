@@ -35,8 +35,33 @@ export class AutoSaveService<T extends Record<string, unknown> = Record<string, 
    * Only stores the pending object; actual execution happens later in background
    */
   schedule(data: T) {
-    // Avoid any heavy work here — just store reference
-    this.pendingObj = data;
+    // Merge new data with existing pending data to avoid losing updates
+    if (!this.pendingObj) {
+      this.pendingObj = { ...data };
+    } else {
+      // Deep merge for identity and status, shallow for others
+      const merged = { ...this.pendingObj };
+      
+      Object.keys(data).forEach((key) => {
+        const val = data[key];
+        const existing = merged[key];
+        
+        if (
+          (key === "identity" || key === "status") && 
+          typeof val === "object" && val !== null &&
+          typeof existing === "object" && existing !== null
+        ) {
+          merged[key as keyof T] = { 
+            ...(existing as Record<string, unknown>), 
+            ...(val as Record<string, unknown>) 
+          } as T[keyof T];
+        } else {
+          merged[key as keyof T] = val;
+        }
+      });
+      
+      this.pendingObj = merged;
+    }
 
     // Clear previous debounce timeout
     if (this.timeoutId) clearTimeout(this.timeoutId);

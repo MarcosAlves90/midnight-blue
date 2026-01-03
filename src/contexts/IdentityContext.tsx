@@ -10,6 +10,7 @@ import React, {
   useMemo,
 } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCharacter } from "@/contexts/CharacterContext";
 import { useCharacterPersistence } from "@/hooks/use-character-persistence";
 
 
@@ -80,6 +81,7 @@ interface IdentityContextType {
   markFieldDirty: (field: string) => void;
   markFieldsSaved: (fields: string[]) => void;
   hasLocalChanges: boolean;
+  isSyncing: boolean;
 
   /** Conflict resolution APIs */
   conflict: null | { server: import("@/lib/character-service").CharacterDocument; attempted: Partial<import("@/lib/character-service").CharacterData> };
@@ -130,17 +132,45 @@ export const IdentityProvider: React.FC<{ children: React.ReactNode }> = ({
 
   // Per-field dirty tracking (fields modified locally but not yet acknowledged by the server)
   const [dirtyFields, setDirtyFields] = useState<Set<string>>(new Set());
+  const [isSyncing, setIsSyncing] = useState(false);
   const hasLocalChanges = dirtyFields.size > 0;
 
   // Conflict state (when a save conflicts with server and couldn't be auto-resolved)
   const [conflict, setConflict] = useState<null | { server: import("@/lib/character-service").CharacterDocument; attempted: Partial<import("@/lib/character-service").CharacterData> }>(null);
 
   const { user } = useAuth();
+  const { selectedCharacter } = useCharacter();
   const {
     scheduleAutoSave,
     saveImmediately,
     setOnSaveSuccess,
   } = useCharacterPersistence(user?.uid ?? null, currentCharacterId ?? undefined);
+
+  const lastVersionRef = useRef<number>(0);
+
+  // Inbound Sync: Listen to selectedCharacter changes from server
+  useEffect(() => {
+    if (selectedCharacter && selectedCharacter.identity) {
+      // Sync currentCharacterId if it differs
+      if (selectedCharacter.id !== currentCharacterId) {
+        setCurrentCharacterIdState(selectedCharacter.id);
+      }
+
+      // Only update if server version is newer than what we last processed
+      if (selectedCharacter.version > lastVersionRef.current) {
+        console.debug("[IdentityContext] Inbound sync", { 
+          version: selectedCharacter.version, 
+          prevVersion: lastVersionRef.current 
+        });
+        setIdentity(selectedCharacter.identity);
+        lastVersionRef.current = selectedCharacter.version;
+      }
+    } else if (!selectedCharacter) {
+      setCurrentCharacterIdState(null);
+      setIdentity(INITIAL_IDENTITY);
+      lastVersionRef.current = 0;
+    }
+  }, [selectedCharacter, currentCharacterId]);
 
   // Rastreia o último snapshot serializado enviado ao Firebase para detecção de mudanças
   const lastSavedRef = useRef<string | null>(null);
@@ -300,6 +330,7 @@ export const IdentityProvider: React.FC<{ children: React.ReactNode }> = ({
         
         // Use the scheduleAutoSave ref to delegate conflict handling to higher level
         try {
+          setIsSyncing(true);
           scheduleAutoSaveRef.current?.(patch);
           hasPendingChangesRef.current = true;
         } catch {
@@ -337,6 +368,7 @@ export const IdentityProvider: React.FC<{ children: React.ReactNode }> = ({
       // Clear dirtyFields for fields that were successfully saved
       if (savedFields && savedFields.length > 0) {
         markFieldsSaved(savedFields);
+        setIsSyncing(false);
         console.debug("[IdentityContext] Cleared dirtyFields after successful save", { savedFields });
       }
     });
@@ -410,6 +442,7 @@ export const IdentityProvider: React.FC<{ children: React.ReactNode }> = ({
       markFieldDirty,
       markFieldsSaved,
       hasLocalChanges,
+      isSyncing,
       conflict,
       resolveKeepLocal,
       resolveUseServer,
@@ -428,6 +461,7 @@ export const IdentityProvider: React.FC<{ children: React.ReactNode }> = ({
       markFieldDirty,
       markFieldsSaved,
       hasLocalChanges,
+      isSyncing,
       conflict,
       resolveKeepLocal,
       resolveUseServer,
