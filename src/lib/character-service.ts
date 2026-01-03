@@ -15,7 +15,6 @@ import { db } from "./firebase";
 import type { IdentityData } from "@/contexts/IdentityContext";
 import type { Attribute } from "@/components/pages/status/attributes-grid/types";
 import type { Skill } from "@/components/pages/status/skills/types";
-import type { Power } from "@/components/pages/status/powers/types";
 import { INITIAL_ATTRIBUTES } from "@/components/pages/status/attributes-grid/constants";
 import { INITIAL_SKILLS } from "@/components/pages/status/skills/constants";
 import {
@@ -23,8 +22,6 @@ import {
   normalizeIdentity,
   serializeAttributes,
   serializeSkills,
-  hydrateAttributes,
-  hydrateSkills,
   mapFirestoreToCharacter,
 } from "./mappers/character-mapper";
 

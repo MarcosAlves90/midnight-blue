@@ -31,7 +31,6 @@ export function SkillCard({
   description,
   onlyTrained,
   action,
-  parentId,
   onChange,
   onRemove,
   disabled = false,

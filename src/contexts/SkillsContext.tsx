@@ -74,7 +74,7 @@ export const SkillsProvider: React.FC<{ children: React.ReactNode }> = ({
     isSyncing,
     dirtyFields,
     markFieldDirty
-  }), [skills, updateSkills, updateSkill, addSpecialization, removeSkill, isSyncing, dirtyFields]);
+  }), [skills, updateSkills, updateSkill, addSpecialization, removeSkill, isSyncing, dirtyFields, markFieldDirty]);
 
   return (
     <SkillsContext.Provider value={value}>

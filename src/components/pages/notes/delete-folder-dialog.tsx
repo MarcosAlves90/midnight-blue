@@ -25,7 +25,7 @@ export function DeleteFolderDialog({ open, onOpenChange, onConfirm, folderName }
         <AlertDialogHeader>
           <AlertDialogTitle className="uppercase font-bold tracking-tighter">Excluir Pasta?</AlertDialogTitle>
           <AlertDialogDescription>
-            Você está prestes a excluir a pasta <span className="font-bold text-foreground">"{folderName}"</span>. 
+            Você está prestes a excluir a pasta <span className="font-bold text-foreground">&quot;{folderName}&quot;</span>. 
             As notas dentro desta pasta não serão excluídas, mas ficarão sem pasta.
             Esta ação não pode ser desfeita.
           </AlertDialogDescription>

@@ -209,6 +209,8 @@ export const IdentityProvider: React.FC<{ children: React.ReactNode }> = ({
       updateIdentity,
       saveNow,
       dirtyFields,
+      markFieldDirty,
+      markFieldsSaved,
       hasLocalChanges,
       isSyncing,
       conflict,

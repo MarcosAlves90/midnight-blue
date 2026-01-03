@@ -10,8 +10,7 @@ import { useSkillsContext } from "@/contexts/SkillsContext";
 import { useStatusContext } from "@/contexts/StatusContext";
 import { usePowersContext } from "@/contexts/PowersContext";
 import { useCustomDescriptors } from "@/contexts/CustomDescriptorsContext";
-import { Cloud, CloudOff, RefreshCw } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Cloud, RefreshCw } from "lucide-react";
 
 const SyncStatus = () => {
   const { isSyncing: identitySyncing } = useIdentityContext();

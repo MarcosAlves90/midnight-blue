@@ -49,7 +49,7 @@ export const StatusProvider: React.FC<{ children: React.ReactNode }> = ({
     isSyncing,
     dirtyFields,
     markFieldDirty
-  }), [powerLevel, updatePowerLevel, extraPoints, updateExtraPoints, isSyncing, dirtyFields]);
+  }), [powerLevel, updatePowerLevel, extraPoints, updateExtraPoints, isSyncing, dirtyFields, markFieldDirty]);
 
   return (
     <StatusContext.Provider value={value}>

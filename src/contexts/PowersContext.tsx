@@ -23,7 +23,7 @@ export const PowersProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const { state, updatePowers: updateSheet, isSyncing, dirtyFields } = useCharacterSheet();
 
-  const powers = state?.powers ?? [];
+  const powers = useMemo(() => state?.powers ?? [], [state?.powers]);
 
   const updatePowers = useCallback((action: React.SetStateAction<Power[]>) => {
     const next = typeof action === "function" ? action(powers) : action;
@@ -54,7 +54,7 @@ export const PowersProvider: React.FC<{ children: React.ReactNode }> = ({
     isSyncing,
     dirtyFields,
     markFieldDirty
-  }), [powers, updatePowers, addPower, updatePower, deletePower, isSyncing, dirtyFields]);
+  }), [powers, updatePowers, addPower, updatePower, deletePower, isSyncing, dirtyFields, markFieldDirty]);
 
   return (
     <PowersContext.Provider value={value}>

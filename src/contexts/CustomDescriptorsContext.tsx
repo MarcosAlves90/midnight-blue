@@ -27,7 +27,7 @@ export function CustomDescriptorsProvider({
 }) {
   const { state, updateCustomDescriptors: updateSheet, isSyncing } = useCharacterSheet();
 
-  const customDescriptors = state?.customDescriptors ?? [];
+  const customDescriptors = useMemo(() => state?.customDescriptors ?? [], [state?.customDescriptors]);
 
   const addCustomDescriptor = useCallback(
     (descriptor: string) => {

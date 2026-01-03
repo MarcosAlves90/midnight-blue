@@ -34,7 +34,7 @@ export const AttributesProvider: React.FC<{ children: React.ReactNode }> = ({
     updateSheet(INITIAL_ATTRIBUTES);
   }, [updateSheet]);
 
-  const markFieldDirty = useCallback(() => {}, []);
+  const markFieldDirty = useCallback((_field: string) => {}, []);
 
   const value = useMemo(() => ({
     attributes,
@@ -44,7 +44,7 @@ export const AttributesProvider: React.FC<{ children: React.ReactNode }> = ({
     isSyncing,
     dirtyFields,
     markFieldDirty
-  }), [attributes, updateAttributes, resetAttributes, isSyncing, dirtyFields]);
+  }), [attributes, updateAttributes, resetAttributes, isSyncing, dirtyFields, markFieldDirty]);
 
   return (
     <AttributesContext.Provider value={value}>
