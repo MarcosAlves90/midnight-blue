@@ -45,7 +45,7 @@ function useGalleryActions(
   },
   push: (url: string) => void
 ) {
-  const { loadCharactersList, selectCharacter, removeCharacter } =
+  const { listenToCharacters, selectCharacter, removeCharacter } =
     useCharacterPersistence(userId);
 
   const handleSelectCharacter = async (character: CharacterDocument) => {
@@ -81,7 +81,7 @@ function useGalleryActions(
   return {
     handleSelectCharacter,
     handleDeleteCharacter,
-    loadCharactersList,
+    listenToCharacters,
   };
 }
 
@@ -230,7 +230,7 @@ export function CharacterGallery() {
 
   const { setSelectedCharacter } = useCharacter();
 
-  const { handleSelectCharacter, handleDeleteCharacter, loadCharactersList } =
+  const { handleSelectCharacter, handleDeleteCharacter, listenToCharacters } =
     useGalleryActions(user?.uid || null, { setCharacters, setError, setDeletingId, setSelectedCharacter }, router.push);
 
   // Abre o dialog quando o contexto sinaliza abertura de nova ficha
@@ -242,28 +242,33 @@ export function CharacterGallery() {
     }
   }, [openNewDialog, setOpenNewDialog, setDialogOpen]);
 
-  // Carrega lista de personagens
+  // Escuta mudanças em tempo real na lista de personagens
   useEffect(() => {
     if (!user?.uid) {
       setIsLoading(false);
       return;
     }
 
-    const loadCharacters = async () => {
-      try {
-        const loadedCharacters = await loadCharactersList();
-        setCharacters(loadedCharacters);
+    let unsubscribe: (() => void) | undefined;
+
+    try {
+      unsubscribe = listenToCharacters((chars) => {
+        setCharacters(chars);
         setError(null);
-      } catch (error) {
-        console.error("Erro ao carregar personagens:", error);
-        setError("Erro ao carregar fichas de personagem");
-      } finally {
         setIsLoading(false);
+      });
+    } catch (err) {
+      console.error("Erro ao escutar mudanças em personagens:", err);
+      setError("Erro ao carregar fichas de personagem");
+      setIsLoading(false);
+    }
+
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
       }
     };
-
-    loadCharacters();
-  }, [user?.uid, loadCharactersList, setCharacters, setError, setIsLoading]);
+  }, [user?.uid, listenToCharacters, setCharacters, setError, setIsLoading]);
 
   if (state.isLoading) {
     return <LoadingState />;

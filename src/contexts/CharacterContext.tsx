@@ -25,6 +25,28 @@ export function CharacterProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const { loadCharacter, loadLastSelected } = useCharacterPersistence(user?.uid || null);
 
+  // Escuta mudanças em tempo real no personagem selecionado
+  useEffect(() => {
+    if (!user?.uid || !selectedCharacter?.id) return;
+
+    const unsubscribe = CharacterService.onCharacterChange(
+      user.uid,
+      selectedCharacter.id,
+      (updatedChar) => {
+        if (updatedChar) {
+          // Só atualiza se houver mudança real para evitar loops de render
+          // Comparamos a versão ou o timestamp de atualização
+          if (updatedChar.version !== selectedCharacter.version || 
+              updatedChar.updatedAt.getTime() !== selectedCharacter.updatedAt.getTime()) {
+            internalSetSelectedCharacter(updatedChar);
+          }
+        }
+      }
+    );
+
+    return () => unsubscribe();
+  }, [user?.uid, selectedCharacter?.id, selectedCharacter?.version, selectedCharacter?.updatedAt]);
+
   // Wrapper que persiste a seleção no localStorage para restaurar rapidamente após reload
   const setSelectedCharacter = React.useCallback((character: CharacterDocument | null) => {
     internalSetSelectedCharacter(character);

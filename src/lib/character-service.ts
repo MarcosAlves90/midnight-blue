@@ -537,3 +537,28 @@ export function onCharactersChange(userId: string, callback: (characters: Charac
     console.error("onCharactersChange failed:", err);
   });
 }
+
+/**
+ * Escuta mudanças em tempo real em um personagem específico
+ * @param userId ID do usuário
+ * @param characterId ID do personagem
+ * @param callback Função chamada quando o personagem é atualizado
+ * @returns Função para desinscrever do listener
+ */
+export function onCharacterChange(
+  userId: string,
+  characterId: string,
+  callback: (character: CharacterDocument | null) => void
+): Unsubscribe {
+  const docRef = doc(db, USERS_COLLECTION, userId, CHARACTERS_SUBCOLLECTION, characterId);
+
+  return onSnapshot(docRef, (snapshot) => {
+    if (snapshot.exists()) {
+      callback(mapFirestoreToCharacter(snapshot.id, snapshot.data()));
+    } else {
+      callback(null);
+    }
+  }, (err) => {
+    console.error("onCharacterChange failed:", err);
+  });
+}
