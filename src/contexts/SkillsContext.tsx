@@ -10,6 +10,8 @@ interface SkillsContextType {
   skills: Skill[];
   setSkills: React.Dispatch<React.SetStateAction<Skill[]>>;
   updateSkill: (id: string, field: "value" | "others", value: number) => void;
+  addSpecialization: (templateId: string, name: string) => void;
+  removeSkill: (id: string) => void;
   isSyncing: boolean;
 }
 
@@ -78,17 +80,22 @@ export const SkillsProvider: React.FC<{ children: React.ReactNode }> = ({
         const parsedSkills: Skill[] = JSON.parse(stored);
         // Basic validation could be added here
         if (Array.isArray(parsedSkills) && parsedSkills.length > 0) {
-          // Merge stored skills with INITIAL_SKILLS to ensure new skills are added if constants change
-          // This is a simple merge strategy: keep stored values for existing IDs, add new ones from INITIAL
+          // Merge stored skills with INITIAL_SKILLS
           const storedMap = new Map(parsedSkills.map((s) => [s.id, s]));
-          const mergedSkills = INITIAL_SKILLS.map((initial) => {
+          
+          // 1. Keep all base skills from INITIAL_SKILLS
+          const baseSkills = INITIAL_SKILLS.map((initial) => {
             const stored = storedMap.get(initial.id);
             if (stored) {
-              return { ...initial, ...stored }; // Keep stored values but update static data like name/desc if changed
+              return { ...initial, ...stored };
             }
             return { ...initial, value: 0, others: 0 };
           });
-          setSkillsState(mergedSkills);
+
+          // 2. Add back specializations that were in stored but not in INITIAL_SKILLS
+          const specializations = parsedSkills.filter(s => s.parentId);
+          
+          setSkillsState([...baseSkills, ...specializations]);
         }
       }
     } catch {
@@ -129,8 +136,30 @@ export const SkillsProvider: React.FC<{ children: React.ReactNode }> = ({
     );
   }, [setSkills]);
 
+  const addSpecialization = useCallback((templateId: string, specialization: string) => {
+    const template = INITIAL_SKILLS.find((s) => s.id === templateId);
+    if (!template) return;
+
+    const newSkill: Skill = {
+      ...template,
+      id: `${templateId}-${Date.now()}`,
+      parentId: templateId,
+      specialization,
+      name: `${template.abbreviation || template.name}: ${specialization}`,
+      value: 0,
+      others: 0,
+      isTemplate: false,
+    };
+
+    setSkills((prev) => [...prev, newSkill]);
+  }, [setSkills]);
+
+  const removeSkill = useCallback((id: string) => {
+    setSkills((prev) => prev.filter((s) => s.id !== id));
+  }, [setSkills]);
+
   return (
-    <SkillsContext.Provider value={{ skills, setSkills, updateSkill, isSyncing }}>
+    <SkillsContext.Provider value={{ skills, setSkills, updateSkill, addSpecialization, removeSkill, isSyncing }}>
       {children}
     </SkillsContext.Provider>
   );

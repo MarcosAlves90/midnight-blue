@@ -1,9 +1,21 @@
 "use client";
 
 import React, { useState, useCallback, useMemo } from "react";
-import { Edit3, Lock, ChevronDown, Search, X } from "lucide-react";
+import { Edit3, Lock, ChevronDown, Search, X, Plus, Trash2 } from "lucide-react";
 import SkillCard from "./skill-card";
 import { useSkillsContext } from "@/contexts/SkillsContext";
+import { INITIAL_SKILLS } from "./constants";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 
 type SortOption =
   | "name-asc"
@@ -15,10 +27,39 @@ type SortOption =
   | "others-desc";
 
 export function SkillsList() {
-  const { skills, updateSkill } = useSkillsContext();
+  const { skills, updateSkill, addSpecialization, removeSkill } = useSkillsContext();
   const [isEditMode, setIsEditMode] = useState(false);
   const [sortOption, setSortOption] = useState<SortOption>("name-asc");
   const [searchTerm, setSearchTerm] = useState("");
+
+  // State for new specialization
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState("");
+  const [specName, setSpecName] = useState("");
+
+  const templates = useMemo(() => INITIAL_SKILLS.filter(s => s.isTemplate), []);
+
+  const handleAddSpec = () => {
+    if (selectedTemplate && specName.trim()) {
+      addSpecialization(selectedTemplate, specName.trim());
+      setSpecName("");
+      setSelectedTemplate("");
+      setIsAddDialogOpen(false);
+    }
+  };
+
+  const getPlaceholder = () => {
+    switch (selectedTemplate) {
+      case "ESPECIALIDADE":
+        return "Ex: Ciência, Magia, Direito, Manha...";
+      case "COMBATE_CORPO_A_CORPO":
+        return "Ex: Espadas, Desarmado, Garras...";
+      case "COMBATE_DISTANCIA":
+        return "Ex: Armas de Fogo, Arremesso, Controle de Energia...";
+      default:
+        return "Ex: Ciência, Espadas, Armas de Fogo...";
+    }
+  };
 
   const handleChange = (
     id: string,
@@ -34,13 +75,14 @@ export function SkillsList() {
 
   // Função para ordenar as perícias
   const sortedSkills = useMemo(() => {
-    // Primeiro filtra por termo de busca
+    // Primeiro filtra por termo de busca e remove templates
     const filtered = skills.filter(
       (skill) =>
-        skill.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        skill.attribute.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (skill.abbreviation &&
-          skill.abbreviation.toLowerCase().includes(searchTerm.toLowerCase())),
+        !skill.isTemplate &&
+        (skill.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          skill.attribute.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (skill.abbreviation &&
+            skill.abbreviation.toLowerCase().includes(searchTerm.toLowerCase()))),
     );
 
     // Depois ordena
@@ -67,25 +109,78 @@ export function SkillsList() {
   }, [skills, sortOption, searchTerm]);
 
   const renderEditButton = () => (
-    <button
-      onClick={toggleEditMode}
-      className={`p-2 rounded cursor-pointer transition-all duration-200 ${
-        isEditMode
-          ? "bg-primary text-primary-foreground hover:bg-primary/90"
-          : "bg-muted-foreground/20 text-muted-foreground hover:bg-muted-foreground/30"
-      }`}
-      title={isEditMode ? "Desativar modo de edição" : "Ativar modo de edição"}
-      aria-label={
-        isEditMode ? "Desativar modo de edição" : "Ativar modo de edição"
-      }
-      aria-pressed={isEditMode}
-    >
-      {isEditMode ? (
-        <Edit3 className="w-4 h-4" />
-      ) : (
-        <Lock className="w-4 h-4" />
+    <div className="flex items-center gap-2">
+      {isEditMode && (
+        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+          <DialogTrigger asChild>
+            <button
+              className="p-2 rounded-lg cursor-pointer transition-all duration-200 bg-primary text-primary-foreground hover:bg-primary/90"
+              title="Adicionar Especialização"
+            >
+              <Plus className="w-4 h-4" />
+            </button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Nova Especialização</DialogTitle>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="template">Tipo de Perícia</Label>
+                <select
+                  id="template"
+                  value={selectedTemplate}
+                  onChange={(e) => setSelectedTemplate(e.target.value)}
+                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <option value="" disabled className="bg-background">Selecione o tipo...</option>
+                  {templates.map((t) => (
+                    <option key={t.id} value={t.id} className="bg-background">
+                      {t.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="spec-name">Nome da Especialização</Label>
+                <Input
+                  id="spec-name"
+                  placeholder={getPlaceholder()}
+                  value={specName}
+                  onChange={(e) => setSpecName(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleAddSpec()}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button onClick={handleAddSpec} disabled={!selectedTemplate || !specName.trim()}>
+                Adicionar
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       )}
-    </button>
+
+      <button
+        onClick={toggleEditMode}
+        className={`p-2 rounded cursor-pointer transition-all duration-200 ${
+          isEditMode
+            ? "bg-primary text-primary-foreground hover:bg-primary/90"
+            : "bg-muted-foreground/20 text-muted-foreground hover:bg-muted-foreground/30"
+        }`}
+        title={isEditMode ? "Desativar modo de edição" : "Ativar modo de edição"}
+        aria-label={
+          isEditMode ? "Desativar modo de edição" : "Ativar modo de edição"
+        }
+        aria-pressed={isEditMode}
+      >
+        {isEditMode ? (
+          <Edit3 className="w-4 h-4" />
+        ) : (
+          <Lock className="w-4 h-4" />
+        )}
+      </button>
+    </div>
   );
 
   const renderSortDropdown = () => (
@@ -171,6 +266,7 @@ export function SkillsList() {
               value={skill.value ?? 0}
               others={skill.others ?? 0}
               onChange={handleChange}
+              onRemove={skill.parentId ? () => removeSkill(skill.id) : undefined}
               disabled={!isEditMode}
             />
           ))}

@@ -10,12 +10,14 @@ import { rollDice } from "@/lib/dice-system";
 import { DiceIcon } from "@/components/ui/icons/dice-icon";
 import { useEditableValue } from "../attributes-grid/use-editable-value";
 import SkillWarning from "@/components/ui/custom/warning-icon";
+import { Trash2 } from "lucide-react";
 import type { Skill } from "./types";
 
 interface SkillCardProps extends Skill {
   value?: number;
   // onChange reports which field changed: 'value' or 'others' and its new numeric value
   onChange?: (id: string, field: "value" | "others", value: number) => void;
+  onRemove?: () => void;
   disabled?: boolean;
 }
 
@@ -26,7 +28,11 @@ export function SkillCard({
   value = 0,
   others = 0,
   description,
+  onlyTrained,
+  action,
+  parentId,
   onChange,
+  onRemove,
   disabled = false,
 }: SkillCardProps) {
   const valueState = useEditableValue(
@@ -82,13 +88,24 @@ export function SkillCard({
         className={`px-2 py-1 align-middle border-l-2 ${colorClasses.border}`}
       >
         <div className="flex items-center gap-2">
-          <button
-            onClick={handleRollSkill}
-            aria-label={`Rolar perícia ${name}`}
-            className="p-0.5 hover:bg-muted/80 rounded transition-colors cursor-pointer"
-          >
-            <DiceIcon className="w-3.5 h-3.5 text-muted-foreground hover:text-foreground" />
-          </button>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={handleRollSkill}
+              aria-label={`Rolar perícia ${name}`}
+              className="p-0.5 hover:bg-muted/80 rounded transition-colors cursor-pointer"
+            >
+              <DiceIcon className="w-3.5 h-3.5 text-muted-foreground hover:text-foreground" />
+            </button>
+            {onRemove && !disabled && (
+              <button
+                onClick={onRemove}
+                aria-label={`Remover perícia ${name}`}
+                className="p-0.5 hover:bg-destructive/20 rounded transition-colors cursor-pointer text-destructive/60 hover:text-destructive"
+              >
+                <Trash2 className="w-3 h-3" />
+              </button>
+            )}
+          </div>
           <div className="flex items-center gap-1">
             {exceedsLimit && (
               <SkillWarning
@@ -111,7 +128,20 @@ export function SkillCard({
             <div className="flex flex-col items-start">
               {description ? (
                 <Tip
-                  content={<div className="max-w-xs text-xs">{description}</div>}
+                  content={
+                    <div className="max-w-xs text-xs space-y-1.5">
+                      <p>{description}</p>
+                      <div className="pt-1 border-t border-muted/20 flex flex-col gap-0.5">
+                        <span className="text-[10px] opacity-80">
+                          <strong className="text-primary">Ação:</strong> {action || "—"}
+                        </span>
+                        <span className="text-[10px] opacity-80">
+                          <strong className="text-primary">Apenas Treinado:</strong>{" "}
+                          {onlyTrained ? (id === "ESPECIALIDADE" ? "Sim*" : "Sim") : "Não"}
+                        </span>
+                      </div>
+                    </div>
+                  }
                   side="top"
                   align="start"
                 >

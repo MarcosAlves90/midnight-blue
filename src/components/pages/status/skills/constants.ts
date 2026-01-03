@@ -7,6 +7,8 @@ export const INITIAL_SKILLS: Skill[] = [
     name: "Acrobacia",
     attribute: "AGI",
     abbreviation: "ACR",
+    onlyTrained: true,
+    action: "movimento ou livre",
     description:
       "Realiza manobras acrobáticas, como cambalhotas (para reduzir dano de queda), equilibrar-se em superfícies precárias (CD 5–20) e manobrar em combate. É usada para levantar-se de uma posição caído como ação livre (CD 20).",
   },
@@ -15,6 +17,8 @@ export const INITIAL_SKILLS: Skill[] = [
     name: "Atletismo",
     attribute: "FOR",
     abbreviation: "ATL",
+    onlyTrained: false,
+    action: "movimento",
     description:
       "Usada para feitos físicos como saltar, escalar e nadar. Permite correr mais rápido (CD 15, aumentando a velocidade em +1 por rodada) e resistir a quedas (se falhar em escalar). A distância de saltos depende do resultado do teste.",
   },
@@ -23,6 +27,9 @@ export const INITIAL_SKILLS: Skill[] = [
     name: "Combate à Distância",
     attribute: "DES",
     abbreviation: "CBD",
+    onlyTrained: false,
+    action: "padrão",
+    isTemplate: true,
     description:
       "Representa o treinamento em um tipo específico de ataque à distância (como armas de fogo, controle de fogo, ou arremesso) e concede um bônus no teste de ataque. Cada ataque é uma perícia separada.",
   },
@@ -31,6 +38,9 @@ export const INITIAL_SKILLS: Skill[] = [
     name: "Combate Corpo-a-Corpo",
     attribute: "LUT",
     abbreviation: "CBC",
+    onlyTrained: false,
+    action: "padrão",
+    isTemplate: true,
     description:
       "Representa o treinamento em um tipo específico de ataque corpo-a-corpo (como espadas ou desarmado) e concede um bônus no teste de ataque. Assim como o Combate à Distância, cada ataque é uma perícia separada.",
   },
@@ -39,6 +49,8 @@ export const INITIAL_SKILLS: Skill[] = [
     name: "Enganação",
     attribute: "PRE",
     abbreviation: "ENG",
+    onlyTrained: false,
+    action: "padrão",
     description:
       "Aborda atuação, blefe, trapaça e ludibriar os outros. Inclui: Blefar (oposto por Intuição ou Enganação do alvo), Disfarçar (oposto por Percepção, exigindo preparação) e Fintar (em combate, deixando o alvo vulnerável).",
   },
@@ -47,6 +59,9 @@ export const INITIAL_SKILLS: Skill[] = [
     name: "Especialidade",
     attribute: "INT",
     abbreviation: "ESP",
+    onlyTrained: true,
+    action: "—",
+    isTemplate: true,
     description:
       "Perícia ampla que abrange conhecimento e treinamento em diferentes campos, como profissões ou áreas acadêmicas (ex: Ciência, Magia, Direito, etc.). Usada para responder a perguntas, pesquisar e praticar a profissão. Pode ser usada sem treinamento para tarefas básicas.",
   },
@@ -55,6 +70,8 @@ export const INITIAL_SKILLS: Skill[] = [
     name: "Furtividade",
     attribute: "AGI",
     abbreviation: "FUR",
+    onlyTrained: false,
+    action: "movimento",
     description:
       "Usada para se mover despercebido ou esconder-se (oposto por Percepção). Permite mover-se a velocidade normal com penalidade de –5. Exige cobertura ou camuflagem para esconder-se.",
   },
@@ -63,6 +80,8 @@ export const INITIAL_SKILLS: Skill[] = [
     name: "Intimidação",
     attribute: "PRE",
     abbreviation: "INTI",
+    onlyTrained: false,
+    action: "padrão",
     description:
       "Usada para coagir os outros através de ameaças. Inclui: Coagir (oposto por Intuição ou Vontade, para forçar cooperação) e Desmoralizar (em combate, deixando o alvo prejudicado ou desabilitado).",
   },
@@ -71,6 +90,8 @@ export const INITIAL_SKILLS: Skill[] = [
     name: "Intuição",
     attribute: "PRO",
     abbreviation: "INTU",
+    onlyTrained: false,
+    action: "livre",
     description:
       "Permite discernir sentimentos e intenções, e avaliar se alguém é confiável. É usada para Detectar Ilusão e Resistir Influência (em testes opostos).",
   },
@@ -79,6 +100,8 @@ export const INITIAL_SKILLS: Skill[] = [
     name: "Investigação",
     attribute: "INT",
     abbreviation: "INV",
+    onlyTrained: true,
+    action: "—",
     description:
       "Permite procurar e estudar pistas, reunir informações, analisar evidências e obter informações (através de contatos ou pesquisa). O tempo para buscar uma área depende do tamanho.",
   },
@@ -87,6 +110,8 @@ export const INITIAL_SKILLS: Skill[] = [
     name: "Percepção",
     attribute: "PRO",
     abbreviation: "PER",
+    onlyTrained: false,
+    action: "—",
     description:
       "Usada para notar coisas, como ouvir barulhos ou ver objetos. Discernir detalhes exige três graus de sucesso e há penalidade de –1 a cada 3 metros.",
   },
@@ -95,6 +120,8 @@ export const INITIAL_SKILLS: Skill[] = [
     name: "Persuasão",
     attribute: "PRE",
     abbreviation: "PES",
+    onlyTrained: false,
+    action: "padrão",
     description:
       "Usada para lidar com pessoas, fazer as pessoas cooperarem, negociar e melhorar a atitude (hostil, desfavorável, indiferente, favorável, prestativo) dos outros. Mudar a atitude é um teste de CD 15.",
   },
@@ -103,6 +130,8 @@ export const INITIAL_SKILLS: Skill[] = [
     name: "Prestidigitação",
     attribute: "DES",
     abbreviation: "PREST",
+    onlyTrained: true,
+    action: "padrão",
     description:
       "Habilidade manual usada para esconder itens, roubar (CD 20, oposto por Percepção), desvencilhar-se de amarras (CD 15–25) e contorcer-se.",
   },
@@ -111,6 +140,8 @@ export const INITIAL_SKILLS: Skill[] = [
     name: "Tecnologia",
     attribute: "INT",
     abbreviation: "TEC",
+    onlyTrained: true,
+    action: "padrão",
     description:
       "Usada para operar, construir, reparar e trabalhar com mecanismos e equipamentos. Inclui consertar itens (CD reduzida), Demolir (para maximizar dano de explosivos) e desarmar sistemas de segurança.",
   },
@@ -119,6 +150,8 @@ export const INITIAL_SKILLS: Skill[] = [
     name: "Tratamento",
     attribute: "INT",
     abbreviation: "TRA",
+    onlyTrained: true,
+    action: "padrão",
     description:
       "Usada para tratar ferimentos e doenças. Inclui Diagnosticar, Estabilizar (personagens moribundos), Oferecer Tratamento (para reduzir tempo de recuperação) e Reviver (remover condições tonto ou atordoado).",
   },
@@ -127,6 +160,8 @@ export const INITIAL_SKILLS: Skill[] = [
     name: "Veículos",
     attribute: "DES",
     abbreviation: "VEI",
+    onlyTrained: true,
+    action: "movimento",
     description:
       "Usada para operar veículos (carros, barcos, aviões, etc.). Testes são exigidos em condições estressantes para manobras (CD 5–25).",
   },

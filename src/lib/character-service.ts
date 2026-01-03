@@ -32,6 +32,8 @@ export interface SavedSkill {
   id: string;
   value?: number;
   others?: number;
+  parentId?: string;
+  specialization?: string;
 }
 
 // CharacterDocument returns hydrated types (Attributes and Skills) to avoid confusion
@@ -91,7 +93,16 @@ function serializeAttributes(attributes: Attribute[] = INITIAL_ATTRIBUTES): Save
 }
 
 function serializeSkills(skills: Skill[] = INITIAL_SKILLS): SavedSkill[] {
-  return skills.map((s) => ({ id: s.id, value: s.value ?? 0, others: s.others ?? 0 }));
+  return skills.map((s) => {
+    const saved: SavedSkill = {
+      id: s.id,
+      value: s.value ?? 0,
+      others: s.others ?? 0,
+    };
+    if (s.parentId) saved.parentId = s.parentId;
+    if (s.specialization) saved.specialization = s.specialization;
+    return saved;
+  });
 }
 
 function hydrateAttributes(saved: SavedAttribute[] = []): Attribute[] {
@@ -99,7 +110,36 @@ function hydrateAttributes(saved: SavedAttribute[] = []): Attribute[] {
 }
 
 function hydrateSkills(saved: SavedSkill[] = []): Skill[] {
-  return INITIAL_SKILLS.map((base) => ({ ...base, value: (saved.find((s) => s.id === base.id)?.value) ?? 0, others: (saved.find((s) => s.id === base.id)?.others) ?? 0 }));
+  // 1. Get base skills from INITIAL_SKILLS
+  const baseSkills = INITIAL_SKILLS.map((base) => {
+    const savedSkill = saved.find((s) => s.id === base.id);
+    return {
+      ...base,
+      value: savedSkill?.value ?? 0,
+      others: savedSkill?.others ?? 0,
+    };
+  });
+
+  // 2. Get specializations (skills that have a parentId)
+  const specializations = saved
+    .filter((s) => s.parentId)
+    .map((s) => {
+      const template = INITIAL_SKILLS.find((t) => t.id === s.parentId);
+      if (!template) return null;
+      return {
+        ...template,
+        id: s.id,
+        parentId: s.parentId,
+        specialization: s.specialization,
+        name: `${template.abbreviation || template.name}: ${s.specialization}`,
+        value: s.value ?? 0,
+        others: s.others ?? 0,
+        isTemplate: false, // The instance is not a template
+      };
+    })
+    .filter((s): s is Skill => s !== null);
+
+  return [...baseSkills, ...specializations];
 }
 
 function mapFirestoreToCharacter(id: string, data: Record<string, unknown>): CharacterDocument {
@@ -308,6 +348,9 @@ export async function updateCharacter(userId: string, characterId: string, updat
   Object.keys(updatesRecord).forEach((key) => {
     const val = updatesRecord[key];
 
+    // Skip undefined values to avoid Firestore errors
+    if (val === undefined) return;
+
     // Skip handled structured keys
     if (key === "attributes" || key === "skills") return;
     if (key === "powers") {
@@ -451,6 +494,9 @@ export async function patchCharacter(userId: string, characterId: string, update
 
   Object.keys(updatesRecord).forEach((key) => {
     const val = updatesRecord[key];
+
+    // Skip undefined values to avoid Firestore errors
+    if (val === undefined) return;
 
     if (key === "attributes" || key === "skills") return;
     if (key === "powers") {
