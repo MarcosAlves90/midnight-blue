@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useCallback, useMemo } from "react";
-import { Edit3, Lock, ChevronDown, Search, X, Plus, Trash2 } from "lucide-react";
+import { Edit3, Lock, ChevronDown, Search, X, Plus } from "lucide-react";
 import SkillCard from "./skill-card";
 import { useSkillsContext } from "@/contexts/SkillsContext";
 import { INITIAL_SKILLS } from "./constants";
@@ -26,9 +26,13 @@ type SortOption =
   | "others-asc"
   | "others-desc";
 
-export function SkillsList() {
+export function SkillsList({
+  isEditMode: initialIsEditMode = false,
+}: {
+  isEditMode?: boolean;
+}) {
   const { skills, updateSkill, addSpecialization, removeSkill } = useSkillsContext();
-  const [isEditMode, setIsEditMode] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(initialIsEditMode);
   const [sortOption, setSortOption] = useState<SortOption>("name-asc");
   const [searchTerm, setSearchTerm] = useState("");
 
