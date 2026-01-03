@@ -4,92 +4,17 @@ import React, { useRef, useCallback, useEffect } from "react";
 import { captureElementAsPng } from "@/lib/image-utils";
 import { useIdentityContext, IdentityData } from "@/contexts/IdentityContext";
 import { useCharacterUpload } from "@/hooks/use-character-upload";
-import { useSelectedCharacter } from "@/hooks/use-selected-character";
+import { useCharacterSync } from "@/hooks/use-character-sync";
 import { IdentityCard } from "@/components/pages/individual/identity-card";
 import { ConflictBanner } from "@/components/ui/conflict-banner";
 import { BiometricDataLazy, PersonalDataLazy, ConfidentialFileLazy, HistoryLazy, ComplicationsLazy } from "@/components/pages/individual/lazy-sections";
-import { deepEqual } from "@/lib/deep-equal";
 import { NoCharacterSelected } from "@/components/config/character";
 
 export default function Individual() {
-  const { identity, setIdentity, updateIdentity, setCurrentCharacterId, dirtyFields } = useIdentityContext();
-  const { character, isLoading, error } = useSelectedCharacter();
+  const { identity, updateIdentity } = useIdentityContext();
+  const { character, isLoading, error } = useCharacterSync();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const cardRef = useRef<HTMLDivElement | null>(null);
-  const characterIdRef = useRef<string | null>(null);
-  // Rastreia o último identity sincronizado para detectar mudanças mesmo com mesmo ID
-  const lastSyncedIdentityRef = useRef<string | null>(null);
-
-  // Sincroniza a identity quando character muda (e.g., ao trocar de ficha ou dados atualizados)
-  // IMPORTANTE: Não dispara auto-save aqui, apenas sincroniza o estado local
-  useEffect(() => {
-    if (!character?.identity || !character.id) return;
-
-    // Serializa identity atual para comparação
-    let currentIdentityHash: string;
-    try {
-      currentIdentityHash = JSON.stringify(character.identity);
-    } catch {
-      currentIdentityHash = "";
-    }
-
-    // Se o ID mudou, sempre sincroniza
-    const idChanged = characterIdRef.current !== character.id;
-    
-    // Se o ID é o mesmo mas a identity mudou (dados atualizados), também sincroniza
-    const identityChanged = lastSyncedIdentityRef.current !== currentIdentityHash;
-
-    if (!idChanged && !identityChanged) {
-      // Nada mudou, não precisa sincronizar
-      return;
-    }
-
-    // Atualiza refs
-    characterIdRef.current = character.id;
-    lastSyncedIdentityRef.current = currentIdentityHash;
-
-    // Apenas sincroniza para IdentityContext (sem dispara auto-save)
-    setCurrentCharacterId?.(character.id);
-
-    // Atualiza o estado da identidade carregada
-    setIdentity((prev) => {
-      let hasChanged = false;
-
-      // Coleta somente os campos que mudaram
-      const changedEntries: [string, unknown][] = [];
-      Object.entries(character.identity).forEach(([key, val]) => {
-        const k = key as keyof IdentityData;
-        const newVal = val as IdentityData[typeof k];
-        const curVal = prev[k];
-
-        const changed =
-          typeof newVal === "object" && newVal !== null
-            ? !deepEqual(newVal, curVal)
-            : newVal !== curVal;
-
-        if (changed) {
-          changedEntries.push([key, newVal]);
-          hasChanged = true;
-        }
-      });
-
-      if (!hasChanged) return prev;
-
-      // Filter out any fields that are currently dirty (local edits) to avoid overwriting
-      const patch = Object.fromEntries(
-        changedEntries.filter(([k]) => !dirtyFields.has(k)),
-      ) as Partial<IdentityData>;
-
-      console.debug("[Individual] Syncing identity from character", { 
-        idChanged, 
-        identityChanged, 
-        fieldsChanged: changedEntries.length,
-        dirtyFieldsCount: dirtyFields.size 
-      });
-
-      return { ...prev, ...patch } as IdentityData;
-    });
-  }, [character?.id, character?.identity, setCurrentCharacterId, setIdentity, dirtyFields]);
 
 
 

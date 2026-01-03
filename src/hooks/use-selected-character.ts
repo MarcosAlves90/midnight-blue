@@ -1,7 +1,7 @@
 import { useCharacter } from "@/contexts/CharacterContext";
 import { useIdentityActions } from "@/contexts/IdentityContext";
 import { useEffect, useState } from "react";
-import type { CharacterDocument } from "@/lib/character-service";
+import type { CharacterDocument } from "@/lib/types/character";
 
 /**
  * Hook que retorna a ficha selecionada do contexto
