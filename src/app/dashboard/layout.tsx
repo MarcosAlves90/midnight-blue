@@ -4,6 +4,15 @@ import {
   SidebarInset,
   SidebarProvider,
 } from "@/components/ui/sidebar";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: {
+    template: "%s | Midnight Blue",
+    default: "Dashboard",
+  },
+  description: "Painel de controle do Midnight Blue",
+};
 
 interface DashboardLayoutProps {
   children: React.ReactNode;

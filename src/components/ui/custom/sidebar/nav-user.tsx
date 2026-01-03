@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
+import * as React from "react";
 import {
   BadgeCheck,
   Bell,
@@ -45,6 +46,11 @@ export function NavUser({
   const { theme, setTheme } = useTheme();
   const { signOut } = useAuth();
   const router = useRouter();
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const toggleTheme = () => {
     if (theme === "black") {
@@ -68,41 +74,13 @@ export function NavUser({
   return (
     <SidebarMenu>
       <SidebarMenuItem>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <SidebarMenuButton
-              size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground cursor-pointer"
-            >
-              <Avatar className="h-8 w-8 rounded-full">
-                <AvatarImage src={user?.avatar} alt={user?.name} />
-                <AvatarFallback className="rounded-full">
-                  {(user?.name || "")
-                    .split(" ")
-                    .map((n) => n?.[0])
-                    .filter(Boolean)
-                    .slice(0, 2)
-                    .join("")
-                    .toUpperCase() || "CN"}
-                </AvatarFallback>
-              </Avatar>
-              <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">
-                  {user?.name || "Convidado"}
-                </span>
-                <span className="truncate text-xs">{user?.email || ""}</span>
-              </div>
-              <ChevronsUpDown className="ml-auto size-4" />
-            </SidebarMenuButton>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent
-            className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
-            side={isMobile ? "bottom" : "right"}
-            align="end"
-            sideOffset={4}
-          >
-            <DropdownMenuLabel className="p-0 font-normal">
-              <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+        {mounted ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <SidebarMenuButton
+                size="lg"
+                className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground cursor-pointer"
+              >
                 <Avatar className="h-8 w-8 rounded-full">
                   <AvatarImage src={user?.avatar} alt={user?.name} />
                   <AvatarFallback className="rounded-full">
@@ -121,41 +99,90 @@ export function NavUser({
                   </span>
                   <span className="truncate text-xs">{user?.email || ""}</span>
                 </div>
-              </div>
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem onClick={toggleTheme}>
-                {theme === "black" ? (
-                  <Monitor />
-                ) : (
-                  <Moon />
-                )}
-                Trocar tema
+                <ChevronsUpDown className="ml-auto size-4" />
+              </SidebarMenuButton>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
+              side={isMobile ? "bottom" : "right"}
+              align="end"
+              sideOffset={4}
+            >
+              <DropdownMenuLabel className="p-0 font-normal">
+                <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+                  <Avatar className="h-8 w-8 rounded-full">
+                    <AvatarImage src={user?.avatar} alt={user?.name} />
+                    <AvatarFallback className="rounded-full">
+                      {(user?.name || "")
+                        .split(" ")
+                        .map((n) => n?.[0])
+                        .filter(Boolean)
+                        .slice(0, 2)
+                        .join("")
+                        .toUpperCase() || "CN"}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="grid flex-1 text-left text-sm leading-tight">
+                    <span className="truncate font-medium">
+                      {user?.name || "Convidado"}
+                    </span>
+                    <span className="truncate text-xs">{user?.email || ""}</span>
+                  </div>
+                </div>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuGroup>
+                <DropdownMenuItem onClick={toggleTheme}>
+                  {theme === "black" ? <Monitor /> : <Moon />}
+                  Trocar tema
+                </DropdownMenuItem>
+              </DropdownMenuGroup>
+              <DropdownMenuSeparator />
+              <DropdownMenuGroup>
+                <DropdownMenuItem
+                  onClick={() => router.push("/dashboard/conta")}
+                >
+                  <BadgeCheck />
+                  Conta
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <CreditCard />
+                  Cobrança
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Bell />
+                  Notificações
+                </DropdownMenuItem>
+              </DropdownMenuGroup>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleSignOut}>
+                <LogOut />
+                Sair
               </DropdownMenuItem>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem onClick={() => router.push("/dashboard/conta")}>
-                <BadgeCheck />
-                Conta
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <CreditCard />
-                Cobrança
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Bell />
-                Notificações
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleSignOut}>
-              <LogOut />
-              Sair
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : (
+          <SidebarMenuButton size="lg" className="cursor-pointer">
+            <Avatar className="h-8 w-8 rounded-full">
+              <AvatarFallback className="rounded-full">
+                {(user?.name || "")
+                  .split(" ")
+                  .map((n) => n?.[0])
+                  .filter(Boolean)
+                  .slice(0, 2)
+                  .join("")
+                  .toUpperCase() || "CN"}
+              </AvatarFallback>
+            </Avatar>
+            <div className="grid flex-1 text-left text-sm leading-tight">
+              <span className="truncate font-medium">
+                {user?.name || "Convidado"}
+              </span>
+              <span className="truncate text-xs">{user?.email || ""}</span>
+            </div>
+            <ChevronsUpDown className="ml-auto size-4" />
+          </SidebarMenuButton>
+        )}
       </SidebarMenuItem>
     </SidebarMenu>
   );

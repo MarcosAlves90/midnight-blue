@@ -37,6 +37,11 @@ export const NavMain = React.memo(function NavMain({
   }[];
 }) {
   const { selectedCharacter } = useCharacter();
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Manter estado de abertura dos itens para evitar reset na navegação
   const [openItems, setOpenItems] = React.useState<Record<string, boolean>>(
@@ -62,8 +67,23 @@ export const NavMain = React.memo(function NavMain({
       <SidebarGroupLabel>Ficha</SidebarGroupLabel>
       <SidebarMenu>
         {items.map((item, idx) => {
-          const slug = item.title.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9\-]/g, "");
+          const slug = item.title
+            .toLowerCase()
+            .replace(/\s+/g, "-")
+            .replace(/[^a-z0-9\-]/g, "");
           const contentId = `nav-${slug}-${idx}`;
+
+          if (!mounted) {
+            return (
+              <SidebarMenuItem key={item.title}>
+                <SidebarMenuButton>
+                  {item.icon && <item.icon />}
+                  <span>{item.title}</span>
+                  <ChevronRight className="ml-auto transition-transform duration-200" />
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            );
+          }
 
           return (
             <Collapsible
@@ -75,7 +95,11 @@ export const NavMain = React.memo(function NavMain({
             >
               <SidebarMenuItem>
                 <CollapsibleTrigger asChild>
-                <SidebarMenuButton tooltip={item.title} aria-controls={contentId} aria-expanded={openItems[item.title] ?? false}>
+                  <SidebarMenuButton
+                    tooltip={item.title}
+                    aria-controls={contentId}
+                    aria-expanded={openItems[item.title] ?? false}
+                  >
                     {item.icon && <item.icon />}
                     <span>{item.title}</span>
                     <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
@@ -84,11 +108,14 @@ export const NavMain = React.memo(function NavMain({
                 <CollapsibleContent id={contentId}>
                   <SidebarMenuSub>
                     {item.items?.map((subItem) => {
-                      const isIndividual = subItem.url === "/dashboard/personagem/individual";
-                      const isStatus = subItem.url === "/dashboard/personagem/status";
-                      const href = (isIndividual || isStatus) && selectedCharacter 
-                        ? `${subItem.url}/${selectedCharacter.id}` 
-                        : subItem.url;
+                      const isIndividual =
+                        subItem.url === "/dashboard/personagem/individual";
+                      const isStatus =
+                        subItem.url === "/dashboard/personagem/status";
+                      const href =
+                        (isIndividual || isStatus) && selectedCharacter
+                          ? `${subItem.url}/${selectedCharacter.id}`
+                          : subItem.url;
                       return (
                         <SidebarMenuSubItem key={subItem.title}>
                           <SidebarMenuSubButton asChild>

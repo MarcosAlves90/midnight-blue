@@ -8,7 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { NewCharacterForm } from "@/components/gallery/new-character-form";
+import { NewCharacterForm } from "@/components/pages/gallery/new-character-form";
 import { Shield } from "lucide-react";
 
 interface NewCharacterDialogProps {

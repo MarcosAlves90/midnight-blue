@@ -80,6 +80,11 @@ export function CharacterSwitcher() {
   const [characters, setCharacters] = React.useState<CharacterDocument[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Escuta mudanças em tempo real na lista de personagens
   React.useEffect(() => {
@@ -167,63 +172,94 @@ export function CharacterSwitcher() {
   return (
     <SidebarMenu>
       <SidebarMenuItem>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <SidebarMenuButton
-              size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+        {mounted ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <SidebarMenuButton
+                size="lg"
+                className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+              >
+                <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg overflow-hidden relative">
+                  {selectedProfileImage ? (
+                    <Image
+                      src={selectedProfileImage}
+                      alt={selectedCharacterName}
+                      fill
+                      sizes="32px"
+                      className="object-cover"
+                    />
+                  ) : (
+                    <span className="text-xs font-bold">
+                      {selectedCharacterName.charAt(0).toUpperCase()}
+                    </span>
+                  )}
+                </div>
+                <div className="grid flex-1 text-left text-sm leading-tight">
+                  <span className="truncate font-medium">
+                    {selectedCharacterName}
+                  </span>
+                  <span className="truncate text-xs text-muted-foreground">
+                    {selectedCharacterPlayer}
+                  </span>
+                </div>
+                <ChevronsUpDown className="ml-auto" />
+              </SidebarMenuButton>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
+              align="start"
+              side={isMobile ? "bottom" : "right"}
+              sideOffset={4}
             >
-              <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg overflow-hidden relative">
-                {selectedProfileImage ? (
-                  <Image
-                    src={selectedProfileImage}
-                    alt={selectedCharacterName}
-                    fill
-                    sizes="32px"
-                    className="object-cover"
-                  />
-                ) : (
-                  <span className="text-xs font-bold">{selectedCharacterName.charAt(0).toUpperCase()}</span>
-                )}
-              </div>
-              <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{selectedCharacterName}</span>
-                <span className="truncate text-xs text-muted-foreground">{selectedCharacterPlayer}</span>
-              </div>
-              <ChevronsUpDown className="ml-auto" />
-            </SidebarMenuButton>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent
-            className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
-            align="start"
-            side={isMobile ? "bottom" : "right"}
-            sideOffset={4}
-          >
-            <DropdownMenuLabel className="text-muted-foreground text-xs">
-              Fichas de Personagem
-            </DropdownMenuLabel>
-            {characters.map((character: CharacterDocument) => (
-              <CharacterDropdownItem
-                key={character.id}
-                character={character}
-                onClick={() => handleSelectCharacter(character)}
-              />
-            ))}
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className="gap-2 p-2" onClick={handleCreateNewCharacter}>
-              <div className="flex size-6 items-center justify-center rounded-md border bg-transparent">
-                <Plus className="size-4" />
-              </div>
-              <div className="font-medium">Nova Ficha</div>
-            </DropdownMenuItem>
-            <DropdownMenuItem className="gap-2 p-2" onClick={handleOpenGallery}>
-              <div className="flex size-6 items-center justify-center rounded-md border bg-transparent">
-                <BookOpen className="size-4" />
-              </div>
-              <div className="font-medium">Galeria de Fichas</div>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+              <DropdownMenuLabel className="text-muted-foreground text-xs">
+                Fichas de Personagem
+              </DropdownMenuLabel>
+              {characters.map((character: CharacterDocument) => (
+                <CharacterDropdownItem
+                  key={character.id}
+                  character={character}
+                  onClick={() => handleSelectCharacter(character)}
+                />
+              ))}
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                className="gap-2 p-2"
+                onClick={handleCreateNewCharacter}
+              >
+                <div className="flex size-6 items-center justify-center rounded-md border bg-transparent">
+                  <Plus className="size-4" />
+                </div>
+                <div className="font-medium">Nova Ficha</div>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="gap-2 p-2"
+                onClick={handleOpenGallery}
+              >
+                <div className="flex size-6 items-center justify-center rounded-md border bg-transparent">
+                  <BookOpen className="size-4" />
+                </div>
+                <div className="font-medium">Galeria de Fichas</div>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : (
+          <SidebarMenuButton size="lg">
+            <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg overflow-hidden relative">
+              <span className="text-xs font-bold">
+                {selectedCharacterName.charAt(0).toUpperCase()}
+              </span>
+            </div>
+            <div className="grid flex-1 text-left text-sm leading-tight">
+              <span className="truncate font-medium">
+                {selectedCharacterName}
+              </span>
+              <span className="truncate text-xs text-muted-foreground">
+                {selectedCharacterPlayer}
+              </span>
+            </div>
+            <ChevronsUpDown className="ml-auto" />
+          </SidebarMenuButton>
+        )}
       </SidebarMenuItem>
     </SidebarMenu>
   );
