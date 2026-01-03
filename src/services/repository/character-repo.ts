@@ -1,22 +1,58 @@
 "use client";
 
-import type { CharacterDocument, CharacterData, Folder } from "@/lib/character-service";
-import * as CharacterService from "@/lib/character-service";
+import type { CharacterDocument, CharacterData, Folder, UpdateResult } from "@/lib/types/character";
+import {
+  doc,
+  setDoc,
+  getDoc,
+  collection,
+  getDocs,
+  deleteDoc,
+  updateDoc,
+  query,
+  orderBy,
+  onSnapshot,
+  type Unsubscribe,
+} from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import {
+  normalizeIdentity,
+  serializeAttributes,
+  serializeSkills,
+  mapFirestoreToCharacter,
+  toDateSafe,
+} from "@/lib/mappers/character-mapper";
+import { INITIAL_ATTRIBUTES } from "@/components/pages/status/attributes-grid/constants";
+import { INITIAL_SKILLS } from "@/components/pages/status/skills/constants";
+import type { Attribute } from "@/components/pages/status/attributes-grid/types";
+import type { Skill } from "@/components/pages/status/skills/types";
+
+const USERS_COLLECTION = "users";
+const CHARACTERS_SUBCOLLECTION = "characters";
+const FOLDERS_SUBCOLLECTION = "folders";
 
 export interface CharacterRepository {
   saveCharacter: (data: CharacterData, characterId?: string) => Promise<string>;
   getCharacter: (characterId: string) => Promise<CharacterDocument | null>;
   listCharacters: () => Promise<CharacterDocument[]>;
-  updateCharacter: (characterId: string, updates: Partial<CharacterData>, options?: { baseVersion?: number }) => Promise<import("@/lib/character-service").UpdateResult>;
-  patchCharacter?: (characterId: string, updates: Partial<CharacterData>) => Promise<void>;
+  updateCharacter: (characterId: string, updates: Partial<CharacterData>, options?: { baseVersion?: number }) => Promise<UpdateResult>;
+  patchCharacter: (characterId: string, updates: Partial<CharacterData>) => Promise<void>;
   deleteCharacter: (characterId: string) => Promise<void>;
   
+  // Listeners
+  onCharactersChange: (callback: (characters: CharacterDocument[]) => void) => Unsubscribe;
+  onCharacterChange: (characterId: string, callback: (character: CharacterDocument | null) => void) => Unsubscribe;
+
+  // Last selected
+  setLastSelectedCharacter: (characterId: string) => Promise<void>;
+  getLastSelectedCharacterId: () => Promise<string | null>;
+
   // Folder management
   createFolder: (name: string, parentId?: string | null) => Promise<string>;
   deleteFolder: (folderId: string) => Promise<void>;
   listFolders: () => Promise<Folder[]>;
   moveCharacterToFolder: (characterId: string, folderId: string | null) => Promise<void>;
-  listenToFolders: (callback: (folders: Folder[]) => void) => () => void;
+  onFoldersChange: (callback: (folders: Folder[]) => void) => Unsubscribe;
 }
 
 export class FirebaseCharacterRepository implements CharacterRepository {
@@ -25,83 +61,193 @@ export class FirebaseCharacterRepository implements CharacterRepository {
     this.userId = userId;
   }
 
-  async saveCharacter(data: CharacterData, characterId?: string) {
-    if (!this.userId) throw new Error("User not authenticated");
-    return CharacterService.saveCharacter(this.userId, data, characterId);
+  private get characterCollection() {
+    return collection(db, USERS_COLLECTION, this.userId, CHARACTERS_SUBCOLLECTION);
   }
 
-  async getCharacter(characterId: string) {
-    if (!this.userId) throw new Error("User not authenticated");
-    return CharacterService.getCharacter(this.userId, characterId);
+  private get folderCollection() {
+    return collection(db, USERS_COLLECTION, this.userId, FOLDERS_SUBCOLLECTION);
   }
 
-  async listCharacters() {
-    if (!this.userId) throw new Error("User not authenticated");
-    return CharacterService.listCharacters(this.userId);
+  private getDocRef(characterId: string) {
+    return doc(db, USERS_COLLECTION, this.userId, CHARACTERS_SUBCOLLECTION, characterId);
   }
 
-  async updateCharacter(characterId: string, updates: Partial<CharacterData>, options?: { baseVersion?: number }) {
-    if (!this.userId) throw new Error("User not authenticated");
+  async saveCharacter(data: CharacterData, characterId?: string): Promise<string> {
+    const id = characterId ?? doc(this.characterCollection).id;
+    const docRef = this.getDocRef(id);
+    const now = new Date();
 
-    const perfKey = `FirebaseRepo.updateCharacter:${characterId}`;
-    try {
-      performance.mark(`${perfKey}-start`);
-    } catch {
-      // ignore
-    }
+    const payload = {
+      id,
+      userId: this.userId,
+      createdAt: data.createdAt ?? now,
+      updatedAt: now,
+      version: 1,
+      identity: normalizeIdentity(data.identity),
+      attributes: serializeAttributes((data.attributes as Attribute[]) ?? INITIAL_ATTRIBUTES),
+      skills: serializeSkills((data.skills as Skill[]) ?? INITIAL_SKILLS),
+      powers: data.powers ?? [],
+      status: data.status ?? { powerLevel: 10, extraPoints: 0 },
+      customDescriptors: data.customDescriptors ?? [],
+      folderId: data.folderId ?? null,
+    };
 
-    const res = await CharacterService.updateCharacter(this.userId, characterId, updates, options?.baseVersion);
-
-    try {
-      performance.mark(`${perfKey}-end`);
-      performance.measure(perfKey, `${perfKey}-start`, `${perfKey}-end`);
-      performance.clearMarks(`${perfKey}-start`);
-      performance.clearMarks(`${perfKey}-end`);
-      performance.clearMeasures(perfKey);
-    } catch {
-      // ignore
-    }
-
-    return res;
+    await setDoc(docRef, payload);
+    return id;
   }
 
-  async patchCharacter(characterId: string, updates: Partial<CharacterData>) {
-    if (!this.userId) throw new Error("User not authenticated");
-
-    const perfKey = `FirebaseRepo.patchCharacter:${characterId}`;
-    try { performance.mark(`${perfKey}-start`); } catch {}
-
-    await CharacterService.patchCharacter(this.userId, characterId, updates);
-
-    try { performance.mark(`${perfKey}-end`); performance.measure(perfKey, `${perfKey}-start`, `${perfKey}-end`); performance.clearMarks(`${perfKey}-start`); performance.clearMarks(`${perfKey}-end`); performance.clearMeasures(perfKey); } catch {}
-  }
-  async deleteCharacter(characterId: string) {
-    if (!this.userId) throw new Error("User not authenticated");
-    return CharacterService.deleteCharacter(this.userId, characterId);
+  async getCharacter(characterId: string): Promise<CharacterDocument | null> {
+    const docRef = this.getDocRef(characterId);
+    const snap = await getDoc(docRef);
+    if (!snap.exists()) return null;
+    return mapFirestoreToCharacter(snap.id, snap.data());
   }
 
-  async createFolder(name: string, parentId: string | null = null) {
-    if (!this.userId) throw new Error("User not authenticated");
-    return CharacterService.createFolder(this.userId, name, parentId);
+  async listCharacters(): Promise<CharacterDocument[]> {
+    const q = query(this.characterCollection);
+    const snapshot = await getDocs(q);
+    return snapshot.docs
+      .map((d) => mapFirestoreToCharacter(d.id, d.data()))
+      .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
   }
 
-  async deleteFolder(folderId: string) {
-    if (!this.userId) throw new Error("User not authenticated");
-    return CharacterService.deleteFolder(this.userId, folderId);
+  async updateCharacter(characterId: string, updates: Partial<CharacterData>, options?: { baseVersion?: number }): Promise<UpdateResult> {
+    const docRef = this.getDocRef(characterId);
+    const payload = this.prepareUpdatePayload(updates);
+
+    const { runTransaction, serverTimestamp } = await import("firebase/firestore");
+    
+    return runTransaction(db, async (t) => {
+      const snap = await t.get(docRef);
+      if (!snap.exists()) throw new Error("Document does not exist");
+
+      const serverData = snap.data();
+      const serverVersion = Number((serverData.version as number) ?? 0);
+
+      if (typeof options?.baseVersion === "number" && options.baseVersion !== serverVersion) {
+        return { success: false as const, conflict: mapFirestoreToCharacter(snap.id, serverData) };
+      }
+
+      const newVersion = serverVersion + 1;
+      t.update(docRef, { ...payload, updatedAt: serverTimestamp(), version: newVersion });
+      return { success: true as const, newVersion };
+    });
   }
 
-  async listFolders() {
-    if (!this.userId) throw new Error("User not authenticated");
-    return CharacterService.listFolders(this.userId);
+  async patchCharacter(characterId: string, updates: Partial<CharacterData>): Promise<void> {
+    const docRef = this.getDocRef(characterId);
+    const payload = this.prepareUpdatePayload(updates);
+
+    if (Object.keys(payload).length === 0) return;
+
+    const { updateDoc, serverTimestamp, increment } = await import("firebase/firestore");
+    await updateDoc(docRef, { ...payload, updatedAt: serverTimestamp(), version: increment(1) });
   }
 
-  async moveCharacterToFolder(characterId: string, folderId: string | null) {
-    if (!this.userId) throw new Error("User not authenticated");
-    return CharacterService.moveCharacterToFolder(this.userId, characterId, folderId);
+  async deleteCharacter(characterId: string): Promise<void> {
+    await deleteDoc(this.getDocRef(characterId));
   }
 
-  listenToFolders(callback: (folders: Folder[]) => void) {
-    if (!this.userId) return () => {};
-    return CharacterService.onFoldersChange(this.userId, callback);
+  onCharactersChange(callback: (characters: CharacterDocument[]) => void): Unsubscribe {
+    return onSnapshot(query(this.characterCollection), (snapshot) => {
+      const chars = snapshot.docs
+        .map((d) => mapFirestoreToCharacter(d.id, d.data()))
+        .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
+      callback(chars);
+    });
+  }
+
+  onCharacterChange(characterId: string, callback: (character: CharacterDocument | null) => void): Unsubscribe {
+    return onSnapshot(this.getDocRef(characterId), (snapshot) => {
+      callback(snapshot.exists() ? mapFirestoreToCharacter(snapshot.id, snapshot.data()) : null);
+    });
+  }
+
+  async setLastSelectedCharacter(characterId: string): Promise<void> {
+    const userDoc = doc(db, USERS_COLLECTION, this.userId);
+    const now = new Date();
+    const snap = await getDoc(userDoc);
+    if (!snap.exists()) await setDoc(userDoc, { lastSelectedCharacterId: characterId, updatedAt: now });
+    else await updateDoc(userDoc, { lastSelectedCharacterId: characterId, updatedAt: now });
+  }
+
+  async getLastSelectedCharacterId(): Promise<string | null> {
+    const snap = await getDoc(doc(db, USERS_COLLECTION, this.userId));
+    return snap.exists() ? snap.data().lastSelectedCharacterId || null : null;
+  }
+
+  async createFolder(name: string, parentId: string | null = null): Promise<string> {
+    const id = doc(this.folderCollection).id;
+    const docRef = doc(this.folderCollection, id);
+    const now = new Date();
+    await setDoc(docRef, { id, name, createdAt: now, updatedAt: now, parentId });
+    return id;
+  }
+
+  async deleteFolder(folderId: string): Promise<void> {
+    const folderRef = doc(this.folderCollection, folderId);
+    const snapshot = await getDocs(query(this.characterCollection));
+    const batchUpdates = snapshot.docs
+      .filter(d => d.data().folderId === folderId)
+      .map(d => updateDoc(this.getDocRef(d.id), { folderId: null }));
+
+    await Promise.all([...batchUpdates, deleteDoc(folderRef)]);
+  }
+
+  async listFolders(): Promise<Folder[]> {
+    const snapshot = await getDocs(query(this.folderCollection, orderBy("name", "asc")));
+    return snapshot.docs.map(d => ({
+      ...d.data(),
+      id: d.id,
+      createdAt: toDateSafe(d.data().createdAt),
+      updatedAt: toDateSafe(d.data().updatedAt),
+    } as Folder));
+  }
+
+  async moveCharacterToFolder(characterId: string, folderId: string | null): Promise<void> {
+    await updateDoc(this.getDocRef(characterId), { folderId, updatedAt: new Date() });
+  }
+
+  onFoldersChange(callback: (folders: Folder[]) => void): Unsubscribe {
+    return onSnapshot(query(this.folderCollection, orderBy("name", "asc")), (snapshot) => {
+      callback(snapshot.docs.map(d => ({
+        ...d.data(),
+        id: d.id,
+        createdAt: toDateSafe(d.data().createdAt),
+        updatedAt: toDateSafe(d.data().updatedAt),
+      } as Folder)));
+    });
+  }
+
+  private prepareUpdatePayload(updates: Partial<CharacterData>): Record<string, unknown> {
+    const payload: Record<string, unknown> = {};
+    const updatesRecord = updates as Record<string, unknown>;
+
+    if (updatesRecord.attributes) payload.attributes = serializeAttributes(updates.attributes as Attribute[]);
+    if (updatesRecord.skills) payload.skills = serializeSkills(updates.skills as Skill[]);
+
+    Object.keys(updatesRecord).forEach((key) => {
+      const val = updatesRecord[key];
+      if (val === undefined || key === "attributes" || key === "skills") return;
+
+      if (key === "powers" || key === "customDescriptors") {
+        payload[key] = val;
+      } else if (key === "status" && typeof val === "object" && val !== null) {
+        Object.keys(val).forEach(k => payload[`status.${k}`] = (val as Record<string, unknown>)[k]);
+      } else if (key === "identity" && typeof val === "object" && val !== null) {
+        Object.keys(val).forEach(k => payload[`identity.${k}`] = (val as Record<string, unknown>)[k]);
+      } else if (key.includes(".") || key === "heroName") {
+        payload[key === "heroName" ? "identity.heroName" : key] = val;
+      } else {
+        payload[key] = val;
+      }
+    });
+
+    return payload;
+  }
+
+  listenToFolders(callback: (folders: Folder[]) => void): Unsubscribe {
+    return this.onFoldersChange(callback);
   }
 }
