@@ -1,10 +1,8 @@
-"use client";
+﻿"use client";
 
-import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
+import React, { createContext, useContext, useCallback, useMemo } from "react";
 import { Power } from "../components/pages/status/powers/types";
-import { useAuth } from "./AuthContext";
-import { useCharacter } from "./CharacterContext";
-import { useCharacterPersistence } from "@/hooks/use-character-persistence";
+import { useCharacterSheet } from "./CharacterSheetContext";
 
 interface PowersContextType {
   powers: Power[];
@@ -20,78 +18,17 @@ interface PowersContextType {
 
 const PowersContext = createContext<PowersContextType | undefined>(undefined);
 
-const STORAGE_KEY = "midnight-powers";
-
 export const PowersProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [powers, setPowers] = useState<Power[]>([]);
-  const [isSyncing, setIsSyncing] = useState(false);
-  const [dirtyFields, setDirtyFields] = useState<Set<string>>(new Set());
+  const { state, updatePowers: updateSheet, isSyncing, dirtyFields } = useCharacterSheet();
 
-  const { user } = useAuth();
-  const { selectedCharacter } = useCharacter();
-  const { scheduleAutoSave, setOnSaveSuccess } = useCharacterPersistence(
-    user?.uid ?? null,
-    selectedCharacter?.id
-  );
-
-  // Setup save success callback
-  useEffect(() => {
-    setOnSaveSuccess((fields) => {
-      if (fields.includes("powers")) {
-        setIsSyncing(false);
-        setDirtyFields((prev) => {
-          const next = new Set(prev);
-          next.delete("powers");
-          return next;
-        });
-      }
-    });
-    return () => setOnSaveSuccess(null);
-  }, [setOnSaveSuccess]);
-
-  // Load from localStorage on mount
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed)) {
-          setPowers(parsed);
-        }
-      }
-    } catch {
-      // ignore errors
-    }
-  }, []);
-
-  // Persist to localStorage
-  useEffect(() => {
-    try {
-      import("@/lib/local-storage-async").then((m) => m.setItemAsync(STORAGE_KEY, powers)).catch(() => {});
-    } catch {
-      // ignore errors
-    }
-  }, [powers]);
+  const powers = state?.powers ?? [];
 
   const updatePowers = useCallback((action: React.SetStateAction<Power[]>) => {
-    setPowers((prev) => {
-      const next = typeof action === "function" ? action(prev) : action;
-      
-      if (selectedCharacter?.id) {
-        setIsSyncing(true);
-        setDirtyFields((prevDirty) => {
-          const nextDirty = new Set(prevDirty);
-          nextDirty.add("powers");
-          return nextDirty;
-        });
-        scheduleAutoSave({ powers: next });
-      }
-      
-      return next;
-    });
-  }, [selectedCharacter?.id, scheduleAutoSave]);
+    const next = typeof action === "function" ? action(powers) : action;
+    updateSheet(next);
+  }, [powers, updateSheet]);
 
   const addPower = useCallback((power: Power) => {
     updatePowers((prev) => [...prev, power]);
@@ -105,17 +42,22 @@ export const PowersProvider: React.FC<{ children: React.ReactNode }> = ({
     updatePowers((prev) => prev.filter((p) => p.id !== id));
   }, [updatePowers]);
 
-  const markFieldDirty = useCallback((field: string) => {
-    setDirtyFields((prev) => {
-      if (prev.has(field)) return prev;
-      const next = new Set(prev);
-      next.add(field);
-      return next;
-    });
-  }, []);
+  const markFieldDirty = useCallback(() => {}, []);
+
+  const value = useMemo(() => ({
+    powers,
+    setPowers: () => {}, // No longer used directly
+    updatePowers,
+    addPower,
+    updatePower,
+    deletePower,
+    isSyncing,
+    dirtyFields,
+    markFieldDirty
+  }), [powers, updatePowers, addPower, updatePower, deletePower, isSyncing, dirtyFields]);
 
   return (
-    <PowersContext.Provider value={{ powers, setPowers, updatePowers, addPower, updatePower, deletePower, isSyncing, dirtyFields, markFieldDirty }}>
+    <PowersContext.Provider value={value}>
       {children}
     </PowersContext.Provider>
   );

@@ -1,10 +1,10 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from "react";
-import type { CharacterDocument } from "@/lib/character-service";
+import React, { createContext, useContext, useEffect, useState, useMemo } from "react";
+import type { CharacterDocument } from "@/lib/types/character";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCharacterPersistence } from "@/hooks/use-character-persistence";
-import * as CharacterService from "@/lib/character-service";
+import { FirebaseCharacterRepository } from "@/services/repository/character-repo";
 import { setItemAsync, setStringItemAsync, removeItemAsync } from "@/lib/local-storage-async";
 
 interface CharacterContextType {
@@ -25,12 +25,13 @@ export function CharacterProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const { loadCharacter, loadLastSelected } = useCharacterPersistence(user?.uid || null);
 
+  const repo = useMemo(() => user?.uid ? new FirebaseCharacterRepository(user.uid) : null, [user?.uid]);
+
   // Escuta mudanças em tempo real no personagem selecionado
   useEffect(() => {
-    if (!user?.uid || !selectedCharacter?.id) return;
+    if (!repo || !selectedCharacter?.id) return;
 
-    const unsubscribe = CharacterService.onCharacterChange(
-      user.uid,
+    const unsubscribe = repo.onCharacterChange(
       selectedCharacter.id,
       (updatedChar) => {
         if (updatedChar) {
@@ -45,7 +46,7 @@ export function CharacterProvider({ children }: { children: React.ReactNode }) {
     );
 
     return () => unsubscribe();
-  }, [user?.uid, selectedCharacter?.id, selectedCharacter?.version, selectedCharacter?.updatedAt]);
+  }, [repo, selectedCharacter?.id, selectedCharacter?.version, selectedCharacter?.updatedAt]);
 
   // Wrapper que persiste a seleção no localStorage para restaurar rapidamente após reload
   const setSelectedCharacter = React.useCallback((character: CharacterDocument | null) => {
@@ -54,7 +55,6 @@ export function CharacterProvider({ children }: { children: React.ReactNode }) {
       if (character) {
         try { setStringItemAsync(CURRENT_CHAR_KEY, character.id); } catch {}
         try { setItemAsync(`midnight-current-character-doc:${character.id}`, character); } catch {}
-        try { CharacterService.seedCharacterCache(character.userId, character.id, character); } catch {}
       } else {
         // remove id and any persisted document
         try {
