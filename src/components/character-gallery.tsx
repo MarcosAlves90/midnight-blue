@@ -7,8 +7,19 @@ import Image from "next/image";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCharacterPersistence } from "@/hooks/use-character-persistence";
 import { Button } from "@/components/ui/button";
-import { Loader2, Trash2, Edit3 } from "lucide-react";
+import { Loader2, Trash2, Shield, Calendar } from "lucide-react";
 import { NewCharacterDialog } from "@/components/new-character-dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { useCharacter } from "@/contexts/CharacterContext";
 import type { CharacterDocument } from "@/lib/character-service";
 
@@ -61,10 +72,6 @@ function useGalleryActions(
   };
 
   const handleDeleteCharacter = async (characterId: string) => {
-    if (!confirm("Tem certeza que deseja deletar esta ficha?")) {
-      return;
-    }
-
     handlers.setDeletingId(characterId);
     try {
       await removeCharacter(characterId);
@@ -146,75 +153,116 @@ function CharacterCard({
   onDelete: () => void;
   isDeleting: boolean;
 }) {
+  const heroName = character.identity?.heroName || character.identity?.name || "Sem Nome";
+  const civilName = character.identity?.name;
+  const powerLevel = (character.status as { powerLevel?: number }).powerLevel ?? 0;
+  const updatedAt = new Date(character.updatedAt).toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+  });
+
   return (
-    <div className="rounded-lg border border-muted/20 bg-background/50 overflow-hidden hover:border-muted/50 transition-colors">
-      {/* Imagem do personagem */}
-      {character.identity.profileImage ? (
-        <div className="h-40 bg-muted overflow-hidden relative">
-          <Image
-            src={character.identity.profileImage}
-            alt={character.identity?.heroName || character.identity?.name || ""}
-            fill
-            className="object-cover"
-            style={{
-              objectPosition: `center ${character.identity.imagePosition || 50}%`,
-            }}
-          />
-        </div>
-      ) : (
-        <div className="h-40 bg-gradient-to-br from-muted/50 to-muted flex items-center justify-center">
-          <span className="text-4xl font-bold text-muted-foreground opacity-50">
-            {(character.identity?.heroName || character.identity?.name || "?").charAt(0).toUpperCase()}
-          </span>
-        </div>
-      )}
-
-      {/* Conteúdo */}
-      <div className="p-4 space-y-3">
-        <div>
-          <h3 className="font-semibold text-base">{character.identity?.heroName || character.identity?.name || ""}</h3>
-          <p className="text-xs text-muted-foreground">
-            Civil: {character.identity?.name || ""}
-          </p>
-        </div>
-
-        <div className="grid grid-cols-2 gap-2 text-xs">
-          <div>
-            <span className="text-muted-foreground">Nível</span>
-            <p className="font-semibold">
-              {((character.status as { powerLevel?: number }).powerLevel ?? 0)}
-            </p>
+    <div className="group relative rounded-xl border border-muted/20 bg-card/50 overflow-hidden hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 flex flex-col">
+      {/* Imagem do personagem - Altura reduzida para compacidade */}
+      <div className="h-32 w-full bg-muted overflow-hidden relative">
+        {character.identity.profileImage ? (
+          <>
+            <Image
+              src={character.identity.profileImage}
+              alt={heroName}
+              fill
+              className="object-cover transition-transform duration-500 group-hover:scale-110"
+              style={{
+                objectPosition: `center ${character.identity.imagePosition || 50}%`,
+              }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-60" />
+          </>
+        ) : (
+          <div className="h-full w-full bg-gradient-to-br from-muted/50 to-muted flex items-center justify-center">
+            <span className="text-3xl font-bold text-muted-foreground opacity-30">
+              {heroName.charAt(0).toUpperCase()}
+            </span>
           </div>
-          <div>
-            <span className="text-muted-foreground">Modificado</span>
-            <p className="font-semibold">
-              {new Date(character.updatedAt).toLocaleDateString("pt-BR")}
-            </p>
-          </div>
-        </div>
-
-        <div className="flex gap-2 pt-2">
-          <a
-            href={`/dashboard/personagem/individual/${character.id}`}
-            onClick={(e) => { e.preventDefault(); onSelect(); }}
-            className="flex-1 px-3 py-2 bg-primary/10 hover:bg-primary/20 text-primary rounded text-sm font-medium transition-colors flex items-center justify-center gap-2"
-          >
-            <Edit3 className="w-3.5 h-3.5" />
-            Editar
-          </a>
-          <button
-            onClick={onDelete}
-            disabled={isDeleting}
-            className="px-3 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded text-sm font-medium transition-colors disabled:opacity-50"
-          >
-            {isDeleting ? (
-              <Loader2 className="w-3.5 h-3.5 animate-spin" />
-            ) : (
-              <Trash2 className="w-3.5 h-3.5" />
-            )}
-          </button>
+        )}
+        
+        {/* Badge de Nível sobre a imagem */}
+        <div className="absolute top-2 right-2 px-2 py-0.5 bg-black/60 backdrop-blur-md border border-white/10 rounded-full flex items-center gap-1.5">
+          <Shield className="w-3 h-3 text-primary" />
+          <span className="text-[10px] font-bold text-white">NP {powerLevel}</span>
         </div>
       </div>
+
+      {/* Conteúdo Compacto */}
+      <div className="p-3 flex flex-col flex-1 justify-between gap-3">
+        <div className="space-y-1">
+          <h3 className="font-bold text-sm leading-tight truncate group-hover:text-primary transition-colors">
+            {heroName}
+          </h3>
+          {civilName && civilName !== heroName && (
+            <p className="text-[10px] text-muted-foreground truncate">
+              {civilName}
+            </p>
+          )}
+        </div>
+
+          <div className="flex items-center justify-between mt-auto relative z-10">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1 text-muted-foreground">
+                <Calendar className="w-3 h-3" />
+                <span className="text-[10px]">{updatedAt}</span>
+              </div>
+            </div>
+
+            <div className="flex gap-1.5">
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <button
+                    onClick={(e) => e.stopPropagation()}
+                    disabled={isDeleting}
+                    className="p-1.5 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-md transition-all duration-200 disabled:opacity-50"
+                    title="Deletar Ficha"
+                  >
+                    {isDeleting ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <Trash2 className="w-3.5 h-3.5" />
+                    )}
+                  </button>
+                </AlertDialogTrigger>
+                <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Excluir Personagem?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Esta ação não pode ser desfeita. Isso excluirá permanentemente a ficha de{" "}
+                      <span className="font-bold text-foreground">{heroName}</span> e todos os dados associados.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDelete();
+                      }}
+                      className="bg-red-600 hover:bg-red-700 text-white"
+                    >
+                      Excluir
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
+          </div>
+      </div>
+      
+      {/* Link invisível para o card todo ser clicável */}
+      <a 
+        href={`/dashboard/personagem/individual/${character.id}`}
+        onClick={(e) => { e.preventDefault(); onSelect(); }}
+        className="absolute inset-0 z-0"
+        aria-label={`Abrir ficha de ${heroName}`}
+      />
     </div>
   );
 }
@@ -300,7 +348,7 @@ export function CharacterGallery() {
       {state.characters.length === 0 ? (
         <EmptyState onCreate={() => state.setDialogOpen(true)} />
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
           {state.characters.map((character) => (
             <CharacterCard
               key={character.id}
