@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { NewCharacterDialog } from "@/components/new-character-dialog";
+import { NewCharacterDialog } from "@/components/gallery/new-character-dialog";
 import { useCharacter } from "@/contexts/CharacterContext";
 import { CharacterCard } from "./character-card";
 import { useGalleryState, useGalleryActions } from "./use-gallery";
