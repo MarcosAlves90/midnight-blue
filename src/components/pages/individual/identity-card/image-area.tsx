@@ -1,7 +1,6 @@
 import React from "react";
 import Image from "next/image";
-import { normalizeCloudinarySrc } from "@/lib/cloudinary";
-import { Camera, Upload, ChevronUp, ChevronDown } from "lucide-react";
+import { Camera, Upload, ChevronUp, ChevronDown, Loader2 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useIdentityActions } from "@/contexts/IdentityContext";
 import { useIdentityField } from "@/hooks/use-identity-field";
@@ -11,12 +10,14 @@ interface ImageAreaProps {
   onImageUpload: () => void;
   onFileSelect: (event: React.ChangeEvent<HTMLInputElement>) => void;
   fileInputRef: React.RefObject<HTMLInputElement | null>;
+  isUploading?: boolean;
 }
 
 export const ImageArea: React.FC<ImageAreaProps> = ({
   onImageUpload,
   onFileSelect,
   fileInputRef,
+  isUploading = false,
 }) => {
   const isMobile = useIsMobile();
   const { updateIdentity } = useIdentityActions();
@@ -42,11 +43,7 @@ export const ImageArea: React.FC<ImageAreaProps> = ({
         {profileImage ? (
           <div className="relative w-full h-full">
             <Image
-              src={
-                profileImage && profileImage.startsWith("data:")
-                  ? profileImage
-                  : normalizeCloudinarySrc(profileImage) || profileImage
-              }
+              src={profileImage}
               alt="Imagem de perfil do personagem"
               fill
               className="w-full h-full object-cover transition-all duration-200"
@@ -126,6 +123,18 @@ export const ImageArea: React.FC<ImageAreaProps> = ({
             aria-hidden="true"
           />
         </div>
+
+        {/* Loading Overlay */}
+        {isUploading && (
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center z-40">
+            <div className="flex flex-col items-center gap-2">
+              <Loader2 className="w-8 h-8 text-white animate-spin" />
+              <span className="text-[10px] text-white font-mono uppercase tracking-widest">
+                Processando...
+              </span>
+            </div>
+          </div>
+        )}
       </button>
 
       <input

@@ -12,6 +12,7 @@ interface IdentityCardContainerProps {
   onImageUpload: () => void;
   onFileSelect: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onSave: () => void;
+  isUploading?: boolean;
 }
 
 export const IdentityCard: React.FC<IdentityCardContainerProps> = ({
@@ -20,6 +21,7 @@ export const IdentityCard: React.FC<IdentityCardContainerProps> = ({
   onImageUpload,
   onFileSelect,
   onSave,
+  isUploading = false,
 }) => {
   const isMobile = useIsMobile();
 
@@ -120,6 +122,7 @@ export const IdentityCard: React.FC<IdentityCardContainerProps> = ({
               onImageUpload={onImageUpload}
               onFileSelect={onFileSelect}
               fileInputRef={fileInputRef}
+              isUploading={isUploading}
             />
 
             {/* Terminal Separator Line */}

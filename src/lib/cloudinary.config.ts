@@ -47,3 +47,35 @@ export const normalizeCloudinarySrc = (src?: string): string => {
     return src;
   }
 };
+
+/**
+ * Extrai o public_id de uma URL Cloudinary
+ * Ex: https://res.cloudinary.com/dflvo098t/image/upload/v1766744660/midnight-blue/avatars/user-123.jpg
+ * Retorna: v1766744660/midnight-blue/avatars/user-123 (sem extensão)
+ */
+export function extractPublicIdFromUrl(url: string): string | null {
+  if (!url) {
+    console.warn("URL vazia fornecida para extractPublicIdFromUrl");
+    return null;
+  }
+
+  // Padrão para Cloudinary URLs com versão (v1234567890)
+  const cloudinaryPattern = /\/image\/upload\/(.+?)(?:\?|$)/;
+  const match = url.match(cloudinaryPattern);
+
+  if (!match?.[1]) {
+    console.warn("Não foi possível extrair public_id da URL:", url);
+    return null;
+  }
+
+  // Remover extensão de arquivo (.jpg, .png, etc)
+  const publicIdWithExt = match[1];
+  const publicId = publicIdWithExt.replace(/\.[^.]+$/, "");
+
+  console.log("Public ID extraído:", {
+    original: publicIdWithExt,
+    cleaned: publicId,
+  });
+
+  return publicId;
+}

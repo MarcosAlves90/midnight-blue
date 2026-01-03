@@ -3,7 +3,7 @@
 import React, { useRef, useCallback, useEffect } from "react";
 import { captureElementAsPng } from "@/lib/image-utils";
 import { useIdentityContext, IdentityData } from "@/contexts/IdentityContext";
-import { useAvatarUpload } from "@/hooks/use-avatar-upload";
+import { useCharacterUpload } from "@/hooks/use-character-upload";
 import { useSelectedCharacter } from "@/hooks/use-selected-character";
 import { IdentityCard } from "@/components/pages/individual/identity-card";
 import { ConflictBanner } from "@/components/ui/conflict-banner";
@@ -93,7 +93,7 @@ export default function Individual() {
 
 
 
-  const { uploadAvatar } = useAvatarUpload();
+  const { uploadImage, uploading } = useCharacterUpload();
 
   const handleImageUpload = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -101,7 +101,7 @@ export default function Individual() {
       if (!file) return;
       try {
         const previous = identity.profileImage ?? null;
-        const res = await uploadAvatar(file, previous);
+        const res = await uploadImage(file, previous);
         if (res) {
           updateIdentity("profileImage", res.secure_url);
         }
@@ -109,7 +109,7 @@ export default function Individual() {
         console.error("Falha no upload de imagem:", err);
       }
     },
-    [uploadAvatar, updateIdentity, identity.profileImage],
+    [uploadImage, updateIdentity, identity.profileImage],
   );
 
   const triggerImageUpload = useCallback(() => {
@@ -171,6 +171,7 @@ export default function Individual() {
               onImageUpload={triggerImageUpload}
               onFileSelect={handleImageUpload}
               onSave={handleSaveImage}
+              isUploading={uploading}
             />
           </div>
         </div>
