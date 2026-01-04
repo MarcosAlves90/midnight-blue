@@ -8,7 +8,7 @@ import Status from "@/components/pages/status/status";
 import { StatusSkeleton } from "@/components/pages/status/status-skeleton";
 
 export default function Loader({ id }: { id: string }) {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { loadCharacter } = useCharacterPersistence(user?.uid || null);
   const { setSelectedCharacter } = useCharacter();
 
@@ -16,6 +16,8 @@ export default function Loader({ id }: { id: string }) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (authLoading) return;
+
     let cancelled = false;
     const load = async () => {
       if (!user?.uid || !id) {
@@ -45,7 +47,7 @@ export default function Loader({ id }: { id: string }) {
 
     load();
     return () => { cancelled = true; };
-  }, [id, user?.uid, loadCharacter, setSelectedCharacter]);
+  }, [id, user?.uid, authLoading, loadCharacter, setSelectedCharacter]);
 
   if (loading) return <StatusSkeleton />;
   if (error) return <div className="text-red-500">{error}</div>;

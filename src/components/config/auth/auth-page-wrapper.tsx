@@ -24,14 +24,6 @@ export function AuthPageWrapper({ children }: AuthPageWrapperProps) {
     }
   }, [loading, user, router]);
 
-  if (loading) {
-    return (
-      <div className="flex h-full w-full items-center justify-center">
-        <div className="h-10 w-10 animate-spin rounded-full border-4 border-t-transparent border-primary" />
-      </div>
-    );
-  }
-
   return (
     <div className="relative flex min-h-svh flex-col items-center justify-center gap-6 p-6 md:p-10 overflow-hidden">
       <ParallaxBackground

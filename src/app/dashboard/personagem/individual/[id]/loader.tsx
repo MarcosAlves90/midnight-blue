@@ -8,7 +8,7 @@ import { Individual } from "@/components/pages/individual";
 import { IndividualSkeleton } from "@/components/pages/individual/individual-skeleton";
 
 export default function Loader({ id }: { id: string }) {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { loadCharacter } = useCharacterPersistence(user?.uid || null);
   const { setSelectedCharacter } = useCharacter();
 
@@ -16,6 +16,8 @@ export default function Loader({ id }: { id: string }) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (authLoading) return;
+
     let cancelled = false;
     const load = async () => {
       if (!user?.uid || !id) {
@@ -47,7 +49,7 @@ export default function Loader({ id }: { id: string }) {
 
     load();
     return () => { cancelled = true; };
-  }, [id, user?.uid, loadCharacter, setSelectedCharacter]);
+  }, [id, user?.uid, authLoading, loadCharacter, setSelectedCharacter]);
 
   if (loading) return <IndividualSkeleton />;
   if (error) return <div className="text-red-500">{error}</div>;
