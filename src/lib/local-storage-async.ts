@@ -1,6 +1,6 @@
 type IdleHandle = number | ReturnType<typeof setTimeout>;
 
-const pending = new Map<string, { serialized: string; handle: IdleHandle }>();
+const pending = new Map<string, { serialized: string; handle: IdleHandle | undefined }>();
 
 function scheduleIdle(fn: () => void) {
   const win = typeof window !== "undefined" ? (window as unknown as { requestIdleCallback?: (cb: () => void, opts?: { timeout?: number }) => number; }) : undefined;
