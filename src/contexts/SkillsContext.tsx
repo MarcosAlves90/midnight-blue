@@ -26,9 +26,8 @@ export const SkillsProvider: React.FC<{ children: React.ReactNode }> = ({
   const skills = state?.skills ?? INITIAL_SKILLS;
 
   const updateSkills = useCallback((action: React.SetStateAction<Skill[]>) => {
-    const next = typeof action === "function" ? action(skills) : action;
-    updateSheet(next);
-  }, [skills, updateSheet]);
+    updateSheet(action);
+  }, [updateSheet]);
 
   const updateSkill = useCallback((
     id: string,

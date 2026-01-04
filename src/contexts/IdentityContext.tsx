@@ -225,20 +225,32 @@ export const IdentityProvider: React.FC<{ children: React.ReactNode }> = ({
     ],
   );
 
-  const actionsValue: IdentityActions = {
-    updateIdentity,
-    setIdentity: () => {},
-    setCurrentCharacterId: () => {},
-    saveIdentityNow: saveNow,
-    markFieldDirty,
-    markFieldsSaved,
-    resolveKeepLocal,
-    resolveUseServer,
-    openConflictModal: () => {},
-    closeConflictModal: () => {},
-    subscribeToField,
-    getField,
-  };
+  const actionsValue: IdentityActions = useMemo(
+    () => ({
+      updateIdentity,
+      setIdentity: () => {},
+      setCurrentCharacterId: () => {},
+      saveIdentityNow: saveNow,
+      markFieldDirty,
+      markFieldsSaved,
+      resolveKeepLocal,
+      resolveUseServer,
+      openConflictModal: () => {},
+      closeConflictModal: () => {},
+      subscribeToField,
+      getField,
+    }),
+    [
+      updateIdentity,
+      saveNow,
+      markFieldDirty,
+      markFieldsSaved,
+      resolveKeepLocal,
+      resolveUseServer,
+      subscribeToField,
+      getField,
+    ],
+  );
 
   return (
     <IdentityActionsContext.Provider value={actionsValue}>

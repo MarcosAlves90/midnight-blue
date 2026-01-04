@@ -97,6 +97,11 @@ export function CharacterSheetProvider({ children }: { children: React.ReactNode
 
   const characterIdRef = useRef<string | null>(null);
   const lastSyncedRef = useRef<string | null>(null);
+  const stateRef = useRef<CharacterSheetState | null>(null);
+
+  useEffect(() => {
+    stateRef.current = state;
+  }, [state]);
 
   // Initialize and sync state from selectedCharacter
   useEffect(() => {
@@ -172,64 +177,86 @@ export function CharacterSheetProvider({ children }: { children: React.ReactNode
     return state !== null && characterIdRef.current === selectedCharacter.id;
   }, [state, selectedCharacter]);
 
-  const updateState = useCallback((updates: Partial<CharacterSheetState>) => {
+  const updateState = useCallback((updates: Partial<CharacterSheetState> | ((prev: CharacterSheetState) => Partial<CharacterSheetState>)) => {
+    setIsSyncing(true);
     setState(prev => {
       if (!prev) return prev;
-      const next = { ...prev, ...updates };
+      const nextUpdates = typeof updates === "function" ? updates(prev) : updates;
       
-      // Track dirty fields
-      const newDirty = new Set(dirtyFields);
-      Object.keys(updates).forEach(key => newDirty.add(key));
-      setDirtyFields(newDirty);
-      setIsSyncing(true);
-      
-      // Schedule save
-      scheduleAutoSave(updates as Partial<CharacterData>);
-      
-      return next;
+      setDirtyFields(d => {
+        const n = new Set(d);
+        Object.keys(nextUpdates).forEach(k => n.add(k));
+        return n;
+      });
+
+      scheduleAutoSave(nextUpdates as Partial<CharacterData>);
+      return { ...prev, ...nextUpdates };
     });
-  }, [dirtyFields, scheduleAutoSave]);
+  }, [scheduleAutoSave]);
+
+  const updateIdentity = useCallback((identity: Partial<IdentityData> | ((prev: IdentityData) => Partial<IdentityData>)) => {
+    setIsSyncing(true);
+    setState(prev => {
+      if (!prev) return prev;
+      const nextIdentityUpdates = typeof identity === "function" ? identity(prev.identity) : identity;
+      const nextIdentity = { ...prev.identity, ...nextIdentityUpdates };
+      
+      setDirtyFields(d => {
+        const n = new Set(d);
+        Object.keys(nextIdentityUpdates).forEach(k => n.add(`identity.${k}`));
+        return n;
+      });
+
+      scheduleAutoSave({ identity: nextIdentity });
+      return { ...prev, identity: nextIdentity };
+    });
+  }, [scheduleAutoSave]);
+
+  const updateStatus = useCallback((status: Partial<CharacterSheetState["status"]> | ((prev: CharacterSheetState["status"]) => Partial<CharacterSheetState["status"]>)) => {
+    setIsSyncing(true);
+    setState(prev => {
+      if (!prev) return prev;
+      const nextStatusUpdates = typeof status === "function" ? status(prev.status) : status;
+      const nextStatus = { ...prev.status, ...nextStatusUpdates };
+      
+      setDirtyFields(d => {
+        const n = new Set(d);
+        Object.keys(nextStatusUpdates).forEach(k => n.add(`status.${k}`));
+        return n;
+      });
+
+      scheduleAutoSave({ status: nextStatus });
+      return { ...prev, status: nextStatus };
+    });
+  }, [scheduleAutoSave]);
+
+  const saveNow = useCallback(async () => {
+    if (!stateRef.current || !selectedCharacter?.id) return;
+    await saveImmediately(stateRef.current as Partial<CharacterData>);
+  }, [selectedCharacter?.id, saveImmediately]);
 
   const actions = useMemo(() => ({
-    updateIdentity: (identity: Partial<IdentityData>) => {
-      setState(prev => {
-        if (!prev) return prev;
-        const nextIdentity = { ...prev.identity, ...identity };
-        
-        const newDirty = new Set(dirtyFields);
-        Object.keys(identity).forEach(key => newDirty.add(`identity.${key}`));
-        setDirtyFields(newDirty);
-        setIsSyncing(true);
-        
-        scheduleAutoSave({ identity: nextIdentity });
-        return { ...prev, identity: nextIdentity };
-      });
-    },
-    updateAttributes: (attributes: Attribute[]) => updateState({ attributes }),
-    updateSkills: (skills: Skill[]) => updateState({ skills }),
-    updatePowers: (powers: Power[]) => updateState({ powers }),
-    updateStatus: (status: Partial<CharacterSheetState["status"]>) => {
-      setState(prev => {
-        if (!prev) return prev;
-        const nextStatus = { ...prev.status, ...status };
-        
-        const newDirty = new Set(dirtyFields);
-        Object.keys(status).forEach(key => newDirty.add(`status.${key}`));
-        setDirtyFields(newDirty);
-        setIsSyncing(true);
-        
-        scheduleAutoSave({ status: nextStatus });
-        return { ...prev, status: nextStatus };
-      });
-    },
-    updateCustomDescriptors: (customDescriptors: string[]) => updateState({ customDescriptors }),
-    saveNow: async () => {
-      if (!state || !selectedCharacter?.id) return;
-      await saveImmediately(state as Partial<CharacterData>);
-    },
+    updateIdentity,
+    updateAttributes: (updater: Attribute[] | ((prev: Attribute[]) => Attribute[])) => 
+      updateState(prev => ({ attributes: typeof updater === "function" ? updater(prev.attributes) : updater })),
+    updateSkills: (updater: Skill[] | ((prev: Skill[]) => Skill[])) => 
+      updateState(prev => ({ skills: typeof updater === "function" ? updater(prev.skills) : updater })),
+    updatePowers: (updater: Power[] | ((prev: Power[]) => Power[])) => 
+      updateState(prev => ({ powers: typeof updater === "function" ? updater(prev.powers) : updater })),
+    updateStatus,
+    updateCustomDescriptors: (updater: string[] | ((prev: string[]) => string[])) => 
+      updateState(prev => ({ customDescriptors: typeof updater === "function" ? updater(prev.customDescriptors) : updater })),
+    saveNow,
     resolveKeepLocal,
     resolveUseServer,
-  }), [state, selectedCharacter?.id, dirtyFields, scheduleAutoSave, saveImmediately, updateState, resolveKeepLocal, resolveUseServer]);
+  }), [
+    updateIdentity, 
+    updateState, 
+    updateStatus, 
+    saveNow, 
+    resolveKeepLocal, 
+    resolveUseServer
+  ]);
 
   const value = useMemo(() => ({
     state,

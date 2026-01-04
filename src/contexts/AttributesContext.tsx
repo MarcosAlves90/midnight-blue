@@ -26,9 +26,8 @@ export const AttributesProvider: React.FC<{ children: React.ReactNode }> = ({
   const attributes = state?.attributes ?? INITIAL_ATTRIBUTES;
 
   const updateAttributes = useCallback((action: React.SetStateAction<Attribute[]>) => {
-    const next = typeof action === "function" ? action(attributes) : action;
-    updateSheet(next);
-  }, [attributes, updateSheet]);
+    updateSheet(action);
+  }, [updateSheet]);
 
   const resetAttributes = useCallback(() => {
     updateSheet(INITIAL_ATTRIBUTES);
