@@ -22,7 +22,7 @@ interface SkillCardProps extends Skill {
   disabled?: boolean;
 }
 
-export function SkillCard({
+function SkillCard({
   id,
   name,
   attribute,

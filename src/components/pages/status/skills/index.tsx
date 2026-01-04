@@ -26,7 +26,7 @@ type SortOption =
   | "others-asc"
   | "others-desc";
 
-export function SkillsList({
+function SkillsList({
   isEditMode: initialIsEditMode = false,
 }: {
   isEditMode?: boolean;

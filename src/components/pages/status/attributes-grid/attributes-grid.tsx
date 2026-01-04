@@ -11,7 +11,7 @@ import {
 } from "./constants";
 import { useAttributesContext } from "@/contexts/AttributesContext";
 
-export const AttributesGrid = memo(function AttributesGrid({
+const AttributesGrid = memo(function AttributesGrid({
   disabled = false,
   editable = true,
 }: Omit<

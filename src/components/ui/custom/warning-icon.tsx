@@ -21,7 +21,7 @@ interface WarningIconProps {
   percent?: number;
 }
 
-export function WarningIcon({
+function WarningIcon({
   type,
   items,
   label = "",

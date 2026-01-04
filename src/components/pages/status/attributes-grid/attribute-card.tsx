@@ -197,5 +197,3 @@ export const AttributeCard = memo(function AttributeCard({
     </div>
   );
 });
-
-export default AttributeCard;

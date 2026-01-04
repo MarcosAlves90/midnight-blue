@@ -12,7 +12,7 @@ interface EffectSpecificOptionsProps {
   onChange: (opts: EffectOptions) => void;
 }
 
-export const EffectSpecificOptions: FC<EffectSpecificOptionsProps> = memo(
+const EffectSpecificOptions: FC<EffectSpecificOptionsProps> = memo(
   ({ effectId, options = {}, rank = 1, onChange }) => {
     const config = EFFECT_OPTIONS_REGISTRY[effectId];
 

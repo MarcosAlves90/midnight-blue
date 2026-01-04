@@ -34,7 +34,7 @@ export const AttributesProvider: React.FC<{ children: React.ReactNode }> = ({
     updateSheet(INITIAL_ATTRIBUTES);
   }, [updateSheet]);
 
-  const markFieldDirty = useCallback((_field: string) => {}, []);
+  const markFieldDirty = useCallback(() => {}, []);
 
   const value = useMemo(() => ({
     attributes,

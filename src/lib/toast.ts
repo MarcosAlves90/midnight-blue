@@ -17,7 +17,3 @@ export function authError(message: string) {
 export function authInfo(message: string) {
   toast.info(message, baseOptions);
 }
-
-export const success = authSuccess;
-export const error = authError;
-export const info = authInfo;
