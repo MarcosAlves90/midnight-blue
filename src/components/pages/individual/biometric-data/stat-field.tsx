@@ -8,8 +8,8 @@ import { useIdentityActions } from "@/contexts/IdentityContext";
 interface StatFieldProps {
   icon: React.ReactNode;
   label: string;
-  value: string;
-  onChange: (value: string) => void;
+  value?: string;
+  onChange?: (value: string) => void;
   /** Optional key name to identify the field for dirty tracking */
   fieldKey?: keyof import("@/contexts/IdentityContext").IdentityData;
   placeholder?: string;
@@ -20,7 +20,7 @@ interface StatFieldProps {
 export const StatField: React.FC<StatFieldProps> = ({
   icon,
   label,
-  value,
+  value = "",
   onChange: parentOnChange,
   fieldKey,
   placeholder,
@@ -38,7 +38,7 @@ export const StatField: React.FC<StatFieldProps> = ({
       // The typed mapping from field -> value is dynamic here; cast safely and keep the rule narrow
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       updateIdentity(fieldKey as any, v as any);
-    } else {
+    } else if (parentOnChange) {
       parentOnChange(v);
     }
   }, [fieldKey, parentOnChange, updateIdentity]);
