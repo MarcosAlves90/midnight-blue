@@ -1,6 +1,6 @@
 import { useCallback, useRef, useEffect } from "react";
 import { FirebaseCharacterRepository } from "@/services/repository/character-repo";
-import type { CharacterDocument, CharacterData } from "@/lib/types/character";
+import type { CharacterDocument, CharacterData, Folder } from "@/lib/types/character";
 import { AutoSaveService } from "@/services/auto-save";
 import { PersistenceManager } from "@/services/persistence-manager";
 import { setItemAsync } from "@/lib/local-storage-async";
