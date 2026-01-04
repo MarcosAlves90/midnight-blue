@@ -11,6 +11,7 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { Home } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 function BreadcrumbNode({
   item,
@@ -54,7 +55,11 @@ const MemoBreadcrumbNode = React.memo(
     prev.total === next.total
 );
 
-function DynamicBreadcrumbInner() {
+function DynamicBreadcrumbInner({
+  isLoading,
+}: {
+  isLoading?: boolean;
+}) {
   const breadcrumbItems = useBreadcrumb();
 
   // Dev-only render counter to help diagnose excessive renders
@@ -82,6 +87,26 @@ function DynamicBreadcrumbInner() {
       />
     ));
   }, [breadcrumbItems]);
+
+  if (isLoading) {
+    return (
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItemComponent>
+            <Skeleton className="h-4 w-4" />
+          </BreadcrumbItemComponent>
+          <BreadcrumbSeparator />
+          <BreadcrumbItemComponent>
+            <Skeleton className="h-4 w-20" />
+          </BreadcrumbItemComponent>
+          <BreadcrumbSeparator />
+          <BreadcrumbItemComponent>
+            <Skeleton className="h-4 w-24" />
+          </BreadcrumbItemComponent>
+        </BreadcrumbList>
+      </Breadcrumb>
+    );
+  }
 
   if (nodes.length === 0) return null;
 

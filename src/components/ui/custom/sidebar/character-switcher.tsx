@@ -4,6 +4,7 @@ import * as React from "react";
 import { ChevronsUpDown, Plus, Loader2, BookOpen, AlertCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { Skeleton } from "@/components/ui/skeleton";
 
 import {
   DropdownMenu,
@@ -69,7 +70,7 @@ function InitialCharacterButton({ onCreate }: { onCreate: () => void }) {
 
 export function CharacterSwitcher() {
   const { isMobile } = useSidebar();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const characterContext = useCharacter();
   const { selectedCharacter, setSelectedCharacter } = characterContext;
@@ -88,6 +89,8 @@ export function CharacterSwitcher() {
 
   // Escuta mudanças em tempo real na lista de personagens
   React.useEffect(() => {
+    if (authLoading) return;
+
     if (!user?.uid) {
       setIsLoading(false);
       return;
@@ -112,7 +115,7 @@ export function CharacterSwitcher() {
         unsubscribe();
       }
     };
-  }, [user?.uid, listenToCharacters]);
+  }, [user?.uid, authLoading, listenToCharacters]);
 
   const handleSelectCharacter = async (character: CharacterDocument) => {
     setSelectedCharacter(character);
@@ -139,10 +142,13 @@ export function CharacterSwitcher() {
     return (
       <SidebarMenu>
         <SidebarMenuItem>
-          <SidebarMenuButton size="lg" disabled>
-            <Loader2 className="size-4 animate-spin" />
-            <span className="text-sm">Carregando...</span>
-          </SidebarMenuButton>
+          <div className="flex items-center gap-3 p-2">
+            <Skeleton className="h-8 w-8 rounded-lg" />
+            <div className="flex flex-1 flex-col gap-1">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-3 w-16" />
+            </div>
+          </div>
         </SidebarMenuItem>
       </SidebarMenu>
     );

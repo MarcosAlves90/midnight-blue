@@ -3,6 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { ChevronRight, type LucideIcon } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 import {
   Collapsible,
@@ -24,6 +25,7 @@ import { useCharacter } from "@/contexts/CharacterContext";
 
 export const NavMain = React.memo(function NavMain({
   items,
+  isLoading,
 }: {
   items: {
     title: string;
@@ -35,6 +37,7 @@ export const NavMain = React.memo(function NavMain({
       url: string;
     }[];
   }[];
+  isLoading?: boolean;
 }) {
   const { selectedCharacter } = useCharacter();
   const [mounted, setMounted] = React.useState(false);
@@ -62,6 +65,24 @@ export const NavMain = React.memo(function NavMain({
     },
     [],
   );
+
+  if (isLoading) {
+    return (
+      <SidebarGroup>
+        <SidebarMenu>
+          {[1, 2, 3, 4].map((i) => (
+            <SidebarMenuItem key={i}>
+              <div className="flex items-center gap-3 p-2">
+                <Skeleton className="h-4 w-4 rounded" />
+                <Skeleton className="h-4 flex-1" />
+              </div>
+            </SidebarMenuItem>
+          ))}
+        </SidebarMenu>
+      </SidebarGroup>
+    );
+  }
+
   return (
     <SidebarGroup>
       <SidebarGroupLabel>Ficha</SidebarGroupLabel>

@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -35,12 +36,14 @@ import { authInfo, authError } from "@/lib/toast";
 
 export function NavUser({
   user,
+  isLoading,
 }: {
   user?: {
     name?: string;
     email?: string;
     avatar?: string;
   };
+  isLoading?: boolean;
 }) {
   const { isMobile } = useSidebar();
   const { theme, setTheme } = useTheme();
@@ -74,7 +77,15 @@ export function NavUser({
   return (
     <SidebarMenu>
       <SidebarMenuItem>
-        {mounted ? (
+        {isLoading ? (
+          <div className="flex items-center gap-3 p-2">
+            <Skeleton className="h-8 w-8 rounded-full" />
+            <div className="flex flex-1 flex-col gap-1">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-3 w-32" />
+            </div>
+          </div>
+        ) : mounted ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <SidebarMenuButton

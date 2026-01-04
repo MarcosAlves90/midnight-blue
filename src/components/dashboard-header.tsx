@@ -11,6 +11,7 @@ import { useStatusContext } from "@/contexts/StatusContext";
 import { usePowersContext } from "@/contexts/PowersContext";
 import { useCustomDescriptors } from "@/contexts/CustomDescriptorsContext";
 import { Cloud, RefreshCw } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 const SyncStatus = () => {
   const { isSyncing: identitySyncing } = useIdentityContext();
@@ -40,6 +41,7 @@ const SyncStatus = () => {
 };
 
 export const DashboardHeader = React.memo(function DashboardHeader() {
+  const { loading } = useAuth();
   const renderRef = React.useRef(0);
 
   React.useEffect(() => {
@@ -62,7 +64,7 @@ export const DashboardHeader = React.memo(function DashboardHeader() {
           orientation="vertical"
           className="mr-2 data-[orientation=vertical]:h-4"
         />
-        <DynamicBreadcrumb />
+        <DynamicBreadcrumb isLoading={loading} />
       </div>
       <div className="flex items-center gap-4 px-4">
         <SyncStatus />
