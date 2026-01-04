@@ -107,6 +107,7 @@ export function NewCharacterForm({ onSuccess, onCancel }: NewCharacterFormProps)
             deslocamento: 8,
           },
         },
+        customDescriptors: [],
       };
 
       // Criar personagem no Firebase
