@@ -5,9 +5,7 @@ import { useTheme } from "next-themes";
 import * as React from "react";
 import {
   BadgeCheck,
-  Bell,
   ChevronsUpDown,
-  CreditCard,
   LogOut,
   Monitor,
   Moon,
@@ -155,14 +153,6 @@ export function NavUser({
                 >
                   <BadgeCheck />
                   Conta
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <CreditCard />
-                  Cobrança
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Bell />
-                  Notificações
                 </DropdownMenuItem>
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
