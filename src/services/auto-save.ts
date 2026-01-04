@@ -56,7 +56,7 @@ export class AutoSaveService<T extends Record<string, unknown> = Record<string, 
             ...(val as Record<string, unknown>) 
           } as T[keyof T];
         } else {
-          merged[key as keyof T] = val;
+          merged[key as keyof T] = val as T[keyof T];
         }
       });
       

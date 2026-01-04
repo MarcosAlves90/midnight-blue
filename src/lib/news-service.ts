@@ -63,7 +63,7 @@ export interface NewsConfig {
 
 // --- DADOS EXPANDIDOS (LORE IMERSIVO) ---
 
-export const LOCATIONS: GrammaticalItem[] = [
+const LOCATIONS: GrammaticalItem[] = [
   { text: "Sevastópol", gender: 'F', number: 'S', hasArticle: false, tags: ["city", "urban"] },
   { text: "Setor 7", gender: 'M', number: 'S', hasArticle: true, tags: ["slums", "dangerous"] },
   { text: "Orla Leste", gender: 'F', number: 'S', hasArticle: true, tags: ["coast", "border"] },
@@ -96,7 +96,7 @@ export const LOCATIONS: GrammaticalItem[] = [
   { text: "Estação Orbital Tiamat", gender: 'F', number: 'S', hasArticle: true, tags: ["space", "military"] }
 ];
 
-export const ENTITIES: GrammaticalItem[] = [
+const ENTITIES: GrammaticalItem[] = [
   { text: "Infinity Corp", gender: 'F', number: 'S', tags: ["corp", "tech"] },
   { text: "Sevastopol", gender: 'F', number: 'S', tags: ["city", "gov"] },
   { text: "USC", gender: 'F', number: 'S', tags: ["gov", "military"] },
@@ -124,7 +124,7 @@ export const ENTITIES: GrammaticalItem[] = [
   { text: "Família Monroe", gender: 'F', number: 'S', tags: ["elite", "crime"] }
 ];
 
-export const SUBJECTS: GrammaticalItem[] = [
+const SUBJECTS: GrammaticalItem[] = [
   { text: "Indivíduo Classe S", gender: 'M', number: 'S' },
   { text: "Energia Ultra", gender: 'F', number: 'S' },
   { text: "Tecnologia Experimental", gender: 'F', number: 'S' },
@@ -154,7 +154,7 @@ export const SUBJECTS: GrammaticalItem[] = [
   { text: "Redes de Tráfico", gender: 'F', number: 'P' }
 ];
 
-export const ACTIONS: ActionItem[] = [
+const ACTIONS: ActionItem[] = [
   { singular: "detectou", plural: "detectaram", tense: 'past', intensity: 2 },
   { singular: "interceptou", plural: "interceptaram", tense: 'past', intensity: 3 },
   { singular: "iniciou testes", plural: "iniciaram testes", tense: 'present', intensity: 1 },
@@ -185,9 +185,9 @@ export const ACTIONS: ActionItem[] = [
   { singular: "está monitorando", plural: "estão monitorando", tense: 'present', intensity: 1 }
 ];
 
-export const INTENSIFIERS = ["massivo", "crítico", "sem precedentes", "altamente instável", "de nível catastrófico", "em larga escala", "de origem desconhecida"];
-export const STATUS_TAGS = ["CONFIRMADO", "EM INVESTIGAÇÃO", "CRÍTICO", "ARQUIVADO", "PENDENTE", "SIGILOSO", "EMERGÊNCIA", "BLOQUEADO", "ATIVO"];
-export const SOURCES = ["SAT-7", "AGENTE_X", "INF_CORP_FEED", "SEV_INTEL", "NODE_DEEP_WEB", "UPLINK_LUNAR", "IA_CORE", "RADIO_LIVRE"];
+const INTENSIFIERS = ["massivo", "crítico", "sem precedentes", "altamente instável", "de nível catastrófico", "em larga escala", "de origem desconhecida"];
+const STATUS_TAGS = ["CONFIRMADO", "EM INVESTIGAÇÃO", "CRÍTICO", "ARQUIVADO", "PENDENTE", "SIGILOSO", "EMERGÊNCIA", "BLOQUEADO", "ATIVO"];
+const SOURCES = ["SAT-7", "AGENTE_X", "INF_CORP_FEED", "SEV_INTEL", "NODE_DEEP_WEB", "UPLINK_LUNAR", "IA_CORE", "RADIO_LIVRE"];
 
 // --- MOTOR DE GERAÇÃO ---
 
@@ -450,51 +450,6 @@ const engine = new NewsGeneratorEngine();
 export function generateNewsItem(seed?: number): NewsItem {
   return engine.generate(seed);
 }
-
-/**
- * Gera um lote de notícias de forma eficiente.
- */
-export function generateNewsBatch(count: number, seed?: number): NewsItem[] {
-  const items: NewsItem[] = [];
-  for (let i = 0; i < count; i++) {
-    // Incrementamos o seed para cada item para garantir variedade mas reprodutibilidade do lote
-    items.push(engine.generate(seed !== undefined ? seed + i : undefined));
-  }
-  return items;
-}
-
-/**
- * Valida a integridade e coerência de um NewsItem.
- */
-export function validateNewsItem(item: NewsItem): boolean {
-  if (!item.title || !item.content) return false;
-  
-  const titleWords = item.title.split(' ').length;
-  const contentWords = item.content.split(' ').length;
-  
-  // Validação de comprimento
-  if (titleWords < 2 || titleWords > 20) return false;
-  if (contentWords < 5 || contentWords > 60) return false;
-  
-  // Validação de tipos
-  const validTypes: NewsType[] = ["info", "warning", "alert", "emergency"];
-  if (!validTypes.includes(item.type)) return false;
-  
-  // Coerência temática básica (ex: não misturar espaço com subterrâneo se forem exclusivos)
-  const tags = item.metadata?.tags || [];
-  if (tags.includes("space") && tags.includes("underground")) {
-    // Embora no cyberpunk tudo seja possível, aqui serve de exemplo de regra de negócio
-    // return false; 
-  }
-
-  return true;
-}
-
-// Helpers gramaticais exportados para uso externo
-export const getPrepIn = (loc: GrammaticalItem) => engine.getPrepIn(loc);
-export const getPrepOf = (item: GrammaticalItem) => engine.getPrepOf(item);
-export const getVerb = (subject: GrammaticalItem, action: ActionItem) => engine.getVerb(subject, action);
-export const getArticle = (item: GrammaticalItem, definite = true) => engine.getArticle(item, definite);
 
 /**
  * EXEMPLO DE USO E TESTES (Pode ser removido em produção)
