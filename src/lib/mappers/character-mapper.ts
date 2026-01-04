@@ -52,14 +52,14 @@ export function serializeSkills(skills: Skill[] = INITIAL_SKILLS): SavedSkill[] 
 /**
  * Hidrata atributos salvos com as definições iniciais.
  */
-export function hydrateAttributes(saved: SavedAttribute[] = []): Attribute[] {
+function hydrateAttributes(saved: SavedAttribute[] = []): Attribute[] {
   return INITIAL_ATTRIBUTES.map((base) => ({ ...base, value: saved.find((s) => s.id === base.id)?.value ?? 0 }));
 }
 
 /**
  * Hidrata perícias salvas com as definições iniciais e trata especializações.
  */
-export function hydrateSkills(saved: SavedSkill[] = []): Skill[] {
+function hydrateSkills(saved: SavedSkill[] = []): Skill[] {
   // 1. Get base skills from INITIAL_SKILLS
   const baseSkills = INITIAL_SKILLS.map((base) => {
     const savedSkill = saved.find((s) => s.id === base.id);
