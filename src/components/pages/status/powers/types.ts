@@ -74,8 +74,3 @@ export interface Power {
   // Opções específicas por efeito (ex: ambiente -> { sub: 'luz', ppCost: 2 })
   effectOptions?: Record<string, EffectOptions>;
 }
-
-export interface PowerBuilderState {
-  powers: Power[];
-  isEditMode: boolean;
-}

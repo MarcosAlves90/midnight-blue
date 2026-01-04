@@ -209,18 +209,6 @@ class NewsGeneratorEngine {
     return () => (s = (s * a) % m) / m;
   }
 
-  /**
-   * Embaralha um array usando Fisher-Yates.
-   */
-  private shuffle<T>(array: T[], randomFn: () => number): T[] {
-    const newArr = [...array];
-    for (let i = newArr.length - 1; i > 0; i--) {
-      const j = Math.floor(randomFn() * (i + 1));
-      [newArr[i], newArr[j]] = [newArr[j], newArr[i]];
-    }
-    return newArr;
-  }
-
   // --- HELPERS GRAMATICAIS ---
 
   public getPrepIn(loc: GrammaticalItem) {
@@ -450,15 +438,3 @@ const engine = new NewsGeneratorEngine();
 export function generateNewsItem(seed?: number): NewsItem {
   return engine.generate(seed);
 }
-
-/**
- * EXEMPLO DE USO E TESTES (Pode ser removido em produção)
- * 
- * console.log(generateNewsBatch(5, 123));
- * 
- * // Teste de Aleatoriedade
- * const batch1 = generateNewsBatch(10, 42);
- * const batch2 = generateNewsBatch(10, 42);
- * console.assert(JSON.stringify(batch1) === JSON.stringify(batch2), "Seeds devem ser determinísticos");
- */
-

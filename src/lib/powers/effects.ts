@@ -1,30 +1,5 @@
 import { Effect } from "../../components/pages/status/powers/types";
 
-export const EFFECT_CATEGORIES: Record<string, string> = {
-  ataque:
-    "Efeitos de ataque são usados ofensivamente. Exigem uma ação padrão, um teste de ataque e causam dano ou outras penalidades; permitem testes de salvamento.",
-  controle:
-    "Efeitos de controle concedem influência sobre objetos, ambiente ou seres (invocações, mover objetos). Normalmente exigem ação padrão e podem ser sustentados.",
-  defesa:
-    "Efeitos de defesa concedem bônus de salvamento, imunidade ou proteção; muitos são permanentes ou sutis.",
-  geral:
-    "Efeitos gerais não se encaixam em categorias especiais e seguem as regras descritas em sua descrição.",
-  movimento:
-    "Efeitos de movimento fornecem deslocamento ou modos de locomoção (velocidade, voo, teleporte). Geralmente são ativados com ação livre ou movimento.",
-  sensorial:
-    "Efeitos sensoriais ampliam/alteram sentidos ou criam ilusões; normalmente são permanentes ou sustentados e ativados com ação livre.",
-};
-
-export const SENSE_TYPES = [
-  "visão",
-  "audição",
-  "olfato",
-  "tato",
-  "rádio",
-  "mental",
-  "especial",
-];
-
 export const EFFECTS: Effect[] = [
   {
     id: "aflicao",

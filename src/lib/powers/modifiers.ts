@@ -878,8 +878,3 @@ export const EFFECT_SPECIFIC_FLAWS: Modifier[] = [
       "Sua Camuflagem oferece um teste de salvamento para qualquer personagem que tenta penetrá-la (escolha uma defesa apropriada).",
   },
 ];
-
-export const EFFECT_SPECIFIC_MODIFIERS: Modifier[] = [
-  ...EFFECT_SPECIFIC_EXTRAS,
-  ...EFFECT_SPECIFIC_FLAWS,
-];
