@@ -3,16 +3,12 @@
 import { useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { 
   Search, 
   FolderPlus, 
-  ChevronRight,
-  Home,
   Plus,
   StickyNote
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { useNotesState, useNotesActions } from "./use-notes";
 import { useSelectedCharacter } from "@/hooks/use-selected-character";
 import { NoteCard } from "./note-card";
@@ -21,6 +17,7 @@ import { NewNoteDialog } from "./new-note-dialog";
 import { NewFolderDialog } from "./new-folder-dialog";
 import { DeleteFolderDialog } from "./delete-folder-dialog";
 import { NoteEditorDialog } from "./note-editor-dialog";
+import { GalleryLayout } from "@/components/ui/custom/gallery-layout";
 
 export default function NotesGallery() {
   const { user } = useAuth();
@@ -155,15 +152,21 @@ export default function NotesGallery() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight uppercase">Anotações</h1>
-          <p className="text-muted-foreground">
-            Notas de <span className="text-primary font-bold">{character.identity.name}</span>
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
+    <GalleryLayout
+      title="Anotações"
+      description={
+        <p>
+          Notas de <span className="text-primary font-bold">{character.identity.name}</span>
+        </p>
+      }
+      searchPlaceholder="Pesquisar em notas..."
+      searchQuery={searchQuery}
+      onSearchChange={setSearchQuery}
+      currentFolderId={currentFolderId}
+      folderPath={folderPath}
+      onFolderClick={setCurrentFolderId}
+      actions={
+        <>
           <Button variant="outline" size="sm" onClick={() => setFolderDialogOpen(true)} className="h-9">
             <FolderPlus className="w-4 h-4 mr-2" />
             Nova Pasta
@@ -172,54 +175,9 @@ export default function NotesGallery() {
             <Plus className="w-4 h-4 mr-2" />
             Nova Nota
           </Button>
-        </div>
-      </div>
-
-      <div className="flex flex-col sm:flex-row gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            placeholder="Pesquisar em notas..."
-            className="pl-9"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-      </div>
-
-      {/* Breadcrumb Navigation */}
-      <div className="flex items-center gap-2 text-sm font-mono overflow-x-auto pb-2 scrollbar-hide uppercase">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setCurrentFolderId(null)}
-          className={cn(
-            "h-8 px-2 flex items-center gap-1.5 uppercase",
-            !currentFolderId ? "text-primary font-bold" : "text-muted-foreground"
-          )}
-        >
-          <Home className="w-3.5 h-3.5" />
-          RAIZ
-        </Button>
-
-        {folderPath.map((folder, index) => (
-          <div key={folder.id} className="flex items-center gap-2">
-            <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/50" />
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setCurrentFolderId(folder.id)}
-              className={cn(
-                "h-8 px-2 flex items-center gap-1.5 uppercase",
-                index === folderPath.length - 1 ? "text-primary font-bold" : "text-muted-foreground"
-              )}
-            >
-              {folder.name.toUpperCase()}
-            </Button>
-          </div>
-        ))}
-      </div>
-
+        </>
+      }
+    >
       <NewNoteDialog
         open={noteDialogOpen}
         onOpenChange={setNoteDialogOpen}
@@ -307,6 +265,6 @@ export default function NotesGallery() {
           ))}
         </div>
       )}
-    </div>
+    </GalleryLayout>
   );
 }
