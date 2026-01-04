@@ -78,6 +78,7 @@ interface IdentityContextType {
   markFieldsSaved: (fields: string[]) => void;
   hasLocalChanges: boolean;
   isSyncing: boolean;
+  isReady: boolean;
 
   /** Conflict resolution APIs */
   conflict: null | { server: CharacterDocument; attempted: Partial<CharacterData> };
@@ -125,6 +126,7 @@ export const IdentityProvider: React.FC<{ children: React.ReactNode }> = ({
     updateIdentity: updateIdentitySheet, 
     dirtyFields, 
     isSyncing, 
+    isReady,
     conflict, 
     resolveKeepLocal, 
     resolveUseServer,
@@ -196,6 +198,7 @@ export const IdentityProvider: React.FC<{ children: React.ReactNode }> = ({
       markFieldsSaved,
       hasLocalChanges,
       isSyncing,
+      isReady,
       conflict,
       resolveKeepLocal,
       resolveUseServer,
@@ -213,6 +216,7 @@ export const IdentityProvider: React.FC<{ children: React.ReactNode }> = ({
       markFieldsSaved,
       hasLocalChanges,
       isSyncing,
+      isReady,
       conflict,
       resolveKeepLocal,
       resolveUseServer,

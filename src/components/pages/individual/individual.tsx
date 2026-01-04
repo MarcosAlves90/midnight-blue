@@ -6,9 +6,9 @@ import { useIdentityContext } from "@/contexts/IdentityContext";
 import { useCharacterUpload } from "@/hooks/use-character-upload";
 import { useCharacterSync } from "@/hooks/use-character-sync";
 import { IdentityCard } from "@/components/pages/individual/identity-card";
-import { ConflictBanner } from "@/components/ui/conflict-banner";
 import { BiometricDataLazy, PersonalDataLazy, ConfidentialFileLazy, HistoryLazy, ComplicationsLazy } from "@/components/pages/individual/lazy-sections";
 import { NoCharacterSelected } from "@/components/config/character";
+import { IndividualSkeleton } from "./individual-skeleton";
 
 export default function Individual() {
   const { identity, updateIdentity } = useIdentityContext();
@@ -68,7 +68,7 @@ export default function Individual() {
   }, []);
 
   if (isLoading) {
-    return <div className="flex items-center justify-center p-8">Carregando ficha...</div>;
+    return <IndividualSkeleton />;
   }
 
   if (error) {
@@ -82,10 +82,6 @@ export default function Individual() {
 
   return (
     <div className="pb-10">
-      <div className="mb-4">
-        {/* Conflict UI */}
-        <ConflictBanner />
-      </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
         <div className="xl:col-span-3">

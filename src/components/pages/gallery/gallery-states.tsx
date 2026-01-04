@@ -1,18 +1,11 @@
 "use client";
 
-import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { GallerySkeleton } from "./gallery-skeleton";
 
 export function LoadingState() {
-  return (
-    <div className="flex items-center justify-center min-h-96">
-      <div className="text-center space-y-3">
-        <Loader2 className="w-8 h-8 animate-spin mx-auto" />
-        <p className="text-muted-foreground">Carregando fichas...</p>
-      </div>
-    </div>
-  );
+  return <GallerySkeleton />;
 }
 
 export function UnauthenticatedState() {

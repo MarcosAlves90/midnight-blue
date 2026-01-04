@@ -8,7 +8,7 @@ import { deepEqual } from "@/lib/deep-equal";
  * Isola a lógica de comparação e atualização para evitar poluição no componente de UI.
  */
 export function useCharacterSync() {
-  const { setIdentity, setCurrentCharacterId, dirtyFields } = useIdentityContext();
+  const { setIdentity, setCurrentCharacterId, dirtyFields, isReady } = useIdentityContext();
   const { character, isLoading, error } = useSelectedCharacter();
   
   const characterIdRef = useRef<string | null>(null);
@@ -83,5 +83,5 @@ export function useCharacterSync() {
     });
   }, [character?.id, character?.identity, setCurrentCharacterId, setIdentity, dirtyFields]);
 
-  return { character, isLoading, error };
+  return { character, isLoading: isLoading || !isReady, error };
 }

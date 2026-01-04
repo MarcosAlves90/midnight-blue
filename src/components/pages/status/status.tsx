@@ -8,9 +8,12 @@ import { usePowersContext } from "@/contexts/PowersContext";
 import { useStatusContext } from "@/contexts/StatusContext";
 import StatusPageContent from "./status-page-content";
 import { deepEqual } from "@/lib/deep-equal";
+import { useCharacterSheet } from "@/contexts/CharacterSheetContext";
+import { StatusSkeleton } from "./status-skeleton";
 
 export default function Status() {
   const { selectedCharacter } = useCharacter();
+  const { isReady } = useCharacterSheet();
   const { attributes, setAttributes, dirtyFields: attributesDirty } = useAttributesContext();
   const { skills, setSkills, dirtyFields: skillsDirty } = useSkillsContext();
   const { powers, setPowers, dirtyFields: powersDirty } = usePowersContext();
@@ -79,6 +82,10 @@ export default function Status() {
     powers, setPowers, powersDirty,
     powerLevel, setPowerLevel, extraPoints, setExtraPoints, statusDirty
   ]);
+
+  if (!isReady) {
+    return <StatusSkeleton />;
+  }
 
   return <StatusPageContent />;
 }

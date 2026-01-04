@@ -4,7 +4,6 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { NewCharacterDialog } from "@/components/pages/gallery/new-character-dialog";
 import { NewFolderDialog } from "@/components/pages/gallery/new-folder-dialog";
 import { DeleteFolderDialog } from "@/components/pages/gallery/delete-folder-dialog";
@@ -24,7 +23,6 @@ import {
   Folder as FolderIcon, 
   ChevronRight,
   Move,
-  Home
 } from "lucide-react";
 import {
   DropdownMenu,

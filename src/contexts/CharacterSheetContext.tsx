@@ -22,6 +22,7 @@ interface CharacterSheetState {
 interface CharacterSheetContextType {
   state: CharacterSheetState | null;
   isSyncing: boolean;
+  isReady: boolean;
   dirtyFields: Set<string>;
   
   // Conflict resolution
@@ -166,6 +167,11 @@ export function CharacterSheetProvider({ children }: { children: React.ReactNode
     if (idChanged) setDirtyFields(new Set());
   }, [selectedCharacter, dirtyFields]);
 
+  const isReady = useMemo(() => {
+    if (!selectedCharacter) return false;
+    return state !== null && characterIdRef.current === selectedCharacter.id;
+  }, [state, selectedCharacter]);
+
   const updateState = useCallback((updates: Partial<CharacterSheetState>) => {
     setState(prev => {
       if (!prev) return prev;
@@ -228,10 +234,11 @@ export function CharacterSheetProvider({ children }: { children: React.ReactNode
   const value = useMemo(() => ({
     state,
     isSyncing,
+    isReady,
     dirtyFields,
     conflict,
     ...actions
-  }), [state, isSyncing, dirtyFields, conflict, actions]);
+  }), [state, isSyncing, isReady, dirtyFields, conflict, actions]);
 
   return (
     <CharacterSheetContext.Provider value={value}>

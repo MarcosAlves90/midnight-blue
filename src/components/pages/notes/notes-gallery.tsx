@@ -18,6 +18,7 @@ import { NewFolderDialog } from "./new-folder-dialog";
 import { DeleteFolderDialog } from "./delete-folder-dialog";
 import { NoteEditorDialog } from "./note-editor-dialog";
 import { GalleryLayout } from "@/components/ui/custom/gallery-layout";
+import { NotesSkeleton } from "./notes-skeleton";
 
 export default function NotesGallery() {
   const { user } = useAuth();
@@ -128,13 +129,7 @@ export default function NotesGallery() {
   const hasResults = filteredFolders.length > 0 || filteredNotes.length > 0;
 
   if (state.isLoading || isCharLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-96">
-        <div className="text-center space-y-3">
-          <div className="animate-pulse text-primary font-mono">CARREGANDO TERMINAL DE NOTAS...</div>
-        </div>
-      </div>
-    );
+    return <NotesSkeleton />;
   }
 
   if (!user) return null;

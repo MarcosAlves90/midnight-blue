@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useCharacterPersistence } from "@/hooks/use-character-persistence";
 import { useCharacter } from "@/contexts/CharacterContext";
 import Status from "@/components/pages/status/status";
+import { StatusSkeleton } from "@/components/pages/status/status-skeleton";
 
 export default function Loader({ id }: { id: string }) {
   const { user } = useAuth();
@@ -46,7 +47,7 @@ export default function Loader({ id }: { id: string }) {
     return () => { cancelled = true; };
   }, [id, user?.uid, loadCharacter, setSelectedCharacter]);
 
-  if (loading) return <div>Carregando ficha...</div>;
+  if (loading) return <StatusSkeleton />;
   if (error) return <div className="text-red-500">{error}</div>;
 
   return <Status />;
