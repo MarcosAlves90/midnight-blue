@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { useEffect, useCallback, useMemo, useRef, memo } from "react";
 
 interface GlitchTextProps {
   children: string;
@@ -17,7 +17,11 @@ interface GlitchTextProps {
 const GLITCH_CHARS =
   "!@#$%^&*()_+-=[]{}|;:,.<>?~`АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдежзийклмнопрстуфхцчшщъыьэюя0123456789";
 
-export default function GlitchText({
+/**
+ * GlitchText optimized to avoid React re-renders during the glitch effect.
+ * Uses direct DOM manipulation for high-frequency visual updates.
+ */
+const GlitchText = memo(({
   children,
   className = "",
   glitchChance = 0.1,
@@ -27,9 +31,8 @@ export default function GlitchText({
   alternateChance = 0.4,
   characterGlitchChance = 0.3,
   enabled = true,
-}: GlitchTextProps) {
-  const [displayText, setDisplayText] = useState(children);
-  const [isGlitching, setIsGlitching] = useState(false);
+}: GlitchTextProps) => {
+  const spanRef = useRef<HTMLSpanElement>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -62,22 +65,24 @@ export default function GlitchText({
 
   // Reset to original text
   const resetText = useCallback(() => {
-    setDisplayText(children);
-    setIsGlitching(false);
+    if (spanRef.current) {
+      spanRef.current.textContent = children;
+      spanRef.current.classList.remove("text-red-400");
+    }
     timeoutRef.current = null;
   }, [children]);
 
   // Trigger glitch effect
   const triggerGlitch = useCallback(() => {
-    if (!enabled) return;
+    if (!enabled || !spanRef.current) return;
 
-    setIsGlitching(true);
+    spanRef.current.classList.add("text-red-400");
 
     // Decide between alternate text or character glitch
     if (alternateText && Math.random() < alternateChance) {
-      setDisplayText(alternateText);
+      spanRef.current.textContent = alternateText;
     } else {
-      setDisplayText(generateGlitchedText());
+      spanRef.current.textContent = generateGlitchedText();
     }
 
     // Clean up previous timeout if exists
@@ -99,8 +104,10 @@ export default function GlitchText({
   useEffect(() => {
     if (!enabled) {
       cleanup();
-      setDisplayText(children);
-      setIsGlitching(false);
+      if (spanRef.current) {
+        spanRef.current.textContent = children;
+        spanRef.current.classList.remove("text-red-400");
+      }
       return;
     }
 
@@ -118,10 +125,10 @@ export default function GlitchText({
 
   // Update display text when children changes
   useEffect(() => {
-    if (!isGlitching) {
-      setDisplayText(children);
+    if (spanRef.current) {
+      spanRef.current.textContent = children;
     }
-  }, [children, isGlitching]);
+  }, [children]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -130,11 +137,14 @@ export default function GlitchText({
 
   return (
     <span
-      className={`${className} ${
-        isGlitching ? "text-red-400" : ""
-      } transition-colors duration-75`}
+      ref={spanRef}
+      className={`${className} transition-colors duration-75`}
     >
-      {displayText}
+      {children}
     </span>
   );
-}
+});
+
+GlitchText.displayName = "GlitchText";
+
+export default GlitchText;

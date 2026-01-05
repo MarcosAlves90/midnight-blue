@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback, useMemo } from "react";
 import Image from "next/image";
 import { Camera, Upload, ChevronUp, ChevronDown, Loader2 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -13,7 +13,11 @@ interface ImageAreaProps {
   isUploading?: boolean;
 }
 
-export const ImageArea: React.FC<ImageAreaProps> = ({
+/**
+ * ImageArea Component
+ * Optimized with React.memo and memoized handlers to prevent unnecessary re-renders.
+ */
+export const ImageArea: React.FC<ImageAreaProps> = React.memo(({
   onImageUpload,
   onFileSelect,
   fileInputRef,
@@ -25,29 +29,59 @@ export const ImageArea: React.FC<ImageAreaProps> = ({
   const imagePosition = useIdentityField("imagePosition") ?? 50;
   const favoriteColor = useIdentityField("favoriteColor") || "#1a1a1a";
 
+  const handleMoveUp = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    updateIdentity("imagePosition", Math.max(0, imagePosition - 5));
+  }, [updateIdentity, imagePosition]);
+
+  const handleMoveDown = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    updateIdentity("imagePosition", Math.min(100, imagePosition + 5));
+  }, [updateIdentity, imagePosition]);
+
+  const containerStyle = useMemo(() => ({
+    borderColor: `rgba(var(--identity-theme-rgb), 0.5)`,
+  }), []);
+
+  const cornerStyle = useMemo(() => ({ 
+    borderColor: `rgba(var(--identity-theme-rgb), 0.4)` 
+  }), []);
+
+  const scanlineStyle = useMemo(() => ({ 
+    background: `linear-gradient(90deg, transparent, var(--identity-theme-color), transparent)`,
+    boxShadow: `0 0 12px var(--identity-theme-color)`
+  }), []);
+
+  const imageStyle = useMemo(() => ({
+    objectPosition: `center ${imagePosition}%`,
+  }), [imagePosition]);
+
+  const overlayStyle = useMemo(() => ({
+    backgroundColor: `var(--identity-theme-color, ${favoriteColor})`,
+  }), [favoriteColor]);
+
+  const hudDataStyle = useMemo(() => ({ 
+    borderLeftColor: `var(--identity-theme-color)` 
+  }), []);
+
   return (
     <div
       className={`relative ${isMobile ? "aspect-[3/2]" : "aspect-[4/3]"} w-full bg-black/60 border-b-4 group overflow-hidden mx-auto transition-colors duration-500`}
-      style={{
-        borderColor: `rgba(var(--identity-theme-rgb), 0.5)`,
-      }}
+      style={containerStyle}
       role="region"
       aria-label="Área de imagem do perfil"
     >
       {/* HUD Decorative Elements */}
       <div className="absolute inset-0 pointer-events-none z-10 opacity-60">
-        <div className="absolute top-3 left-3 w-6 h-6 border-t-2 border-l-2" style={{ borderColor: `rgba(var(--identity-theme-rgb), 0.4)` }} />
-        <div className="absolute top-3 right-3 w-6 h-6 border-t-2 border-r-2" style={{ borderColor: `rgba(var(--identity-theme-rgb), 0.4)` }} />
-        <div className="absolute bottom-3 left-3 w-6 h-6 border-b-2 border-l-2" style={{ borderColor: `rgba(var(--identity-theme-rgb), 0.4)` }} />
-        <div className="absolute bottom-3 right-3 w-6 h-6 border-b-2 border-r-2" style={{ borderColor: `rgba(var(--identity-theme-rgb), 0.4)` }} />
+        <div className="absolute top-3 left-3 w-6 h-6 border-t-2 border-l-2" style={cornerStyle} />
+        <div className="absolute top-3 right-3 w-6 h-6 border-t-2 border-r-2" style={cornerStyle} />
+        <div className="absolute bottom-3 left-3 w-6 h-6 border-b-2 border-l-2" style={cornerStyle} />
+        <div className="absolute bottom-3 right-3 w-6 h-6 border-b-2 border-r-2" style={cornerStyle} />
         
         {/* Scanline effect */}
         <div 
           className="absolute inset-0 w-full h-[2px] bg-white/20 animate-scan"
-          style={{ 
-            background: `linear-gradient(90deg, transparent, var(--identity-theme-color), transparent)`,
-            boxShadow: `0 0 12px var(--identity-theme-color)`
-          }}
+          style={scanlineStyle}
         />
       </div>
 
@@ -66,21 +100,17 @@ export const ImageArea: React.FC<ImageAreaProps> = ({
               priority
               sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
               className="w-full h-full object-cover transition-all duration-700 grayscale-[0.2] group-hover/image:grayscale-0 group-hover/image:scale-105"
-              style={{
-                objectPosition: `center ${imagePosition}%`,
-              }}
+              style={imageStyle}
             />
             {/* Favorite color overlay effect */}
             <div
               className="absolute inset-0 opacity-10 mix-blend-overlay transition-opacity group-hover/image:opacity-25"
-              style={{
-                backgroundColor: `var(--identity-theme-color, ${favoriteColor})`,
-              }}
+              style={overlayStyle}
             />
             
             {/* HUD Data Overlay */}
             <div className="absolute bottom-4 left-4 z-20 font-mono text-[9px] text-white font-bold uppercase tracking-widest hide-on-capture drop-shadow-md">
-              <div className="flex items-center gap-2 bg-black/40 px-2 py-1 backdrop-blur-sm border-l-2" style={{ borderLeftColor: `var(--identity-theme-color)` }}>
+              <div className="flex items-center gap-2 bg-black/40 px-2 py-1 backdrop-blur-sm border-l-2" style={hudDataStyle}>
                 <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
                 LIVE_FEED::POS_{imagePosition}%
               </div>
@@ -90,10 +120,7 @@ export const ImageArea: React.FC<ImageAreaProps> = ({
             <div className="absolute right-2 top-1/2 -translate-y-1/2 flex flex-col gap-1 opacity-0 group-hover/image:opacity-100 transition-opacity z-30 hide-on-capture">
               <div
                 role="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  updateIdentity("imagePosition", Math.max(0, imagePosition - 5));
-                }}
+                onClick={handleMoveUp}
                 className="p-1.5 bg-black/60 hover:bg-black/80 text-white rounded-t backdrop-blur-sm transition-colors border border-white/10 hover:border-white/30"
                 aria-label="Mover imagem para cima"
               >
@@ -101,10 +128,7 @@ export const ImageArea: React.FC<ImageAreaProps> = ({
               </div>
               <div
                 role="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  updateIdentity("imagePosition", Math.min(100, imagePosition + 5));
-                }}
+                onClick={handleMoveDown}
                 className="p-1.5 bg-black/60 hover:bg-black/80 text-white rounded-b backdrop-blur-sm transition-colors border border-white/10 hover:border-white/30 border-t-0"
                 aria-label="Mover imagem para baixo"
               >
@@ -168,4 +192,7 @@ export const ImageArea: React.FC<ImageAreaProps> = ({
       />
     </div>
   );
-};
+});
+
+ImageArea.displayName = "ImageArea";
+
