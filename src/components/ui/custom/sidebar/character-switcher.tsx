@@ -5,6 +5,7 @@ import { ChevronsUpDown, Plus, BookOpen, AlertCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Skeleton } from "@/components/ui/skeleton";
+import { CharacterImage } from "@/components/ui/custom/character-image";
 
 import {
   DropdownMenu,
@@ -30,21 +31,21 @@ function CharacterDropdownItem({ character, onClick }: { character: CharacterDoc
   const civil = character.identity?.name || "";
   const hero = character.identity?.heroName || "";
   const profileImage = character.identity?.profileImage;
+  const imagePosition = character.identity?.imagePosition;
 
   return (
     <DropdownMenuItem key={character.id} onClick={onClick} className="gap-2 p-2">
       <div className="flex size-6 shrink-0 items-center justify-center rounded-md border bg-muted/50 overflow-hidden relative">
-        {profileImage ? (
-          <Image
-            src={profileImage}
-            alt={civil || hero}
-            fill
-            sizes="24px"
-            className="object-cover"
-          />
-        ) : (
-          <span className="text-xs font-bold">{(civil || hero || "?").charAt(0).toUpperCase()}</span>
-        )}
+        <CharacterImage
+          src={profileImage}
+          alt={civil || hero}
+          imagePosition={imagePosition}
+          fill
+          sizes="24px"
+          fallback={
+            <span className="text-xs font-bold">{(civil || hero || "?").charAt(0).toUpperCase()}</span>
+          }
+        />
       </div>
       <div className="flex flex-col flex-1 min-w-0">
         <span className="text-sm font-medium truncate">{civil || hero}</span>
@@ -174,6 +175,7 @@ export function CharacterSwitcher() {
   const selectedCharacterName = selectedCharacter?.identity?.name || "Selecionar Ficha";
   const selectedCharacterPlayer = selectedCharacter?.identity?.heroName || "";
   const selectedProfileImage = selectedCharacter?.identity?.profileImage;
+  const selectedImagePosition = selectedCharacter?.identity?.imagePosition;
 
   return (
     <SidebarMenu>
@@ -187,19 +189,18 @@ export function CharacterSwitcher() {
                 className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
               >
                 <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 shrink-0 items-center justify-center rounded-lg overflow-hidden relative">
-                  {selectedProfileImage ? (
-                    <Image
-                      src={selectedProfileImage}
-                      alt={selectedCharacterName}
-                      fill
-                      sizes="32px"
-                      className="object-cover"
-                    />
-                  ) : (
-                    <span className="text-xs font-bold">
-                      {selectedCharacterName.charAt(0).toUpperCase()}
-                    </span>
-                  )}
+                  <CharacterImage
+                    src={selectedProfileImage}
+                    alt={selectedCharacterName}
+                    imagePosition={selectedImagePosition}
+                    fill
+                    sizes="32px"
+                    fallback={
+                      <span className="text-xs font-bold">
+                        {selectedCharacterName.charAt(0).toUpperCase()}
+                      </span>
+                    }
+                  />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight min-w-0">
                   <span className="truncate font-medium">
@@ -252,19 +253,18 @@ export function CharacterSwitcher() {
         ) : (
           <SidebarMenuButton size="lg" tooltip={selectedCharacterName}>
             <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 shrink-0 items-center justify-center rounded-lg overflow-hidden relative">
-              {selectedProfileImage ? (
-                <Image
-                  src={selectedProfileImage}
-                  alt={selectedCharacterName}
-                  fill
-                  sizes="32px"
-                  className="object-cover"
-                />
-              ) : (
-                <span className="text-xs font-bold">
-                  {selectedCharacterName.charAt(0).toUpperCase()}
-                </span>
-              )}
+              <CharacterImage
+                src={selectedProfileImage}
+                alt={selectedCharacterName}
+                imagePosition={selectedImagePosition}
+                fill
+                sizes="32px"
+                fallback={
+                  <span className="text-xs font-bold">
+                    {selectedCharacterName.charAt(0).toUpperCase()}
+                  </span>
+                }
+              />
             </div>
             <div className="grid flex-1 text-left text-sm leading-tight min-w-0">
               <span className="truncate font-medium">

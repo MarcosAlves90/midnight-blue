@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Shield, Trash2, Loader2 } from "lucide-react";
 import { DeleteCharacterDialog } from "./delete-character-dialog";
 import type { CharacterDocument } from "@/lib/types/character";
+import { CharacterImage } from "@/components/ui/custom/character-image";
 
 interface CharacterCardProps {
   character: CharacterDocument;
@@ -88,22 +89,19 @@ function MugshotArea({ character, heroName }: { character: CharacterDocument; he
         ))}
       </div>
 
-      {character.identity.profileImage ? (
-        <Image
-          src={character.identity.profileImage}
-          alt={heroName}
-          fill
-          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, (max-width: 1280px) 25vw, (max-width: 1536px) 20vw, 16vw"
-          className="object-cover grayscale contrast-110 brightness-90 group-hover:grayscale-0 transition-all duration-500"
-          style={{
-            objectPosition: `center ${character.identity.imagePosition || 50}%`,
-          }}
-        />
-      ) : (
-        <div className="h-full w-full flex items-center justify-center bg-muted/30">
-          <span className="text-2xl font-bold text-muted-foreground/20 font-mono">SEM FOTO</span>
-        </div>
-      )}
+      <CharacterImage
+        src={character.identity.profileImage}
+        alt={heroName}
+        imagePosition={character.identity.imagePosition}
+        fill
+        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, (max-width: 1280px) 25vw, (max-width: 1536px) 20vw, 16vw"
+        className="grayscale contrast-110 brightness-90 group-hover:grayscale-0 transition-all duration-500"
+        fallback={
+          <div className="h-full w-full flex items-center justify-center bg-muted/30">
+            <span className="text-2xl font-bold text-muted-foreground/20 font-mono">SEM FOTO</span>
+          </div>
+        }
+      />
 
       <div className="absolute bottom-0 left-0 right-0 bg-background/80 backdrop-blur-sm py-1 px-2 border-t border-border">
         <p className="text-[7px] text-center tracking-[0.2em] text-muted-foreground font-bold uppercase">

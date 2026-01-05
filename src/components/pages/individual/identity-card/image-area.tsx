@@ -5,6 +5,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useIdentityActions } from "@/contexts/IdentityContext";
 import { useIdentityField } from "@/hooks/use-identity-field";
 import GlitchText from "@/components/ui/custom/glitch-text";
+import { CharacterImage } from "@/components/ui/custom/character-image";
 
 interface ImageAreaProps {
   onImageUpload: () => void;
@@ -91,17 +92,40 @@ export const ImageArea: React.FC<ImageAreaProps> = React.memo(({
         aria-label="Clique para fazer upload de imagem do perfil"
         type="button"
       >
-        {profileImage ? (
-          <div className="relative w-full h-full">
-            <Image
-              src={profileImage}
-              alt="Imagem de perfil do personagem"
-              fill
-              priority
-              sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
-              className="w-full h-full object-cover transition-all duration-700 grayscale-[0.2] group-hover/image:grayscale-0 group-hover/image:scale-105"
-              style={imageStyle}
-            />
+        <CharacterImage
+          src={profileImage}
+          alt="Imagem de perfil do personagem"
+          imagePosition={imagePosition}
+          fill
+          priority
+          sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
+          className="w-full h-full transition-all duration-700 grayscale-[0.2] group-hover/image:grayscale-0 group-hover/image:scale-105"
+          fallback={
+            <div className="flex flex-col items-center gap-2 text-muted-foreground">
+              <Camera
+                className={`${isMobile ? "w-6 h-6" : "w-8 h-8"} opacity-50`}
+                aria-hidden="true"
+              />
+              <span
+                className={`${isMobile ? "text-[10px]" : "text-xs"} font-medium uppercase tracking-wider`}
+              >
+                <GlitchText
+                  glitchChance={0.08}
+                  glitchDuration={130}
+                  intervalMs={400}
+                  alternateChance={0.12}
+                  characterGlitchChance={0.25}
+                  className="inline"
+                >
+                  Clique para adicionar arte
+                </GlitchText>
+              </span>
+            </div>
+          }
+        />
+
+        {profileImage && (
+          <div className="relative w-full h-full pointer-events-none">
             {/* Favorite color overlay effect */}
             <div
               className="absolute inset-0 opacity-10 mix-blend-overlay transition-opacity group-hover/image:opacity-25"
@@ -117,7 +141,7 @@ export const ImageArea: React.FC<ImageAreaProps> = React.memo(({
             </div>
 
             {/* Position Controls */}
-            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex flex-col gap-1 opacity-0 group-hover/image:opacity-100 transition-opacity z-30 hide-on-capture">
+            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex flex-col gap-1 opacity-0 group-hover/image:opacity-100 transition-opacity z-30 hide-on-capture pointer-events-auto">
               <div
                 role="button"
                 onClick={handleMoveUp}
@@ -136,36 +160,17 @@ export const ImageArea: React.FC<ImageAreaProps> = React.memo(({
               </div>
             </div>
           </div>
-        ) : (
-          <div className="flex flex-col items-center gap-2 text-muted-foreground">
-            <Camera
-              className={`${isMobile ? "w-6 h-6" : "w-8 h-8"} opacity-50`}
-              aria-hidden="true"
-            />
-            <span
-              className={`${isMobile ? "text-[10px]" : "text-xs"} font-medium uppercase tracking-wider`}
-            >
-              <GlitchText
-                glitchChance={0.08}
-                glitchDuration={130}
-                intervalMs={400}
-                alternateChance={0.12}
-                characterGlitchChance={0.25}
-                className="inline"
-              >
-                Clique para adicionar arte
-              </GlitchText>
-            </span>
-          </div>
         )}
 
         {/* Hover Overlay */}
-        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover/image:opacity-100 transition-opacity flex items-center justify-center z-20 hide-on-capture">
-          <Upload
-            className={`${isMobile ? "w-6 h-6" : "w-8 h-8"} text-white`}
-            aria-hidden="true"
-          />
-        </div>
+        {!profileImage && (
+          <div className="absolute inset-0 bg-black/60 opacity-0 group-hover/image:opacity-100 transition-opacity flex items-center justify-center z-20 hide-on-capture">
+            <Upload
+              className={`${isMobile ? "w-6 h-6" : "w-8 h-8"} text-white`}
+              aria-hidden="true"
+            />
+          </div>
+        )}
 
         {/* Loading Overlay */}
         {isUploading && (
