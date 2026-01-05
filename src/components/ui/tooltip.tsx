@@ -5,6 +5,15 @@ import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 
 import { cn } from "@/lib/utils";
 
+/**
+ * Contexto para compartilhar o estado de abertura do Tooltip entre o Root e o Trigger.
+ * Isso é necessário para suportar o comportamento de "long press" em dispositivos touch.
+ */
+const TooltipContext = React.createContext<{
+  open: boolean;
+  setOpen: (open: boolean) => void;
+} | null>(null);
+
 function TooltipProvider({
   delayDuration = 0,
   ...props
@@ -20,19 +29,118 @@ function TooltipProvider({
 }
 
 function Tooltip({
+  children,
   ...props
 }: React.ComponentProps<typeof TooltipPrimitive.Root>) {
+  const [open, setOpen] = React.useState(false);
+
   return (
     <TooltipProvider>
-      <TooltipPrimitive.Root data-slot="tooltip" {...props} />
+      <TooltipContext.Provider value={{ open, setOpen }}>
+        <TooltipPrimitive.Root
+          data-slot="tooltip"
+          {...props}
+          open={props.open ?? open}
+          onOpenChange={(val) => {
+            setOpen(val);
+            props.onOpenChange?.(val);
+          }}
+        >
+          {children}
+        </TooltipPrimitive.Root>
+      </TooltipContext.Provider>
     </TooltipProvider>
   );
 }
 
 function TooltipTrigger({
+  className,
+  onPointerDown,
+  onPointerUp,
+  onPointerCancel,
+  onContextMenu,
+  onClick,
   ...props
 }: React.ComponentProps<typeof TooltipPrimitive.Trigger>) {
-  return <TooltipPrimitive.Trigger data-slot="tooltip-trigger" {...props} />;
+  const context = React.useContext(TooltipContext);
+  const timerRef = React.useRef<NodeJS.Timeout | null>(null);
+  const isLongPressRef = React.useRef(false);
+
+  const handlePointerDown = (e: React.PointerEvent) => {
+    // Apenas para dispositivos touch
+    if (e.pointerType !== "touch") return;
+
+    isLongPressRef.current = false;
+    timerRef.current = setTimeout(() => {
+      isLongPressRef.current = true;
+      context?.setOpen(true);
+      
+      // Feedback tátil (vibração) se disponível
+      if (typeof window !== "undefined" && window.navigator.vibrate) {
+        window.navigator.vibrate(40);
+      }
+    }, 500); // 500ms para considerar um "long press"
+  };
+
+  const handlePointerUp = () => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+
+    if (isLongPressRef.current) {
+      // Se foi um long press, fechamos após um tempo para permitir a leitura
+      setTimeout(() => {
+        context?.setOpen(false);
+        isLongPressRef.current = false;
+      }, 1500);
+    }
+  };
+
+  const handlePointerCancel = () => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+    if (isLongPressRef.current) {
+      context?.setOpen(false);
+      isLongPressRef.current = false;
+    }
+  };
+
+  return (
+    <TooltipPrimitive.Trigger
+      data-slot="tooltip-trigger"
+      onPointerDown={(e) => {
+        handlePointerDown(e);
+        onPointerDown?.(e);
+      }}
+      onPointerUp={(e) => {
+        handlePointerUp();
+        onPointerUp?.(e);
+      }}
+      onPointerCancel={(e) => {
+        handlePointerCancel();
+        onPointerCancel?.(e);
+      }}
+      onContextMenu={(e) => {
+        // Previne o menu de contexto se estivermos em um long press
+        if (isLongPressRef.current) e.preventDefault();
+        onContextMenu?.(e);
+      }}
+      onClick={(e) => {
+        // Se foi um long press, cancelamos o clique para não disparar ações acidentais
+        if (isLongPressRef.current) {
+          e.preventDefault();
+          e.stopPropagation();
+        } else {
+          onClick?.(e);
+        }
+      }}
+      className={cn("select-none", className)}
+      {...props}
+    />
+  );
 }
 
 function TooltipContent({
