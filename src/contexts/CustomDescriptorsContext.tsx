@@ -32,16 +32,19 @@ export function CustomDescriptorsProvider({
   const addCustomDescriptor = useCallback(
     (descriptor: string) => {
       const trimmed = descriptor.trim().toLowerCase();
-      if (trimmed && !customDescriptors.includes(trimmed)) {
-        updateSheet([...customDescriptors, trimmed]);
+      if (trimmed) {
+        updateSheet((prev) => (prev.includes(trimmed) ? prev : [...prev, trimmed]));
       }
     },
-    [customDescriptors, updateSheet],
+    [updateSheet],
   );
 
-  const removeCustomDescriptor = useCallback((descriptor: string) => {
-    updateSheet(customDescriptors.filter((d) => d !== descriptor));
-  }, [customDescriptors, updateSheet]);
+  const removeCustomDescriptor = useCallback(
+    (descriptor: string) => {
+      updateSheet((prev) => prev.filter((d) => d !== descriptor));
+    },
+    [updateSheet],
+  );
 
   const value = useMemo(() => ({
     customDescriptors,

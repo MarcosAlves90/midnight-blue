@@ -26,9 +26,8 @@ export const PowersProvider: React.FC<{ children: React.ReactNode }> = ({
   const powers = useMemo(() => state?.powers ?? [], [state?.powers]);
 
   const updatePowers = useCallback((action: React.SetStateAction<Power[]>) => {
-    const next = typeof action === "function" ? action(powers) : action;
-    updateSheet(next);
-  }, [powers, updateSheet]);
+    updateSheet(action);
+  }, [updateSheet]);
 
   const addPower = useCallback((power: Power) => {
     updatePowers((prev) => [...prev, power]);

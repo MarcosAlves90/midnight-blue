@@ -32,11 +32,11 @@ interface CharacterSheetContextType {
 
   // Actions
   updateIdentity: (updates: Partial<IdentityData>) => void;
-  updateAttributes: (attributes: Attribute[]) => void;
-  updateSkills: (skills: Skill[]) => void;
-  updatePowers: (powers: Power[]) => void;
+  updateAttributes: (updater: Attribute[] | ((prev: Attribute[]) => Attribute[])) => void;
+  updateSkills: (updater: Skill[] | ((prev: Skill[]) => Skill[])) => void;
+  updatePowers: (updater: Power[] | ((prev: Power[]) => Power[])) => void;
   updateStatus: (status: Partial<CharacterSheetState["status"]>) => void;
-  updateCustomDescriptors: (descriptors: string[]) => void;
+  updateCustomDescriptors: (updater: string[] | ((prev: string[]) => string[])) => void;
   
   // Persistence
   saveNow: () => Promise<void>;
