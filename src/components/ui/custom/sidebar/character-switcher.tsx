@@ -33,7 +33,7 @@ function CharacterDropdownItem({ character, onClick }: { character: CharacterDoc
 
   return (
     <DropdownMenuItem key={character.id} onClick={onClick} className="gap-2 p-2">
-      <div className="flex size-6 items-center justify-center rounded-md border bg-muted/50 overflow-hidden relative">
+      <div className="flex size-6 shrink-0 items-center justify-center rounded-md border bg-muted/50 overflow-hidden relative">
         {profileImage ? (
           <Image
             src={profileImage}
@@ -46,9 +46,9 @@ function CharacterDropdownItem({ character, onClick }: { character: CharacterDoc
           <span className="text-xs font-bold">{(civil || hero || "?").charAt(0).toUpperCase()}</span>
         )}
       </div>
-      <div className="flex flex-col flex-1">
-        <span className="text-sm font-medium">{civil || hero}</span>
-        <span className="text-xs text-muted-foreground">{hero || "Sem título"}</span>
+      <div className="flex flex-col flex-1 min-w-0">
+        <span className="text-sm font-medium truncate">{civil || hero}</span>
+        <span className="text-xs text-muted-foreground truncate">{hero || "Sem título"}</span>
       </div>
     </DropdownMenuItem>
   );
@@ -183,9 +183,10 @@ export function CharacterSwitcher() {
             <DropdownMenuTrigger asChild>
               <SidebarMenuButton
                 size="lg"
+                tooltip={selectedCharacterName}
                 className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
               >
-                <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg overflow-hidden relative">
+                <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 shrink-0 items-center justify-center rounded-lg overflow-hidden relative">
                   {selectedProfileImage ? (
                     <Image
                       src={selectedProfileImage}
@@ -200,7 +201,7 @@ export function CharacterSwitcher() {
                     </span>
                   )}
                 </div>
-                <div className="grid flex-1 text-left text-sm leading-tight">
+                <div className="grid flex-1 text-left text-sm leading-tight min-w-0">
                   <span className="truncate font-medium">
                     {selectedCharacterName}
                   </span>
@@ -208,7 +209,7 @@ export function CharacterSwitcher() {
                     {selectedCharacterPlayer}
                   </span>
                 </div>
-                <ChevronsUpDown className="ml-auto" />
+                <ChevronsUpDown className="ml-auto shrink-0" />
               </SidebarMenuButton>
             </DropdownMenuTrigger>
             <DropdownMenuContent
@@ -232,7 +233,7 @@ export function CharacterSwitcher() {
                 className="gap-2 p-2"
                 onClick={handleCreateNewCharacter}
               >
-                <div className="flex size-6 items-center justify-center rounded-md border bg-transparent">
+                <div className="flex size-6 shrink-0 items-center justify-center rounded-md border bg-transparent">
                   <Plus className="size-4" />
                 </div>
                 <div className="font-medium">Nova Ficha</div>
@@ -241,7 +242,7 @@ export function CharacterSwitcher() {
                 className="gap-2 p-2"
                 onClick={handleOpenGallery}
               >
-                <div className="flex size-6 items-center justify-center rounded-md border bg-transparent">
+                <div className="flex size-6 shrink-0 items-center justify-center rounded-md border bg-transparent">
                   <BookOpen className="size-4" />
                 </div>
                 <div className="font-medium">Galeria de Fichas</div>
@@ -249,13 +250,23 @@ export function CharacterSwitcher() {
             </DropdownMenuContent>
           </DropdownMenu>
         ) : (
-          <SidebarMenuButton size="lg">
-            <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg overflow-hidden relative">
-              <span className="text-xs font-bold">
-                {selectedCharacterName.charAt(0).toUpperCase()}
-              </span>
+          <SidebarMenuButton size="lg" tooltip={selectedCharacterName}>
+            <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 shrink-0 items-center justify-center rounded-lg overflow-hidden relative">
+              {selectedProfileImage ? (
+                <Image
+                  src={selectedProfileImage}
+                  alt={selectedCharacterName}
+                  fill
+                  sizes="32px"
+                  className="object-cover"
+                />
+              ) : (
+                <span className="text-xs font-bold">
+                  {selectedCharacterName.charAt(0).toUpperCase()}
+                </span>
+              )}
             </div>
-            <div className="grid flex-1 text-left text-sm leading-tight">
+            <div className="grid flex-1 text-left text-sm leading-tight min-w-0">
               <span className="truncate font-medium">
                 {selectedCharacterName}
               </span>
@@ -263,7 +274,7 @@ export function CharacterSwitcher() {
                 {selectedCharacterPlayer}
               </span>
             </div>
-            <ChevronsUpDown className="ml-auto" />
+            <ChevronsUpDown className="ml-auto shrink-0" />
           </SidebarMenuButton>
         )}
       </SidebarMenuItem>
