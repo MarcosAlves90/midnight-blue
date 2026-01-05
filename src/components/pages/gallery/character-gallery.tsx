@@ -62,6 +62,7 @@ export default function CharacterGallery() {
     handleSelectCharacter, 
     handleDeleteCharacter, 
     handleCreateFolder,
+    handleUpdateFolder,
     handleDeleteFolder,
     handleMoveToFolder,
     listenToCharacters,
@@ -71,6 +72,11 @@ export default function CharacterGallery() {
     { setCharacters, setFolders, setError, setDeletingId, setSelectedCharacter }, 
     router.push
   );
+
+  const { 
+    folderToEdit,
+    setFolderToEdit
+  } = state;
 
   // Abre o dialog quando o contexto sinaliza abertura de nova ficha
   useEffect(() => {
@@ -199,13 +205,18 @@ export default function CharacterGallery() {
         open={state.folderDialogOpen}
         onOpenChange={(open) => {
           if (!open) {
-            setTimeout(() => setFolderDialogOpen(false), 0);
+            setTimeout(() => {
+              setFolderDialogOpen(false);
+              setFolderToEdit(null);
+            }, 0);
           } else {
             setFolderDialogOpen(true);
           }
         }}
         onCreate={handleCreateFolder}
+        onUpdate={handleUpdateFolder}
         parentId={currentFolderId}
+        folderToEdit={folderToEdit}
       />
 
       <DeleteFolderDialog
@@ -255,6 +266,10 @@ export default function CharacterGallery() {
               onDelete={() => {
                 setFolderToDelete(folder);
                 setDeleteFolderDialogOpen(true);
+              }}
+              onEdit={() => {
+                setFolderToEdit(folder);
+                setFolderDialogOpen(true);
               }}
             />
           ))}

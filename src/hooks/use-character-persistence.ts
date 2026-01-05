@@ -451,6 +451,15 @@ export function useCharacterPersistence(
   }, [userId]);
 
   /**
+   * Atualiza o nome de uma pasta
+   */
+  const updateFolder = useCallback(async (folderId: string, name: string) => {
+    if (!userId) throw new Error("Usuário não autenticado");
+    if (!repoRef.current) repoRef.current = new FirebaseCharacterRepository(userId);
+    return repoRef.current.updateFolder(folderId, name);
+  }, [userId]);
+
+  /**
    * Move um personagem para uma pasta
    */
   const moveCharacterToFolder = useCallback(async (characterId: string, folderId: string | null) => {
@@ -517,6 +526,7 @@ export function useCharacterPersistence(
     loadLastSelected,
     setOnSaveSuccess,
     createFolder,
+    updateFolder,
     deleteFolder,
     moveCharacterToFolder,
     listenToFolders,

@@ -13,6 +13,7 @@ export function useNotesState() {
   const [folderDialogOpen, setFolderDialogOpen] = useState(false);
   const [deleteFolderDialogOpen, setDeleteFolderDialogOpen] = useState(false);
   const [folderToDelete, setFolderToDelete] = useState<NoteFolder | null>(null);
+  const [folderToEdit, setFolderToEdit] = useState<NoteFolder | null>(null);
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
   const [editorOpen, setEditorOpen] = useState(false);
 
@@ -27,6 +28,7 @@ export function useNotesState() {
     folderDialogOpen, setFolderDialogOpen,
     deleteFolderDialogOpen, setDeleteFolderDialogOpen,
     folderToDelete, setFolderToDelete,
+    folderToEdit, setFolderToEdit,
     selectedNote, setSelectedNote,
     editorOpen, setEditorOpen
   };
@@ -97,6 +99,18 @@ export function useNotesActions(
     }
   };
 
+  const handleUpdateFolder = async (folderId: string, name: string) => {
+    if (!userId) return;
+    try {
+      await noteService.updateFolder(userId, folderId, name);
+      state.setFolderToEdit(null);
+      setFolderDialogOpen(false);
+    } catch (err) {
+      console.error("Erro ao atualizar pasta:", err);
+      setError("Erro ao atualizar pasta");
+    }
+  };
+
   const handleDeleteFolder = async (folderId: string) => {
     if (!userId) return;
     try {
@@ -129,6 +143,7 @@ export function useNotesActions(
     handleUpdateNote,
     handleDeleteNote,
     handleCreateFolder,
+    handleUpdateFolder,
     handleDeleteFolder,
     handleMoveNote,
     openEditor

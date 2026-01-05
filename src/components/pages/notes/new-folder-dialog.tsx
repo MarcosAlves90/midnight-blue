@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -11,17 +11,35 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { NoteFolder } from "@/lib/note-service";
 
 interface NewFolderDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onCreate: (name: string, parentId: string | null) => Promise<void>;
+  onUpdate?: (folderId: string, name: string) => Promise<void>;
   parentId: string | null;
+  folderToEdit?: NoteFolder | null;
 }
 
-export function NewFolderDialog({ open, onOpenChange, onCreate, parentId }: NewFolderDialogProps) {
+export function NewFolderDialog({ 
+  open, 
+  onOpenChange, 
+  onCreate, 
+  onUpdate,
+  parentId,
+  folderToEdit 
+}: NewFolderDialogProps) {
   const [name, setName] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (folderToEdit) {
+      setName(folderToEdit.name);
+    } else {
+      setName("");
+    }
+  }, [folderToEdit, open]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,7 +47,11 @@ export function NewFolderDialog({ open, onOpenChange, onCreate, parentId }: NewF
 
     setIsSubmitting(true);
     try {
-      await onCreate(name, parentId);
+      if (folderToEdit && onUpdate) {
+        await onUpdate(folderToEdit.id, name);
+      } else {
+        await onCreate(name, parentId);
+      }
       setName("");
       onOpenChange(false);
     } finally {
@@ -41,7 +63,9 @@ export function NewFolderDialog({ open, onOpenChange, onCreate, parentId }: NewF
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle className="uppercase font-bold tracking-tighter">Nova Pasta</DialogTitle>
+          <DialogTitle className="uppercase font-bold tracking-tighter">
+            {folderToEdit ? "Editar Pasta" : "Nova Pasta"}
+          </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 py-4">
           <div className="space-y-2">
@@ -59,7 +83,7 @@ export function NewFolderDialog({ open, onOpenChange, onCreate, parentId }: NewF
               Cancelar
             </Button>
             <Button type="submit" disabled={!name.trim() || isSubmitting}>
-              {isSubmitting ? "Criando..." : "Criar Pasta"}
+              {isSubmitting ? "Salvando..." : folderToEdit ? "Salvar Alterações" : "Criar Pasta"}
             </Button>
           </DialogFooter>
         </form>

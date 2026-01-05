@@ -53,9 +53,15 @@ export default function NotesGallery() {
     handleUpdateNote,
     handleDeleteNote,
     handleCreateFolder,
+    handleUpdateFolder,
     handleDeleteFolder,
     openEditor
   } = useNotesActions(user?.uid || null, character?.id || null, state);
+
+  const { 
+    folderToEdit,
+    setFolderToEdit
+  } = state;
 
   // Escuta mudanças em tempo real
   useEffect(() => {
@@ -182,9 +188,14 @@ export default function NotesGallery() {
 
       <NewFolderDialog
         open={folderDialogOpen}
-        onOpenChange={setFolderDialogOpen}
+        onOpenChange={(open) => {
+          setFolderDialogOpen(open);
+          if (!open) setFolderToEdit(null);
+        }}
         onCreate={handleCreateFolder}
+        onUpdate={handleUpdateFolder}
         parentId={currentFolderId}
+        folderToEdit={folderToEdit}
       />
 
       <DeleteFolderDialog
@@ -245,6 +256,10 @@ export default function NotesGallery() {
               onDelete={() => {
                 setFolderToDelete(folder);
                 setDeleteFolderDialogOpen(true);
+              }}
+              onEdit={() => {
+                setFolderToEdit(folder);
+                setFolderDialogOpen(true);
               }}
             />
           ))}

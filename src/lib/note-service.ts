@@ -136,6 +136,14 @@ export const noteService = {
     // For now, let's just leave them or handle in UI
   },
 
+  updateFolder: async (userId: string, folderId: string, name: string) => {
+    const folderRef = doc(db, USERS_COLLECTION, userId, FOLDERS_SUBCOLLECTION, folderId);
+    await updateDoc(folderRef, {
+      name,
+      updatedAt: serverTimestamp(),
+    });
+  },
+
   moveNoteToFolder: async (userId: string, noteId: string, folderId: string | null) => {
     const noteRef = doc(db, USERS_COLLECTION, userId, NOTES_SUBCOLLECTION, noteId);
     await updateDoc(noteRef, {

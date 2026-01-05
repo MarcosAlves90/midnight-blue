@@ -14,6 +14,7 @@ export function useGalleryState() {
   const [folderDialogOpen, setFolderDialogOpen] = useState(false);
   const [deleteFolderDialogOpen, setDeleteFolderDialogOpen] = useState(false);
   const [folderToDelete, setFolderToDelete] = useState<Folder | null>(null);
+  const [folderToEdit, setFolderToEdit] = useState<Folder | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
 
@@ -36,6 +37,8 @@ export function useGalleryState() {
     setDeleteFolderDialogOpen,
     folderToDelete,
     setFolderToDelete,
+    folderToEdit,
+    setFolderToEdit,
     searchQuery,
     setSearchQuery,
     currentFolderId,
@@ -59,6 +62,7 @@ export function useGalleryActions(
     selectCharacter, 
     removeCharacter,
     createFolder,
+    updateFolder,
     deleteFolder,
     moveCharacterToFolder,
     listenToFolders
@@ -98,6 +102,15 @@ export function useGalleryActions(
     }
   };
 
+  const handleUpdateFolder = async (folderId: string, name: string) => {
+    try {
+      await updateFolder(folderId, name);
+    } catch (error) {
+      console.error("Erro ao atualizar pasta:", error);
+      handlers.setError("Erro ao atualizar pasta");
+    }
+  };
+
   const handleDeleteFolder = async (folderId: string) => {
     try {
       await deleteFolder(folderId);
@@ -120,6 +133,7 @@ export function useGalleryActions(
     handleSelectCharacter,
     handleDeleteCharacter,
     handleCreateFolder,
+    handleUpdateFolder,
     handleDeleteFolder,
     handleMoveToFolder,
     listenToCharacters,

@@ -1,6 +1,6 @@
 "use client";
 
-import { Folder as FolderIcon, MoreVertical, Trash2, ChevronRight } from "lucide-react";
+import { Folder as FolderIcon, MoreVertical, Trash2, ChevronRight, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -16,10 +16,11 @@ interface FolderCardProps {
   };
   onClick: () => void;
   onDelete: () => void;
+  onEdit?: () => void;
   label?: string;
 }
 
-export function FolderCard({ folder, onClick, onDelete, label = "Acessar Arquivos" }: FolderCardProps) {
+export function FolderCard({ folder, onClick, onDelete, onEdit, label = "Acessar Arquivos" }: FolderCardProps) {
   return (
     <div
       onClick={onClick}
@@ -45,6 +46,18 @@ export function FolderCard({ folder, onClick, onDelete, label = "Acessar Arquivo
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
+            {onEdit && (
+              <DropdownMenuItem 
+                onSelect={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onEdit();
+                }}
+              >
+                <Pencil className="w-4 h-4 mr-2" />
+                Editar Nome
+              </DropdownMenuItem>
+            )}
             <DropdownMenuItem 
               className="text-destructive focus:text-destructive"
               onSelect={(e) => {

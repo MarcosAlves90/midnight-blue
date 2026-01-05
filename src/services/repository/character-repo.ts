@@ -49,6 +49,7 @@ export interface CharacterRepository {
 
   // Folder management
   createFolder: (name: string, parentId?: string | null) => Promise<string>;
+  updateFolder: (folderId: string, name: string) => Promise<void>;
   deleteFolder: (folderId: string) => Promise<void>;
   listFolders: () => Promise<Folder[]>;
   moveCharacterToFolder: (characterId: string, folderId: string | null) => Promise<void>;
@@ -183,6 +184,14 @@ export class FirebaseCharacterRepository implements CharacterRepository {
     const now = new Date();
     await setDoc(docRef, { id, name, createdAt: now, updatedAt: now, parentId });
     return id;
+  }
+
+  async updateFolder(folderId: string, name: string): Promise<void> {
+    const folderRef = doc(this.folderCollection, folderId);
+    await updateDoc(folderRef, {
+      name,
+      updatedAt: new Date(),
+    });
   }
 
   async deleteFolder(folderId: string): Promise<void> {

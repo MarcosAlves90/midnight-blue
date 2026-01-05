@@ -10,29 +10,43 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { FolderPlus, Loader2, Folder as FolderIcon } from "lucide-react";
+import { FolderPlus, Loader2, Folder as FolderIcon, Pencil } from "lucide-react";
 import { cn } from "@/lib/utils";
+import type { Folder } from "@/lib/types/character";
 
 interface NewFolderDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onCreate: (name: string, parentId: string | null) => Promise<void>;
+  onUpdate?: (folderId: string, name: string) => Promise<void>;
   parentId: string | null;
+  folderToEdit?: Folder | null;
 }
 
-export function NewFolderDialog({ open, onOpenChange, onCreate, parentId }: NewFolderDialogProps) {
+export function NewFolderDialog({ 
+  open, 
+  onOpenChange, 
+  onCreate, 
+  onUpdate,
+  parentId,
+  folderToEdit 
+}: NewFolderDialogProps) {
   const [name, setName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Reset state when dialog closes
+  // Reset state when dialog closes or folderToEdit changes
   useEffect(() => {
-    if (!open) {
-      setName("");
+    if (open) {
+      if (folderToEdit) {
+        setName(folderToEdit.name);
+      } else {
+        setName("");
+      }
       setError(null);
       setIsLoading(false);
     }
-  }, [open]);
+  }, [open, folderToEdit]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,11 +58,15 @@ export function NewFolderDialog({ open, onOpenChange, onCreate, parentId }: NewF
     setIsLoading(true);
     setError(null);
     try {
-      await onCreate(name.trim(), parentId);
+      if (folderToEdit && onUpdate) {
+        await onUpdate(folderToEdit.id, name.trim());
+      } else {
+        await onCreate(name.trim(), parentId);
+      }
       setName("");
       onOpenChange(false);
     } catch {
-      setError("Erro ao criar pasta. Tente novamente.");
+      setError(`Erro ao ${folderToEdit ? "atualizar" : "criar"} pasta. Tente novamente.`);
     } finally {
       setIsLoading(false);
     }
@@ -65,17 +83,17 @@ export function NewFolderDialog({ open, onOpenChange, onCreate, parentId }: NewF
         <DialogHeader className="p-6 pb-0">
           <div className="flex items-center gap-2 mb-2">
             <div className="p-1.5 rounded bg-primary/10 text-primary">
-              <FolderPlus className="w-4 h-4" />
+              {folderToEdit ? <Pencil className="w-4 h-4" /> : <FolderPlus className="w-4 h-4" />}
             </div>
             <span className="text-[10px] font-bold tracking-[0.2em] text-muted-foreground uppercase">
               Sistema de Arquivamento
             </span>
           </div>
           <DialogTitle className="text-2xl font-black tracking-tighter uppercase italic">
-            Nova Seção
+            {folderToEdit ? "Editar Seção" : "Nova Seção"}
           </DialogTitle>
           <DialogDescription className="sr-only">
-            Criando novo diretório para organização de dossiês.
+            {folderToEdit ? "Alterando identificador do diretório." : "Criando novo diretório para organização de dossiês."}
           </DialogDescription>
         </DialogHeader>
 
@@ -122,10 +140,10 @@ export function NewFolderDialog({ open, onOpenChange, onCreate, parentId }: NewF
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-3 w-3 animate-spin" />
-                  Criando...
+                  {folderToEdit ? "Salvando..." : "Criando..."}
                 </>
               ) : (
-                "Confirmar"
+                folderToEdit ? "Salvar" : "Criar"
               )}
             </Button>
           </div>
