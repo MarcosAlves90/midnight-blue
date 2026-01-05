@@ -38,10 +38,11 @@ import { FormInput } from "@/components/ui/form-input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getClientAuth } from "@/lib/firebase";
-import { sendEmailVerification } from "firebase/auth";
+import { sendEmailVerification, updateProfile } from "firebase/auth";
 import { useAuth } from "@/contexts/AuthContext";
 import { authSuccess, authError, authInfo } from "@/lib/toast";
 import { useAvatarUpload } from "@/hooks/use-avatar-upload";
+import { calculatePasswordStrength } from "@/lib/password-utils";
 
 export default function AccountSettingsForm() {
   const { user, refreshUser } = useAuth();
@@ -137,35 +138,37 @@ export default function AccountSettingsForm() {
     }
   }
 
-  function calculatePasswordStrength(pw: string) {
-    let score = 0;
-    if (!pw) return score;
-    if (pw.length >= 8) score += 1;
-    if (/[A-Z]/.test(pw)) score += 1;
-    if (/[0-9]/.test(pw)) score += 1;
-    if (/[^A-Za-z0-9]/.test(pw)) score += 1;
-    return score; // 0-4
-  }
-
-  const strength = calculatePasswordStrength(newPassword);
+  const passwordAnalysis = calculatePasswordStrength(newPassword);
 
   async function saveProfile() {
-    authSuccess("Perfil salvo com sucesso!");
+    if (!user) return;
+    try {
+      await updateProfile(user, { displayName: name });
+      authSuccess("Perfil atualizado com sucesso!");
+      refreshUser?.();
+    } catch (err) {
+      authError("Erro ao atualizar perfil: " + (err instanceof Error ? err.message : String(err)));
+    }
   }
 
   async function updatePassword() {
+    if (!currentPassword) {
+      authError("Por favor, informe sua senha atual.");
+      return;
+    }
     if (newPassword !== confirmPassword) {
       authError("As senhas não coincidem.");
       return;
     }
-    if (calculatePasswordStrength(newPassword) < 2) {
-      authError("Senha muito fraca.");
+    if (passwordAnalysis.score < 3) {
+      authError("A senha deve ser pelo menos 'Média' para sua segurança.");
       return;
     }
     // mock update
     setTimeout(() => {
       setNewPassword("");
       setConfirmPassword("");
+      setCurrentPassword("");
       authSuccess("Senha atualizada com sucesso!");
     }, 800);
   }
@@ -347,6 +350,29 @@ export default function AccountSettingsForm() {
       <div className="space-y-4">
         <Card className="border-0 shadow-none">
           <CardHeader>
+            <CardTitle>Perfil Público</CardTitle>
+            <CardDescription>
+              Como os outros usuários verão você na plataforma
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid gap-2">
+              <Label htmlFor="display-name">Nome de Exibição</Label>
+              <FormInput
+                id="display-name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Seu nome ou apelido"
+              />
+            </div>
+          </CardContent>
+          <CardFooter className="border-t px-6 pt-4">
+            <Button onClick={saveProfile}>Salvar Alterações</Button>
+          </CardFooter>
+        </Card>
+
+        <Card className="border-0 shadow-none">
+          <CardHeader>
             <CardTitle>Contato</CardTitle>
             <CardDescription>
               Gerencie seu e-mail e verificações
@@ -470,23 +496,39 @@ export default function AccountSettingsForm() {
               </div>
 
               <div className="grid gap-2">
-                <div className="h-1 bg-border rounded-md overflow-hidden">
-                  <div
-                    style={{ width: `${(strength / 4) * 100}%` }}
-                    className={`h-1 ${strength <= 1 ? "bg-red-500" : strength === 2 ? "bg-yellow-400" : "bg-green-400"}`}
-                  />
+                <div className="flex justify-between items-end">
+                  <Label className="text-xs text-muted-foreground">Força da Senha</Label>
+                  <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded ${passwordAnalysis.color.replace("bg-", "text-")} bg-muted`}>
+                    {passwordAnalysis.label}
+                  </span>
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Força: {strength}/4
-                </p>
+                <div className="h-1.5 bg-muted rounded-full overflow-hidden flex gap-0.5">
+                  {[...Array(5)].map((_, i) => (
+                    <div
+                      key={i}
+                      className={`h-full flex-1 transition-all duration-500 ${
+                        i < passwordAnalysis.score ? passwordAnalysis.color : "bg-border/30"
+                      }`}
+                    />
+                  ))}
+                </div>
+                {newPassword && passwordAnalysis.feedback.length > 0 && (
+                  <ul className="space-y-1 mt-1">
+                    {passwordAnalysis.feedback.map((f, i) => (
+                      <li key={i} className="text-[10px] text-muted-foreground flex items-center gap-1">
+                        <div className="w-1 h-1 rounded-full bg-primary/50" />
+                        {f}
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
             </CardContent>
 
-            <CardFooter className="border-t px-6 flex gap-2">
-              <Button type="submit" variant="outline">
+            <CardFooter className="border-t px-6 pt-4">
+              <Button type="submit" className="w-full md:w-auto">
                 Atualizar Senha
               </Button>
-              <Button type="button" onClick={saveProfile}>Salvar Alterações</Button>
             </CardFooter>
           </form>
         </Card>
