@@ -53,7 +53,7 @@ export const IdentityField = React.memo(({
   const InputComponent = textarea ? Textarea : FormInput;
 
   return (
-    <div className={cn("space-y-1.5", className)}>
+    <div className={cn("space-y-1.5 min-w-0", className)}>
       {description ? (
         <Tip
           content={<div className="max-w-xs text-xs">{description}</div>}
@@ -62,19 +62,19 @@ export const IdentityField = React.memo(({
         >
           <label 
             htmlFor={String(field)} 
-            className="text-[10px] font-medium text-muted-foreground uppercase flex items-center gap-1 cursor-help w-fit"
+            className="text-[10px] font-medium text-muted-foreground uppercase flex items-center gap-1 cursor-help w-fit max-w-full"
           >
-            {icon}
-            <span className="decoration-dotted underline underline-offset-2">{label}</span>
+            <span className="shrink-0">{icon}</span>
+            <span className="decoration-dotted underline underline-offset-2 truncate">{label}</span>
           </label>
         </Tip>
       ) : (
         <label 
           htmlFor={String(field)} 
-          className="text-[10px] font-medium text-muted-foreground uppercase flex items-center gap-1 w-fit"
+          className="text-[10px] font-medium text-muted-foreground uppercase flex items-center gap-1 w-fit max-w-full"
         >
-          {icon}
-          <span>{label}</span>
+          <span className="shrink-0">{icon}</span>
+          <span className="truncate">{label}</span>
         </label>
       )}
       <InputComponent
@@ -84,7 +84,7 @@ export const IdentityField = React.memo(({
         onChange={handleChange}
         onBlur={handleBlur}
         placeholder={placeholder}
-        className={inputClassName}
+        className={cn("w-full min-w-0", inputClassName)}
         aria-label={label}
       />
     </div>

@@ -82,10 +82,9 @@ export default function Individual() {
 
   return (
     <div className="pb-10">
-
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
-        <div className="xl:col-span-3">
-          <div className="sticky top-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <div className="lg:col-span-5 xl:col-span-4 2xl:col-span-3">
+          <div className="lg:sticky lg:top-6">
             <IdentityCard
               cardRef={cardRef}
               fileInputRef={fileInputRef}
@@ -97,7 +96,7 @@ export default function Individual() {
           </div>
         </div>
 
-        <div className="xl:col-span-9 space-y-4">
+        <div className="lg:col-span-7 xl:col-span-8 2xl:col-span-9 space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <div className="space-y-4">
               <BiometricDataLazy />

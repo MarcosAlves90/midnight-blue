@@ -80,7 +80,7 @@ export const IdentityCard: React.FC<IdentityCardContainerProps> = ({
 
   return (
     <div
-      className="w-full max-w-[380px] mx-auto"
+      className="w-full max-w-[420px] mx-auto lg:max-w-none"
       style={{
         perspective: isMobile ? "none" : "1000px",
       }}

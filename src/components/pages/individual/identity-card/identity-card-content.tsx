@@ -51,7 +51,7 @@ export const IdentityCardContent: React.FC<IdentityCardContentProps> = ({
             root@identity:~$
           </GlitchText>
         </div>
-        <div className="flex items-baseline gap-1">
+        <div className="flex flex-wrap items-center gap-1">
           <Tip
             content={
               <div className="max-w-xs text-xs">
@@ -63,19 +63,19 @@ export const IdentityCardContent: React.FC<IdentityCardContentProps> = ({
           >
             <span
               style={{ color: `${glitchColor}80` }}
-              className="cursor-help decoration-dotted underline underline-offset-2"
+              className="cursor-help decoration-dotted underline underline-offset-2 whitespace-nowrap"
             >
               civil_id
             </span>
           </Tip>
-          <span style={{ color: glitchColor }}>=</span>
+          <span style={{ color: `${glitchColor}80` }}>=</span>
           <FormInput
             id="civilName"
             name="civilName"
             value={value}
             onChange={(e) => handleChange(e)}
             onBlur={handleBlur}
-            className="font-mono text-xs h-7 px-2 bg-background/50 border-border/50 focus-visible:ring-1 focus-visible:ring-primary flex-1"
+            className="font-mono text-xs h-7 px-2 bg-background/50 border-border/50 focus-visible:ring-1 focus-visible:ring-primary flex-1 min-w-[100px]"
             placeholder="[ENCRYPTED]"
             aria-label="Nome civil verdadeiro"
             style={{

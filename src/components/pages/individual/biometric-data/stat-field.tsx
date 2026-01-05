@@ -56,16 +56,19 @@ export const StatField: React.FC<StatFieldProps> = ({
   });
 
   return (
-    <div className="space-y-1.5 group">
+    <div className="space-y-1.5 group min-w-0">
       {description ? (
         <Tip
           content={<div className="max-w-xs text-xs">{description}</div>}
           side="top"
           align="start"
         >
-          <label htmlFor={fieldKey ? String(fieldKey) : undefined} className="text-[10px] font-medium text-muted-foreground uppercase flex items-center gap-1.5 group-hover:text-primary transition-colors cursor-help w-fit">
-            {icon}
-            <span className="decoration-dotted underline underline-offset-2">
+          <label 
+            htmlFor={fieldKey ? String(fieldKey) : undefined} 
+            className="text-[10px] font-medium text-muted-foreground uppercase flex items-center gap-1.5 group-hover:text-primary transition-colors cursor-help w-fit max-w-full"
+          >
+            <span className="shrink-0">{icon}</span>
+            <span className="decoration-dotted underline underline-offset-2 truncate">
               {label}
               {required && (
                 <span className="text-red-500 ml-0.5" aria-label="obrigatório">
@@ -76,9 +79,12 @@ export const StatField: React.FC<StatFieldProps> = ({
           </label>
         </Tip>
       ) : (
-        <label htmlFor={fieldKey ? String(fieldKey) : undefined} className="text-[10px] font-medium text-muted-foreground uppercase flex items-center gap-1.5 group-hover:text-primary transition-colors">
-          {icon}
-          <span>
+        <label 
+          htmlFor={fieldKey ? String(fieldKey) : undefined} 
+          className="text-[10px] font-medium text-muted-foreground uppercase flex items-center gap-1.5 group-hover:text-primary transition-colors w-fit max-w-full"
+        >
+          <span className="shrink-0">{icon}</span>
+          <span className="truncate">
             {label}
             {required && (
               <span className="text-red-500 ml-0.5" aria-label="obrigatório">
@@ -94,7 +100,7 @@ export const StatField: React.FC<StatFieldProps> = ({
         value={localValue}
         onChange={(e) => handleChange(e)}
         onBlur={handleBlur}
-        className="h-9 text-sm bg-muted/20 border-transparent focus:bg-background transition-all text-center font-medium"
+        className="h-9 text-sm bg-muted/20 border-transparent focus:bg-background transition-all text-center font-medium w-full min-w-0"
         placeholder={placeholder}
         required={required}
         aria-label={label}
