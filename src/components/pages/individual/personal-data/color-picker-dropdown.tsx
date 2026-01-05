@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { FormInput } from "@/components/ui/form-input";
 import { PREDEFINED_COLORS } from "@/components/pages/individual/constants";
-import { hexToRgb } from "@/lib/colors";
+import { useIdentityTheme } from "@/hooks/use-identity-theme";
 
 interface ColorPickerDropdownProps {
   favoriteColor: string;
@@ -22,23 +22,15 @@ export const ColorPickerDropdown: React.FC<ColorPickerDropdownProps> = ({
   const [localColor, setLocalColor] = useState(favoriteColor);
   const [, startTransition] = useTransition();
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  const updateCSSVariables = (color: string) => {
-    document.documentElement.style.setProperty("--identity-theme-color", color);
-    document.documentElement.style.setProperty(
-      "--identity-theme-rgb",
-      hexToRgb(color),
-    );
-  };
+  const { updateThemeImmediately } = useIdentityTheme(favoriteColor);
 
   useEffect(() => {
     setLocalColor(favoriteColor);
-    updateCSSVariables(favoriteColor);
   }, [favoriteColor]);
 
   const handleColorChange = (newColor: string) => {
     setLocalColor(newColor);
-    updateCSSVariables(newColor);
+    updateThemeImmediately(newColor);
 
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);

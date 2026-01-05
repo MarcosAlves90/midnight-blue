@@ -97,3 +97,60 @@ export const hexToRgb = (hex: string): string => {
     ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}`
     : "0, 0, 0";
 };
+
+/**
+ * Calcula a luminância relativa de uma cor hex.
+ * @returns Valor entre 0 (preto) e 1 (branco)
+ */
+export const getLuminance = (hex: string): number => {
+  const rgbStr = hexToRgb(hex);
+  const rgb = rgbStr.split(", ").map(Number);
+  const [r, g, b] = rgb.map((v) => {
+    v /= 255;
+    return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+  });
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+};
+
+/**
+ * Retorna uma cor de contraste (preto ou branco) baseada na luminância da cor fornecida.
+ */
+export const getContrastColor = (hex: string): string => {
+  return getLuminance(hex) > 0.45 ? "#000000" : "#ffffff";
+};
+
+/**
+ * Ajusta o brilho de uma cor (positivo para clarear, negativo para escurecer).
+ */
+export const adjustBrightness = (hex: string, percent: number): string => {
+  const rgbStr = hexToRgb(hex);
+  const rgb = rgbStr.split(", ").map(Number);
+  const adjusted = rgb.map((v) => {
+    const val = Math.round(v + (v * percent) / 100);
+    return Math.min(255, Math.max(0, val));
+  });
+  return `#${adjusted.map((v) => v.toString(16).padStart(2, "0")).join("")}`;
+};
+
+/**
+ * Gera uma cor de fundo apropriada baseada na cor favorita para garantir contraste.
+ */
+export const getOptimalCardBackground = (hex: string): string => {
+  const luminance = getLuminance(hex);
+  const rgbStr = hexToRgb(hex);
+  const rgb = rgbStr.split(", ").map(Number);
+
+  // Se a cor for muito escura (ex: preto), precisamos de um fundo significativamente mais claro
+  if (luminance < 0.03) {
+    return "rgba(40, 40, 45, 0.95)";
+  }
+
+  // Se a cor for muito clara, usamos um fundo bem escuro
+  if (luminance > 0.7) {
+    return "rgba(10, 10, 12, 0.98)";
+  }
+
+  // Para cores médias/vibrantes, usamos um fundo escuro matizado
+  // Reduzimos a saturação e o brilho da cor original para o fundo
+  return `rgba(${rgb[0] * 0.1}, ${rgb[1] * 0.1}, ${rgb[2] * 0.12}, 0.96)`;
+};

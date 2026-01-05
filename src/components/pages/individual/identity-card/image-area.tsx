@@ -27,13 +27,30 @@ export const ImageArea: React.FC<ImageAreaProps> = ({
 
   return (
     <div
-      className={`relative ${isMobile ? "aspect-[3/2]" : "aspect-[4/3]"} w-full bg-muted/50 border-b-4 group overflow-hidden mx-auto`}
+      className={`relative ${isMobile ? "aspect-[3/2]" : "aspect-[4/3]"} w-full bg-black/60 border-b-4 group overflow-hidden mx-auto transition-colors duration-500`}
       style={{
-        borderColor: `rgba(var(--identity-theme-rgb), 0.25)`,
+        borderColor: `rgba(var(--identity-theme-rgb), 0.5)`,
       }}
       role="region"
       aria-label="Área de imagem do perfil"
     >
+      {/* HUD Decorative Elements */}
+      <div className="absolute inset-0 pointer-events-none z-10 opacity-60">
+        <div className="absolute top-3 left-3 w-6 h-6 border-t-2 border-l-2" style={{ borderColor: `rgba(var(--identity-theme-rgb), 0.4)` }} />
+        <div className="absolute top-3 right-3 w-6 h-6 border-t-2 border-r-2" style={{ borderColor: `rgba(var(--identity-theme-rgb), 0.4)` }} />
+        <div className="absolute bottom-3 left-3 w-6 h-6 border-b-2 border-l-2" style={{ borderColor: `rgba(var(--identity-theme-rgb), 0.4)` }} />
+        <div className="absolute bottom-3 right-3 w-6 h-6 border-b-2 border-r-2" style={{ borderColor: `rgba(var(--identity-theme-rgb), 0.4)` }} />
+        
+        {/* Scanline effect */}
+        <div 
+          className="absolute inset-0 w-full h-[2px] bg-white/20 animate-scan"
+          style={{ 
+            background: `linear-gradient(90deg, transparent, var(--identity-theme-color), transparent)`,
+            boxShadow: `0 0 12px var(--identity-theme-color)`
+          }}
+        />
+      </div>
+
       <button
         onClick={onImageUpload}
         className="absolute inset-0 cursor-pointer flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-primary group/image"
@@ -48,26 +65,26 @@ export const ImageArea: React.FC<ImageAreaProps> = ({
               fill
               priority
               sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
-              className="w-full h-full object-cover transition-all duration-200"
+              className="w-full h-full object-cover transition-all duration-700 grayscale-[0.2] group-hover/image:grayscale-0 group-hover/image:scale-105"
               style={{
                 objectPosition: `center ${imagePosition}%`,
               }}
             />
             {/* Favorite color overlay effect */}
             <div
-              className="absolute inset-0 opacity-20 mix-blend-multiply"
+              className="absolute inset-0 opacity-10 mix-blend-overlay transition-opacity group-hover/image:opacity-25"
               style={{
                 backgroundColor: `var(--identity-theme-color, ${favoriteColor})`,
               }}
             />
-            {/* Subtle border glow */}
-            <div
-              className="absolute inset-0 border-2 opacity-30"
-              style={{
-                borderColor: `var(--identity-theme-color, ${favoriteColor})`,
-                boxShadow: `inset 0 0 20px rgba(var(--identity-theme-rgb), 0.12)`,
-              }}
-            />
+            
+            {/* HUD Data Overlay */}
+            <div className="absolute bottom-4 left-4 z-20 font-mono text-[9px] text-white font-bold uppercase tracking-widest hide-on-capture drop-shadow-md">
+              <div className="flex items-center gap-2 bg-black/40 px-2 py-1 backdrop-blur-sm border-l-2" style={{ borderLeftColor: `var(--identity-theme-color)` }}>
+                <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                LIVE_FEED::POS_{imagePosition}%
+              </div>
+            </div>
 
             {/* Position Controls */}
             <div className="absolute right-2 top-1/2 -translate-y-1/2 flex flex-col gap-1 opacity-0 group-hover/image:opacity-100 transition-opacity z-30 hide-on-capture">

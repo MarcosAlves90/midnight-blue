@@ -30,28 +30,32 @@ export const IdentityCardContent: React.FC<IdentityCardContentProps> = ({
 
   return (
     <div
-      className={`${isMobile ? "p-3" : "p-4"} flex-1 bg-gradient-to-b from-black/40 to-black/60 ${isMobile ? "min-h-[80px]" : "min-h-[120px]"} flex flex-col gap-3 font-mono text-xs`}
+      className={`${isMobile ? "p-2" : "p-3"} flex-1 bg-gradient-to-b from-transparent to-black/60 ${isMobile ? "min-h-[60px]" : "min-h-[90px]"} flex flex-col gap-3 font-mono text-[10px] transition-colors duration-500`}
       style={{
-        borderLeftColor: `${glitchColor}4d`,
+        borderLeftColor: `${glitchColor}88`,
       }}
     >
       <div
-        className="space-y-1.5 border-l-2 pl-2"
-        style={{ borderColor: `${glitchColor}4d` }}
+        className="space-y-1.5 border-l-2 pl-2.5"
+        style={{ borderColor: `${glitchColor}66` }}
       >
-        <div style={{ color: `${glitchColor}99` }}>
-          <GlitchText
-            glitchChance={0.15}
-            glitchDuration={120}
-            intervalMs={200}
-            alternateChance={0.2}
-            characterGlitchChance={0.4}
-            className="inline"
-          >
-            root@identity:~$
-          </GlitchText>
+        <div className="flex items-center justify-between opacity-80">
+          <div style={{ color: `var(--identity-accent-color, ${glitchColor})` }} className="text-[9px] tracking-widest uppercase font-bold">
+            <GlitchText
+              glitchChance={0.15}
+              glitchDuration={120}
+              intervalMs={200}
+              alternateChance={0.2}
+              characterGlitchChance={0.4}
+              className="inline"
+            >
+              Subject_Identification
+            </GlitchText>
+          </div>
+          <div className="text-[7px] text-white/40">SECURE_LINK</div>
         </div>
-        <div className="flex flex-wrap items-center gap-1">
+        
+        <div className="flex flex-col gap-0.5">
           <Tip
             content={
               <div className="max-w-xs text-xs">
@@ -62,38 +66,38 @@ export const IdentityCardContent: React.FC<IdentityCardContentProps> = ({
             align="start"
           >
             <span
-              style={{ color: `${glitchColor}80` }}
-              className="cursor-help decoration-dotted underline underline-offset-2 whitespace-nowrap"
+              style={{ color: `var(--identity-theme-color, ${favoriteColor})` }}
+              className="cursor-help text-[9px] uppercase tracking-tighter font-bold opacity-90 underline decoration-dotted underline-offset-2"
             >
-              civil_id
+              &gt; CIVIL_NAME
             </span>
           </Tip>
-          <span style={{ color: `${glitchColor}80` }}>=</span>
           <FormInput
             id="civilName"
             name="civilName"
             value={value}
             onChange={(e) => handleChange(e)}
             onBlur={handleBlur}
-            className="font-mono text-xs h-7 px-2 bg-background/50 border-border/50 focus-visible:ring-1 focus-visible:ring-primary flex-1 min-w-[100px]"
+            className="font-mono text-xs h-8 px-2 bg-black/60 border-white/5 focus-visible:ring-1 focus-visible:ring-primary w-full rounded-none border-l-2 transition-all"
             placeholder="[ENCRYPTED]"
             aria-label="Nome civil verdadeiro"
             style={{
-              color: glitchColor,
+              color: `var(--identity-accent-color, ${glitchColor})`,
               caretColor: glitchColor,
+              borderLeftColor: `var(--identity-theme-color, ${favoriteColor})`,
             }}
           />
         </div>
       </div>
 
       <div
-        className={`${isMobile ? "mt-auto pt-2" : "mt-auto pt-3"} border-t text-center font-mono`}
+        className={`${isMobile ? "mt-auto pt-1.5" : "mt-auto pt-2"} border-t flex justify-between items-center font-mono`}
         style={{
           borderColor: `${glitchColor}33`,
-          color: `${glitchColor}66`,
+          color: `${glitchColor}99`,
         }}
       >
-        <p className={`${isMobile ? "text-[8px]" : "text-[9px]"}`}>
+        <p className={`${isMobile ? "text-[7px]" : "text-[8px]"} uppercase tracking-widest font-bold`}>
           <GlitchText
             glitchChance={0.1}
             glitchDuration={100}
@@ -102,9 +106,14 @@ export const IdentityCardContent: React.FC<IdentityCardContentProps> = ({
             characterGlitchChance={0.3}
             className="inline"
           >
-            &gt; midnight_blue.exe --running
+            Status: Active
           </GlitchText>
         </p>
+        <div className="flex gap-0.5">
+          <div className="w-0.5 h-2 bg-current opacity-30" />
+          <div className="w-0.5 h-2 bg-current opacity-60" />
+          <div className="w-0.5 h-2 bg-current opacity-100" />
+        </div>
       </div>
     </div>
   );

@@ -5,6 +5,8 @@ import { ImageArea } from "./image-area";
 import { IdentityCardContent } from "./identity-card-content";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useIdentityField } from "@/hooks/use-identity-field";
+import { getOptimalCardBackground } from "@/lib/colors";
+import { useIdentityTheme } from "@/hooks/use-identity-theme";
 
 interface IdentityCardContainerProps {
   cardRef: React.RefObject<HTMLDivElement | null>;
@@ -73,6 +75,7 @@ export const IdentityCard: React.FC<IdentityCardContainerProps> = ({
   }, [isMobile, cardRef]);
 
   const favoriteColor = useIdentityField("favoriteColor") || "#1a1a1a";
+  useIdentityTheme(favoriteColor);
 
   const boxShadow = isMobile
     ? "0 4px 8px rgba(0, 0, 0, 0.2)"
@@ -80,7 +83,7 @@ export const IdentityCard: React.FC<IdentityCardContainerProps> = ({
 
   return (
     <div
-      className="w-full max-w-[420px] mx-auto lg:max-w-none"
+      className="w-full max-w-[360px] mx-auto lg:max-w-none"
       style={{
         perspective: isMobile ? "none" : "1000px",
       }}
@@ -100,19 +103,37 @@ export const IdentityCard: React.FC<IdentityCardContainerProps> = ({
 
         {/* Card Border/Background */}
         <div
-          className={`${isMobile ? "p-0.5 shadow-lg" : "p-0.5 shadow-2xl"} relative group`}
+          className={`${isMobile ? "p-[1px]" : "p-0.5"} relative group transition-all duration-500`}
           style={{
             backgroundColor: `var(--identity-theme-color, ${favoriteColor})`,
-            boxShadow: isMobile ? "0 8px 16px rgba(0, 0, 0, 0.3)" : boxShadow,
+            boxShadow: isMobile 
+              ? `0 8px 24px rgba(0, 0, 0, 0.5), 0 0 15px rgba(var(--identity-theme-rgb), 0.3)` 
+              : `${boxShadow}, 0 0 30px rgba(var(--identity-theme-rgb), 0.2)`,
+            clipPath: "polygon(0 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%)",
           }}
         >
           {/* Card Content Container */}
           <div
-            className="bg-card overflow-hidden h-full flex flex-col relative border-4"
+            className="bg-card overflow-hidden h-full flex flex-col relative border-[3px] transition-colors duration-500 backdrop-blur-xl"
             style={{
-              borderColor: `rgba(var(--identity-theme-rgb), 0.2)`,
+              borderColor: `rgba(var(--identity-theme-rgb), 0.3)`,
+              backgroundColor: `var(--identity-card-bg, ${getOptimalCardBackground(favoriteColor)})`,
+              clipPath: "polygon(0 0, 100% 0, 100% calc(100% - 13px), calc(100% - 13px) 100%, 0 100%)",
             }}
           >
+            {/* Glassmorphism Highlight */}
+            <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
+            
+            {/* Decorative Corner */}
+            <div 
+              className="absolute bottom-0 right-0 w-4 h-4 z-20 opacity-90"
+              style={{ 
+                backgroundColor: `var(--identity-theme-color, ${favoriteColor})`,
+                clipPath: "polygon(100% 0, 100% 100%, 0 100%)",
+                boxShadow: `0 0 10px var(--identity-theme-color)`
+              }}
+            />
+            
             <IdentityCardHeader
               favoriteColor={favoriteColor}
               onSave={onSave}
@@ -127,19 +148,21 @@ export const IdentityCard: React.FC<IdentityCardContainerProps> = ({
 
             {/* Terminal Separator Line */}
             <div
-              className={`${isMobile ? "px-2 py-1" : "px-3 py-2"} bg-gradient-to-r border-b flex items-center gap-2 shadow-sm z-10 font-mono text-[8px]`}
+              className={`${isMobile ? "px-2 py-0.5" : "px-3 py-1"} bg-black/60 border-y flex items-center justify-between gap-2 shadow-sm z-10 font-mono text-[6px] tracking-[0.2em] uppercase`}
               style={{
-                background: `linear-gradient(90deg, rgba(var(--identity-theme-rgb), 0), rgba(var(--identity-theme-rgb), 0.5), rgba(var(--identity-theme-rgb), 0))`,
                 borderColor: `rgba(var(--identity-theme-rgb), 0.3)`,
-                color: `rgba(var(--identity-theme-rgb), 0.6)`,
+                color: `rgba(var(--identity-theme-rgb), 0.8)`,
               }}
             >
-              <span className={`${isMobile ? "hidden" : ""} sys-scan-line`}>
-                ├─ SYS.SCAN(){" "}
-              </span>
-              <span className={`${isMobile ? "" : "hidden"} sys-scan-line`}>
-                ├─ SCAN(){" "}
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="sys-scan-line">
+                  {isMobile ? "SCAN" : "SYSTEM_SCAN"}
+                </span>
+              </div>
+              <div className="flex gap-4 opacity-50">
+                <span>LOC::DATA_STREAM</span>
+                <span className={isMobile ? "hidden" : ""}>AUTH::VERIFIED</span>
+              </div>
             </div>
 
             <IdentityCardContent favoriteColor={favoriteColor} />
@@ -157,6 +180,19 @@ export const IdentityCard: React.FC<IdentityCardContainerProps> = ({
           50% {
             transform: scaleX(1.3);
           }
+        }
+
+        @keyframes scan {
+          0% {
+            top: 0%;
+          }
+          100% {
+            top: 100%;
+          }
+        }
+
+        .animate-scan {
+          animation: scan 3s linear infinite;
         }
 
         .sys-scan-line::after {

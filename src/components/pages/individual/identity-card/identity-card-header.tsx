@@ -33,14 +33,23 @@ export const IdentityCardHeader: React.FC<IdentityCardHeaderProps> = ({
 
   return (
     <div
-      className={`${isMobile ? "p-2" : "p-3"} border-b-2 bg-gradient-to-b from-card/80 to-card/60 flex flex-wrap justify-between items-center gap-2 relative z-10 font-mono ${isMobile ? "text-xs" : "text-sm"}`}
+      className={`${isMobile ? "p-1.5" : "p-2"} border-b-2 bg-gradient-to-b from-black/60 to-transparent flex flex-wrap justify-between items-center gap-2 relative z-10 font-mono ${isMobile ? "text-[10px]" : "text-xs"} transition-colors duration-500`}
       style={{
-        borderColor: `rgba(var(--identity-theme-rgb), 0.3)`,
+        borderColor: `rgba(var(--identity-theme-rgb), 0.5)`,
       }}
     >
       <div className="flex items-center gap-2 min-w-fit">
+        <div 
+          className="w-1.5 h-1.5 rounded-full animate-pulse shadow-[0_0_8px_currentColor]"
+          style={{ color: `var(--identity-theme-color, ${favoriteColor})`, backgroundColor: "currentColor" }}
+        />
         <span
-          style={{ color: `var(--identity-theme-color, ${favoriteColor})` }}
+          className="font-bold tracking-tighter uppercase"
+          style={{ 
+            color: `var(--identity-theme-color, ${favoriteColor})`,
+            fontFamily: "var(--font-brevis)",
+            textShadow: `0 0 10px rgba(var(--identity-theme-rgb), 0.3)`
+          }}
         >
           <Tip
             content={
@@ -58,38 +67,39 @@ export const IdentityCardHeader: React.FC<IdentityCardHeaderProps> = ({
                 intervalMs={250}
                 alternateChance={0.18}
                 characterGlitchChance={0.35}
-                className="inline decoration-dotted underline underline-offset-2 whitespace-nowrap"
+                className="inline underline decoration-dotted underline-offset-4"
               >
-                $ identity::name=
+                ID_ENTITY
               </GlitchText>
             </div>
           </Tip>
         </span>
       </div>
-      <div className="flex items-center gap-1 flex-1 justify-end min-w-[120px]">
+      <div className="flex items-center gap-1 flex-1 justify-end min-w-[100px]">
         <FormInput
           id="heroName"
           name="heroName"
           value={value}
           onChange={(e) => handleChange(e)}
           onBlur={handleBlur}
-          className={`font-mono h-7 px-2 w-full ${isMobile ? "text-xs" : "text-xs"} text-right bg-background/50 border-border/50 focus-visible:ring-1 focus-visible:ring-primary`}
+          className={`font-mono h-7 px-2 w-full ${isMobile ? "text-[10px]" : "text-xs"} text-right bg-black/60 border-white/10 focus-visible:ring-1 focus-visible:ring-primary rounded-none border-r-2 transition-all`}
           placeholder="HERO_NAME"
           aria-label="Nome do herói"
           style={{
-            color: glitchColor,
+            color: `var(--identity-accent-color, ${glitchColor})`,
             caretColor: glitchColor,
+            borderRightColor: `var(--identity-theme-color, ${favoriteColor})`,
           }}
         />
         <button
           onClick={onSave}
-          className="hide-on-capture p-1 hover:bg-white/10 rounded transition-colors shrink-0"
+          className="hide-on-capture p-1 hover:bg-white/10 rounded-none transition-colors shrink-0 border border-white/5 active:scale-95"
           title="Salvar Card"
           type="button"
         >
           <Download
             className={`${isMobile ? "w-2.5 h-2.5" : "w-3 h-3"}`}
-            style={{ color: glitchColor }}
+            style={{ color: `var(--identity-theme-color, ${favoriteColor})` }}
           />
         </button>
       </div>
