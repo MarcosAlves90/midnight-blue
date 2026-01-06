@@ -1,203 +1,234 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useMemo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { Button } from "@/components/ui/button";
-import { NewCharacterDialog } from "@/components/pages/gallery/new-character-dialog";
-import { NewFolderDialog } from "@/components/pages/gallery/new-folder-dialog";
-import { DeleteFolderDialog } from "@/components/pages/gallery/delete-folder-dialog";
-import { useCharacter } from "@/contexts/CharacterContext";
-import { CharacterCard } from "./character-card";
-import { FolderCard } from "@/components/ui/custom/folder-card";
-import { useGalleryState, useGalleryActions } from "./use-gallery";
-import { 
-  LoadingState, 
-  UnauthenticatedState, 
-  ErrorState, 
-  EmptyState 
-} from "./gallery-states";
-import { 
-  Search, 
-  FolderPlus, 
-  Folder as FolderIcon, 
-  ChevronRight,
-  Move,
-} from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
-import { cn } from "@/lib/utils";
+
 import { GalleryLayout } from "@/components/ui/custom/gallery-layout";
+import { NewCharacterDialog } from "./new-character-dialog";
+import { NewFolderDialog } from "./new-folder-dialog";
+import { DeleteFolderDialog } from "./delete-folder-dialog";
+import { LoadingState, UnauthenticatedState, ErrorState, EmptyState } from "./gallery-states";
+import { AdminUserList } from "./admin-user-list";
+import { GalleryGrid } from "./gallery-grid";
+import { GalleryActions } from "./gallery-actions";
+import { useGalleryState, useGallery } from "./use-gallery";
+
+import type { Folder } from "@/lib/types/character";
 
 export default function CharacterGallery() {
-  const router = useRouter();
   const { user } = useAuth();
-  const { openNewDialog, setOpenNewDialog, setSelectedCharacter } = useCharacter();
-
-  const state = useGalleryState();
+  const gallery = useGallery();
+  
   const { 
-    setCharacters, 
-    setFolders,
-    setIsLoading, 
-    setError, 
-    setDialogOpen, 
-    setDeletingId,
-    searchQuery,
-    setSearchQuery,
-    currentFolderId,
-    setCurrentFolderId,
-    setFolderDialogOpen,
-    deleteFolderDialogOpen,
-    setDeleteFolderDialogOpen,
-    folderToDelete,
-    setFolderToDelete
-  } = state;
+    isAdmin, isAdminMode, targetUserId, setIsAdminMode, setTargetUserId, ownUserId,
+    isLoading, error, searchQuery, setSearchQuery, currentFolderId, setCurrentFolderId,
+    folders, characters, users, setCharacters, setFolders, setIsLoading, setError,
+    fetchUsers, fetchUser, handleSelectCharacter, handleDeleteCharacter, 
+    handleCreateFolder, handleUpdateFolder, handleDeleteFolder, handleMoveToFolder,
+    listenToCharacters, listenToFolders, setDialogOpen, setFolderDialogOpen, 
+    setFolderToDelete, setDeleteFolderDialogOpen, setFolderToEdit
+  } = gallery;
 
-  const { 
-    handleSelectCharacter, 
-    handleDeleteCharacter, 
-    handleCreateFolder,
-    handleUpdateFolder,
-    handleDeleteFolder,
-    handleMoveToFolder,
-    listenToCharacters,
-    listenToFolders
-  } = useGalleryActions(
-    user?.uid || null, 
-    { setCharacters, setFolders, setError, setDeletingId, setSelectedCharacter }, 
-    router.push
-  );
-
-  const { 
-    folderToEdit,
-    setFolderToEdit
-  } = state;
-
-  // Abre o dialog quando o contexto sinaliza abertura de nova ficha
+  // -- Data Loading & Sync --
+  
+  // 1. Limpa o estado quando o contexto de visualização muda
   useEffect(() => {
-    if (openNewDialog) {
-      setDialogOpen(true);
-      setOpenNewDialog(false);
+    setCurrentFolderId(null);
+    setCharacters([]);
+    setFolders([]);
+  }, [targetUserId, isAdminMode, setCurrentFolderId, setCharacters, setFolders]);
+
+  // 2. Gerenciamento de Usuários (Modo Admin)
+  useEffect(() => {
+    if (isAdminMode && !targetUserId) {
+      setIsLoading(true);
+      fetchUsers().finally(() => setIsLoading(false));
+    } else if (isAdminMode && targetUserId) {
+      // Busca perfil básico para o header, sincronização de fichas é feita pelo outro efeito
+      fetchUser(targetUserId);
     }
-  }, [openNewDialog, setOpenNewDialog, setDialogOpen]);
+  }, [isAdminMode, targetUserId, fetchUsers, fetchUser, setIsLoading]);
 
-  // Escuta mudanças em tempo real na lista de personagens
+  // 3. Sincronização de Personagens e Pastas
   useEffect(() => {
-    if (!user?.uid) {
-      setIsLoading(false);
+    // Se estivermos na lista de usuários (admin sem target), não sincronizamos fichas ainda
+    if (!ownUserId || (isAdminMode && !targetUserId)) {
+      if (!ownUserId) setIsLoading(false);
       return;
     }
 
-    let unsubscribeChars: (() => void) | undefined;
-    let unsubscribeFolders: (() => void) | undefined;
+    setIsLoading(true);
+    let unsubChars: (() => void) | undefined;
+    let unsubFolders: (() => void) | undefined;
 
     try {
-      unsubscribeChars = listenToCharacters((chars) => {
-        setCharacters(chars);
-        setError(null);
-        setIsLoading(false);
-      });
-
-      unsubscribeFolders = listenToFolders((folders) => {
-        setFolders(folders);
-      });
+      unsubChars = listenToCharacters(
+        (chars) => {
+          setCharacters(chars);
+          setError(null);
+          setIsLoading(false);
+        },
+        (err) => {
+          console.error("Characters Listener Error:", err);
+          setError("Erro ao sincronizar personagens");
+          setIsLoading(false);
+        }
+      );
+      
+      unsubFolders = listenToFolders(
+        setFolders,
+        (err) => {
+          console.error("Folders Listener Error:", err);
+          setError("Erro ao sincronizar pastas");
+          setIsLoading(false);
+        }
+      );
     } catch (err) {
-      console.error("Erro ao escutar mudanças:", err);
+      console.error("Gallery Sync Error:", err);
       setError("Erro ao carregar dados da galeria");
       setIsLoading(false);
     }
 
     return () => {
-      if (unsubscribeChars) unsubscribeChars();
-      if (unsubscribeFolders) unsubscribeFolders();
+      unsubChars?.();
+      unsubFolders?.();
     };
-  }, [user?.uid, listenToCharacters, listenToFolders, setCharacters, setFolders, setError, setIsLoading]);
+  }, [ownUserId, targetUserId, isAdminMode, listenToCharacters, listenToFolders, setCharacters, setFolders, setError, setIsLoading]);
 
-  // Force unlock body when all dialogs are closed
-  useEffect(() => {
-    if (!state.dialogOpen && !state.folderDialogOpen && !deleteFolderDialogOpen) {
-      const timer = setTimeout(() => {
-        document.body.style.pointerEvents = "";
-        document.body.style.overflow = "";
-      }, 100);
-      return () => clearTimeout(timer);
-    }
-  }, [state.dialogOpen, state.folderDialogOpen, deleteFolderDialogOpen]);
-
-  // Breadcrumb logic
-  const getFolderPath = (folderId: string | null) => {
+  // -- Derived Data --
+  const folderPath = useMemo(() => {
     const path = [];
-    let currentId = folderId;
+    let currentId = currentFolderId;
     while (currentId) {
-      const folder = state.folders.find(f => f.id === currentId);
+      const folder = folders.find(f => f.id === currentId);
       if (folder) {
         path.unshift(folder);
         currentId = folder.parentId || null;
-      } else {
-        break;
-      }
+      } else break;
     }
     return path;
-  };
+  }, [currentFolderId, folders]);
 
-  const folderPath = getFolderPath(currentFolderId);
+  const filteredUsers = useMemo(() => {
+    if (!isAdminMode || targetUserId) return [];
+    const q = searchQuery.toLowerCase();
+    return users.filter(u => 
+      !q || 
+      (u.displayName || "").toLowerCase().includes(q) || 
+      (u.email || "").toLowerCase().includes(q)
+    );
+  }, [isAdminMode, targetUserId, users, searchQuery]);
 
-  const filteredFolders = state.folders.filter(f => {
-    const matchesSearch = f.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesParent = (f.parentId || null) === currentFolderId;
-    return matchesSearch && matchesParent;
-  });
+  const filteredFolders = useMemo(() => 
+    folders.filter(f => 
+      f.name.toLowerCase().includes(searchQuery.toLowerCase()) && 
+      (f.parentId || null) === currentFolderId
+    ), [folders, searchQuery, currentFolderId]);
 
-  const filteredCharacters = state.characters.filter((char) => {
-    const matchesSearch = 
-      char.identity.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      char.identity.heroName.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesFolder = (char.folderId || null) === currentFolderId;
-    
-    return matchesSearch && matchesFolder;
-  });
+  const filteredCharacters = useMemo(() => 
+    characters.filter(char => 
+      (char.identity.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+       char.identity.heroName.toLowerCase().includes(searchQuery.toLowerCase())) &&
+      (char.folderId || null) === currentFolderId
+    ), [characters, searchQuery, currentFolderId]);
 
-  const hasResults = filteredFolders.length > 0 || filteredCharacters.length > 0;
+  const targetUser = users.find(u => u.id === targetUserId);
+  const galleryTitle = isAdminMode 
+    ? (targetUser ? `Fichas de ${targetUser.displayName || targetUser.email}` : "Visão de Admin")
+    : "Minhas Fichas";
 
-  if (state.isLoading) return <LoadingState />;
+  if (isLoading) return <LoadingState />;
   if (!user) return <UnauthenticatedState />;
+
+  const isShowingUserList = isAdminMode && !targetUserId;
+  const isGalleryEmpty = characters.length === 0 && folders.length === 0;
 
   return (
     <GalleryLayout
-      title="Minhas Fichas"
-      description="Gerencie e organize seus personagens"
-      searchPlaceholder="Pesquisar por nome ou codinome..."
+      title={galleryTitle}
+      description={isAdminMode ? "Modo de administração ativado" : "Gerencie e organize seus personagens"}
+      searchPlaceholder={isShowingUserList ? "Pesquisar usuários..." : "Pesquisar por nome ou codinome..."}
       searchQuery={searchQuery}
       onSearchChange={setSearchQuery}
       currentFolderId={currentFolderId}
       folderPath={folderPath}
       onFolderClick={setCurrentFolderId}
       actions={
-        <>
-          <Button variant="outline" size="sm" onClick={() => setFolderDialogOpen(true)} className="h-9">
-            <FolderPlus className="w-4 h-4 mr-2" />
-            Nova Pasta
-          </Button>
-          <Button size="sm" onClick={() => state.setDialogOpen(true)} className="h-9">
-            + Nova Ficha
-          </Button>
-        </>
+        <GalleryActions 
+          isAdmin={isAdmin}
+          isAdminMode={isAdminMode}
+          onToggleAdminMode={() => { setIsAdminMode(!isAdminMode); setTargetUserId(null); }}
+          targetUserId={targetUserId}
+          onBackToUsers={() => setTargetUserId(null)}
+          onNewFolder={() => setFolderDialogOpen(true)}
+          onNewCharacter={() => setDialogOpen(true)}
+        />
       }
     >
+      <Dialogs 
+        state={gallery} 
+        handlers={{ 
+          handleCreateFolder, handleUpdateFolder, handleDeleteFolder, 
+          setFolderDialogOpen, setFolderToEdit, setFolderToDelete, setDeleteFolderDialogOpen,
+          setCurrentFolderId
+        }} 
+      />
+
+      {error && <ErrorState error={error} />}
+
+      {isShowingUserList ? (
+        <AdminUserList users={filteredUsers} onUserClick={setTargetUserId} />
+      ) : isGalleryEmpty ? (
+        <div className={isAdminMode ? "text-center py-12 border-2 border-dashed rounded-lg" : ""}>
+          <EmptyState onCreate={isAdminMode ? () => {} : () => setDialogOpen(true)} />
+          {isAdminMode && <p className="mt-2 text-sm text-muted-foreground">Este usuário ainda não possui fichas.</p>}
+        </div>
+      ) : (
+        <GalleryGrid 
+          folders={filteredFolders}
+          allFolders={folders}
+          characters={filteredCharacters}
+          onFolderClick={setCurrentFolderId}
+          onFolderDelete={(f) => { setFolderToDelete(f); setDeleteFolderDialogOpen(true); }}
+          onFolderEdit={(f) => { setFolderToEdit(f); setFolderDialogOpen(true); }}
+          onCharacterSelect={handleSelectCharacter}
+          onCharacterDelete={handleDeleteCharacter}
+          onMoveToFolder={handleMoveToFolder}
+          deletingId={gallery.deletingId}
+          isAdminMode={isAdminMode}
+          targetUserId={targetUserId}
+          ownUserId={ownUserId}
+          onResetFilters={() => { setSearchQuery(""); setCurrentFolderId(null); }}
+        />
+      )}
+    </GalleryLayout>
+  );
+}
+
+// Sub-component for Dialogs to keep the main component cleaner
+function Dialogs({ 
+  state, 
+  handlers 
+}: { 
+  state: ReturnType<typeof useGalleryState>, 
+  handlers: {
+    handleCreateFolder: (name: string, parentId?: string | null) => Promise<void>;
+    handleUpdateFolder: (folderId: string, name: string) => Promise<void>;
+    handleDeleteFolder: (folderId: string) => Promise<void>;
+    setFolderDialogOpen: (open: boolean) => void;
+    setFolderToEdit: (folder: Folder | null) => void;
+    setFolderToDelete: (folder: Folder | null) => void;
+    setDeleteFolderDialogOpen: (open: boolean) => void;
+    setCurrentFolderId: (id: string | null) => void;
+  }
+}) {
+  return (
+    <>
       <NewCharacterDialog
         open={state.dialogOpen}
         onOpenChange={(open) => {
-          if (!open) {
-            setTimeout(() => state.setDialogOpen(false), 0);
-          } else {
-            state.setDialogOpen(true);
-          }
+          if (!open) setTimeout(() => state.setDialogOpen(false), 0);
+          else state.setDialogOpen(true);
         }}
       />
 
@@ -206,119 +237,37 @@ export default function CharacterGallery() {
         onOpenChange={(open) => {
           if (!open) {
             setTimeout(() => {
-              setFolderDialogOpen(false);
-              setFolderToEdit(null);
+              handlers.setFolderDialogOpen(false);
+              handlers.setFolderToEdit(null);
             }, 0);
-          } else {
-            setFolderDialogOpen(true);
-          }
+          } else handlers.setFolderDialogOpen(true);
         }}
-        onCreate={handleCreateFolder}
-        onUpdate={handleUpdateFolder}
-        parentId={currentFolderId}
-        folderToEdit={folderToEdit}
+        onCreate={handlers.handleCreateFolder}
+        onUpdate={handlers.handleUpdateFolder}
+        parentId={state.currentFolderId}
+        folderToEdit={state.folderToEdit}
       />
 
       <DeleteFolderDialog
-        open={deleteFolderDialogOpen}
-        folderName={folderToDelete?.name || ""}
+        open={state.deleteFolderDialogOpen}
+        folderName={state.folderToDelete?.name || ""}
         onOpenChange={(open) => {
           if (!open) {
             setTimeout(() => {
-              setDeleteFolderDialogOpen(false);
-              setFolderToDelete(null);
+              handlers.setDeleteFolderDialogOpen(false);
+              handlers.setFolderToDelete(null);
             }, 0);
-          } else {
-            setDeleteFolderDialogOpen(true);
-          }
+          } else handlers.setDeleteFolderDialogOpen(true);
         }}
         onConfirm={async () => {
-          if (folderToDelete) {
-            await handleDeleteFolder(folderToDelete.id);
-            if (currentFolderId === folderToDelete.id) {
-              setCurrentFolderId(folderToDelete.parentId || null);
+          if (state.folderToDelete) {
+            await handlers.handleDeleteFolder(state.folderToDelete.id);
+            if (state.currentFolderId === state.folderToDelete.id) {
+              handlers.setCurrentFolderId(state.folderToDelete.parentId || null);
             }
           }
         }}
       />
-
-      {state.error && <ErrorState error={state.error} />}
-
-      {state.characters.length === 0 && state.folders.length === 0 ? (
-        <EmptyState onCreate={() => state.setDialogOpen(true)} />
-      ) : !hasResults ? (
-        <div className="text-center py-12 border-2 border-dashed rounded-lg">
-          <Search className="w-12 h-12 mx-auto text-muted-foreground opacity-20 mb-4" />
-          <h3 className="text-lg font-medium">Nenhum item encontrado</h3>
-          <p className="text-muted-foreground">Tente ajustar sua pesquisa ou filtro.</p>
-          <Button variant="link" onClick={() => { setSearchQuery(""); setCurrentFolderId(null); }}>
-            Limpar filtros
-          </Button>
-        </div>
-      ) : (
-        <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
-          {/* Render Folders */}
-          {filteredFolders.map((folder) => (
-            <FolderCard
-              key={folder.id}
-              folder={folder}
-              onClick={() => setCurrentFolderId(folder.id)}
-              onDelete={() => {
-                setFolderToDelete(folder);
-                setDeleteFolderDialogOpen(true);
-              }}
-              onEdit={() => {
-                setFolderToEdit(folder);
-                setFolderDialogOpen(true);
-              }}
-            />
-          ))}
-
-          {/* Render Characters */}
-          {filteredCharacters.map((character) => (
-            <div key={character.id} className="relative group">
-              <CharacterCard
-                character={character}
-                onSelect={() => handleSelectCharacter(character)}
-                onDelete={() => handleDeleteCharacter(character.id)}
-                isDeleting={state.deletingId === character.id}
-              />
-              
-              {/* Move to Folder Action */}
-              <div className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 has-[[data-state=open]]:opacity-100 transition-opacity">
-                <DropdownMenu modal={false}>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full shadow-md bg-background/80 backdrop-blur-sm border border-border">
-                      <Move className="w-4 h-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-48">
-                    <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                      Mover para...
-                    </div>
-                    <DropdownMenuItem onClick={() => handleMoveToFolder(character.id, null)}>
-                      <ChevronRight className={cn("w-4 h-4 mr-2", !character.folderId && "text-primary")} />
-                      Sem Pasta
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    {state.folders.map((f) => (
-                      <DropdownMenuItem key={f.id} onClick={() => handleMoveToFolder(character.id, f.id)}>
-                        <FolderIcon className={cn("w-4 h-4 mr-2", character.folderId === f.id && "text-primary")} />
-                        {f.name}
-                      </DropdownMenuItem>
-                    ))}
-                    {state.folders.length === 0 && (
-                      <div className="px-2 py-4 text-center text-xs text-muted-foreground italic">
-                        Nenhuma pasta criada
-                      </div>
-                    )}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </GalleryLayout>
+    </>
   );
 }

@@ -27,16 +27,20 @@ export function useCharacterPersistence(
   // Callback ref for notifying when save succeeds (used by IdentityContext to clear dirtyFields)
   const onSaveSuccessRef = useRef<((savedFields: string[]) => void) | null>(null);
 
+  // Initialize repo immediately when userId is available, and recreate if userId changes
+  if (userId && (!repoRef.current || repoRef.current.userId !== userId)) {
+    repoRef.current = new FirebaseCharacterRepository(userId);
+    persistenceManagerRef.current = new PersistenceManager(userId);
+  }
+
   useEffect(() => {
-    // instantiate repository and autosave service when userId/characterId available
-    if (userId && characterId) {
+    // instantiate autosave service when userId/characterId available
+    if (userId && characterId && repoRef.current) {
       // Reset fingerprint when characterId changes to avoid false positives
       lastSavedDataRef.current = null;
       pendingObjRef.current = null;
       pendingFieldsRef.current = new Set();
 
-      repoRef.current = new FirebaseCharacterRepository(userId);
-      persistenceManagerRef.current = new PersistenceManager(userId);
       autoSaveServiceRef.current = new AutoSaveService(async (data) => {
         if (!persistenceManagerRef.current) throw new Error("PersistenceManager not initialized");
 
@@ -88,7 +92,6 @@ export function useCharacterPersistence(
         },
       });
     } else {
-      persistenceManagerRef.current = null;
       autoSaveServiceRef.current = null;
       // Reset fingerprint when no character is selected
       lastSavedDataRef.current = null;
@@ -97,7 +100,12 @@ export function useCharacterPersistence(
     }
 
     return () => {
-      // noop
+      // Flush any pending changes when the character context changes
+      if (autoSaveServiceRef.current) {
+        autoSaveServiceRef.current.flush().catch(err => {
+          console.debug("[auto-save] suppress flush error on unmount", err);
+        });
+      }
     };
   }, [userId, characterId]);
 
@@ -235,21 +243,22 @@ export function useCharacterPersistence(
 
       // Fast-path: attempt to restore from localStorage
       try {
-        const stored = (() => {
+        const storedRaw = (() => {
           try {
             const s = localStorage.getItem(localStorageKey);
-            return s ? (JSON.parse(s) as CharacterDocument) : null;
+            return s ? (JSON.parse(s) as Record<string, unknown>) : null;
           } catch {
             return null;
           }
         })();
 
-        if (stored) {
+        if (storedRaw) {
+          // Re-map raw stored data to ensure Date objects and consistent structure
+          const stored = mapFirestoreToCharacter(storedRaw.id as string, storedRaw);
+          
           // Check if stored data is stale by checking updatedAt timestamp
           // Consider stale if updatedAt is more than STALE_THRESHOLD_MS ago
-          const storedUpdatedAt = stored.updatedAt instanceof Date 
-            ? stored.updatedAt.getTime() 
-            : new Date(stored.updatedAt).getTime();
+          const storedUpdatedAt = stored.updatedAt.getTime();
           const isStale = (Date.now() - storedUpdatedAt) > STALE_THRESHOLD_MS;
 
           if (isStale) {
@@ -424,10 +433,10 @@ export function useCharacterPersistence(
    * Escuta mudanças em tempo real na lista de personagens
    */
   const listenToCharacters = useCallback(
-    (callback: (characters: CharacterDocument[]) => void) => {
+    (callback: (characters: CharacterDocument[]) => void, onError?: (error: Error) => void) => {
       if (!userId) throw new Error("Usuário não autenticado");
       if (!repoRef.current) repoRef.current = new FirebaseCharacterRepository(userId);
-      return repoRef.current.onCharactersChange(callback);
+      return repoRef.current.onCharactersChange(callback, onError);
     },
     [userId],
   );
@@ -471,11 +480,14 @@ export function useCharacterPersistence(
   /**
    * Escuta mudanças em tempo real nas pastas
    */
-  const listenToFolders = useCallback((callback: (folders: Folder[]) => void) => {
-    if (!userId) return () => {};
-    if (!repoRef.current) repoRef.current = new FirebaseCharacterRepository(userId);
-    return repoRef.current.onFoldersChange(callback);
-  }, [userId]);
+  const listenToFolders = useCallback(
+    (callback: (folders: Folder[]) => void, onError?: (error: Error) => void) => {
+      if (!userId) return () => {};
+      if (!repoRef.current) repoRef.current = new FirebaseCharacterRepository(userId);
+      return repoRef.current.onFoldersChange(callback, onError);
+    },
+    [userId],
+  );
 
   // Try to flush pending saves when page is hidden/unloaded to reduce chance of lost edits
   useEffect(() => {

@@ -53,8 +53,11 @@ export function CharacterSheetProvider({ children }: { children: React.ReactNode
   const [dirtyFields, setDirtyFields] = useState<Set<string>>(new Set());
   const [conflict, setConflict] = useState<null | { server: CharacterDocument; attempted: Partial<CharacterData> }>(null);
 
+  // Se o personagem selecionado pertencer a outro usuário (Admin mode), usamos o userId dono da ficha
+  const persistenceUserId = selectedCharacter?.userId ?? user?.uid ?? null;
+
   const { scheduleAutoSave, saveImmediately, setOnSaveSuccess } = useCharacterPersistence(
-    user?.uid ?? null,
+    persistenceUserId,
     selectedCharacter?.id
   );
 

@@ -1,5 +1,4 @@
 import React, { useCallback, useMemo } from "react";
-import Image from "next/image";
 import { Camera, Upload, ChevronUp, ChevronDown, Loader2 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useIdentityActions } from "@/contexts/IdentityContext";
@@ -52,10 +51,6 @@ export const ImageArea: React.FC<ImageAreaProps> = React.memo(({
     background: `linear-gradient(90deg, transparent, var(--identity-theme-color), transparent)`,
     boxShadow: `0 0 12px var(--identity-theme-color)`
   }), []);
-
-  const imageStyle = useMemo(() => ({
-    objectPosition: `center ${imagePosition}%`,
-  }), [imagePosition]);
 
   const overlayStyle = useMemo(() => ({
     backgroundColor: `var(--identity-theme-color, ${favoriteColor})`,

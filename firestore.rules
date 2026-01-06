@@ -2,41 +2,46 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Permitir leitura e escrita apenas para usuários autenticados em seus próprios documentos
+    // Helper function to check if user is admin
+    function isAdmin() {
+      return request.auth != null && request.auth.token.admin == true;
+    }
+
+    // Permitir leitura e escrita apenas para usuários autenticados em seus próprios documentos ou admins
     match /users/{userId} {
-      allow read: if request.auth != null && request.auth.uid == userId;
+      allow read: if (request.auth != null && request.auth.uid == userId) || isAdmin();
       allow create: if request.auth != null && request.auth.uid == userId;
-      allow update: if request.auth != null && request.auth.uid == userId;
-      allow delete: if false;
+      allow update: if (request.auth != null && request.auth.uid == userId) || isAdmin();
+      allow delete: if isAdmin();
 
       // Subcoleção de personagens do usuário
       match /characters/{characterId} {
-        allow read: if request.auth != null && request.auth.uid == userId;
-        allow create: if request.auth != null && request.auth.uid == userId && request.resource.data.userId == request.auth.uid;
-        allow update: if request.auth != null && request.auth.uid == userId && resource.data.userId == request.auth.uid;
-        allow delete: if request.auth != null && request.auth.uid == userId && resource.data.userId == request.auth.uid;
+        allow read: if (request.auth != null && request.auth.uid == userId) || isAdmin();
+        allow create: if (request.auth != null && request.auth.uid == userId && request.resource.data.userId == request.auth.uid) || isAdmin();
+        allow update: if (request.auth != null && request.auth.uid == userId && (resource.data.userId == request.auth.uid || isAdmin())) || isAdmin();
+        allow delete: if (request.auth != null && request.auth.uid == userId && resource.data.userId == request.auth.uid) || isAdmin();
       }
 
       // Subcoleção de pastas do usuário
       match /folders/{folderId} {
-        allow read: if request.auth != null && request.auth.uid == userId;
-        allow write: if request.auth != null && request.auth.uid == userId;
+        allow read: if (request.auth != null && request.auth.uid == userId) || isAdmin();
+        allow write: if (request.auth != null && request.auth.uid == userId) || isAdmin();
       }
 
       // Subcoleção de anotações do usuário
       match /notes/{noteId} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
+        allow read, write: if (request.auth != null && request.auth.uid == userId) || isAdmin();
       }
 
       // Subcoleção de pastas de anotações do usuário
       match /note_folders/{folderId} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
+        allow read, write: if (request.auth != null && request.auth.uid == userId) || isAdmin();
       }
     }
 
     // Bloquear tudo mais por padrão
     match /{document=**} {
-      allow read, write: if false;
+      allow read, write: if isAdmin();
     }
   }
 }

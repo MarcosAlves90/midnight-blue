@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import { Shield, Trash2, Loader2 } from "lucide-react";
 import { DeleteCharacterDialog } from "./delete-character-dialog";
 import type { CharacterDocument } from "@/lib/types/character";

@@ -3,7 +3,6 @@
 import * as React from "react";
 import { ChevronsUpDown, Plus, BookOpen, AlertCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CharacterImage } from "@/components/ui/custom/character-image";
 
@@ -22,6 +21,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAdmin } from "@/contexts/AdminContext";
 import { useCharacter } from "@/contexts/CharacterContext";
 import { useCharacterPersistence } from "@/hooks/use-character-persistence";
 import type { CharacterDocument } from "@/lib/types/character";
@@ -72,11 +72,15 @@ function InitialCharacterButton({ onCreate }: { onCreate: () => void }) {
 export function CharacterSwitcher() {
   const { isMobile } = useSidebar();
   const { user, loading: authLoading } = useAuth();
+  const { isAdminMode, targetUserId } = useAdmin();
   const router = useRouter();
   const characterContext = useCharacter();
   const { selectedCharacter, setSelectedCharacter } = characterContext;
+  
+  const effectiveUserId = (isAdminMode && targetUserId) ? targetUserId : (user?.uid || null);
+
   const { listenToCharacters, selectCharacter } = useCharacterPersistence(
-    user?.uid || null,
+    effectiveUserId,
   );
 
   const [characters, setCharacters] = React.useState<CharacterDocument[]>([]);
@@ -92,12 +96,17 @@ export function CharacterSwitcher() {
   React.useEffect(() => {
     if (authLoading) return;
 
-    if (!user?.uid) {
+    if (!effectiveUserId) {
       setIsLoading(false);
+      setCharacters([]);
       return;
     }
 
     let unsubscribe: (() => void) | undefined;
+    
+    // Limpa estado anterior ao mudar de usuário para evitar flashes
+    setCharacters([]);
+    setIsLoading(true);
 
     try {
       unsubscribe = listenToCharacters((chars) => {
@@ -116,7 +125,7 @@ export function CharacterSwitcher() {
         unsubscribe();
       }
     };
-  }, [user?.uid, authLoading, listenToCharacters]);
+  }, [effectiveUserId, authLoading, listenToCharacters]);
 
   const handleSelectCharacter = async (character: CharacterDocument) => {
     setSelectedCharacter(character);

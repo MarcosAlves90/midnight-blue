@@ -25,6 +25,7 @@
 *.pem
 /.idea/
 .github
+set-admin.ts
 
 # debug
 npm-debug.log*

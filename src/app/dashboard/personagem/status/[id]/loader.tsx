@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAdmin } from "@/contexts/AdminContext";
 import { useCharacterPersistence } from "@/hooks/use-character-persistence";
 import { useCharacter } from "@/contexts/CharacterContext";
 import Status from "@/components/pages/status/status";
@@ -9,7 +10,12 @@ import { StatusSkeleton } from "@/components/pages/status/status-skeleton";
 
 export default function Loader({ id }: { id: string }) {
   const { user, loading: authLoading } = useAuth();
-  const { loadCharacter } = useCharacterPersistence(user?.uid || null);
+  const { isAdminMode, targetUserId } = useAdmin();
+  
+  // No modo admin, usamos o targetUserId. Caso contrário, usamos o uid do próprio usuário.
+  const effectiveUserId = (isAdminMode && targetUserId) ? targetUserId : (user?.uid || null);
+
+  const { loadCharacter } = useCharacterPersistence(effectiveUserId);
   const { setSelectedCharacter } = useCharacter();
 
   const [loading, setLoading] = useState(true);
@@ -20,7 +26,7 @@ export default function Loader({ id }: { id: string }) {
 
     let cancelled = false;
     const load = async () => {
-      if (!user?.uid || !id) {
+      if (!effectiveUserId || !id) {
         setError("Usuário não autenticado ou id inválido");
         setLoading(false);
         return;
@@ -47,7 +53,7 @@ export default function Loader({ id }: { id: string }) {
 
     load();
     return () => { cancelled = true; };
-  }, [id, user?.uid, authLoading, loadCharacter, setSelectedCharacter]);
+  }, [id, effectiveUserId, authLoading, loadCharacter, setSelectedCharacter]);
 
   if (loading) return <StatusSkeleton />;
   if (error) return <div className="text-red-500">{error}</div>;

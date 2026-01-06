@@ -76,7 +76,7 @@ export function GalleryLayout({
         </Button>
 
         {folderPath.map((folder, index) => (
-          <div key={folder.id} className="flex items-center gap-2">
+          <div key={`breadcrumb-${folder.id}`} className="flex items-center gap-2">
             <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/50" />
             <Button
               variant="ghost"

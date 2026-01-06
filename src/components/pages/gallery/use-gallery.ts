@@ -1,12 +1,22 @@
 "use client";
 
-import { useState, type Dispatch, type SetStateAction } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useCharacterPersistence } from "@/hooks/use-character-persistence";
 import type { CharacterDocument, Folder } from "@/lib/types/character";
+import { useAdmin } from "@/contexts/AdminContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { UserService, type UserProfile } from "@/services/user-service";
+import { useRouter } from "next/navigation";
+import { useCharacter } from "@/contexts/CharacterContext";
 
+/**
+ * Hook para gerenciar o estado bruto da galeria.
+ * Mantido por compatibilidade com componentes que ainda usam a estrutura antiga.
+ */
 export function useGalleryState() {
   const [characters, setCharacters] = useState<CharacterDocument[]>([]);
   const [folders, setFolders] = useState<Folder[]>([]);
+  const [users, setUsers] = useState<UserProfile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -18,11 +28,20 @@ export function useGalleryState() {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
 
+  const resetState = useCallback(() => {
+    setCharacters([]);
+    setFolders([]);
+    setCurrentFolderId(null);
+    setSearchQuery("");
+  }, []);
+
   return {
     characters,
     setCharacters,
     folders,
     setFolders,
+    users,
+    setUsers,
     isLoading,
     setIsLoading,
     error,
@@ -43,20 +62,29 @@ export function useGalleryState() {
     setSearchQuery,
     currentFolderId,
     setCurrentFolderId,
+    resetState,
   };
 }
 
+/**
+ * Hook para gerenciar as ações da galeria.
+ * Centraliza a lógica de negócio e interação com serviços de persistência.
+ */
 export function useGalleryActions(
   userId: string | null,
   handlers: {
-    setCharacters: Dispatch<SetStateAction<CharacterDocument[]>>;
-    setFolders: Dispatch<SetStateAction<Folder[]>>;
-    setError: Dispatch<SetStateAction<string | null>>;
-    setDeletingId: Dispatch<SetStateAction<string | null>>;
+    setCharacters: (c: CharacterDocument[]) => void;
+    setFolders: (f: Folder[]) => void;
+    setUsers?: (u: UserProfile[]) => void;
+    setError: (e: string | null) => void;
+    setDeletingId: (id: string | null) => void;
     setSelectedCharacter?: (c: CharacterDocument | null) => void;
   },
   push: (url: string) => void
 ) {
+  const { isAdminMode, targetUserId } = useAdmin();
+  const effectiveUserId = (isAdminMode && targetUserId) ? targetUserId : userId;
+
   const { 
     listenToCharacters, 
     selectCharacter, 
@@ -66,9 +94,30 @@ export function useGalleryActions(
     deleteFolder,
     moveCharacterToFolder,
     listenToFolders
-  } = useCharacterPersistence(userId);
+  } = useCharacterPersistence(effectiveUserId);
 
-  const handleSelectCharacter = async (character: CharacterDocument) => {
+  const fetchUsers = useCallback(async () => {
+    try {
+      const allUsers = await UserService.listAllUsers();
+      handlers.setUsers?.(allUsers);
+    } catch (error) {
+      console.error("Erro ao carregar usuários:", error);
+      handlers.setError("Erro ao carregar lista de usuários");
+    }
+  }, [handlers]);
+
+  const fetchUser = useCallback(async (uid: string) => {
+    try {
+      const user = await UserService.getUser(uid);
+      if (user) {
+        handlers.setUsers?.([user]); // No modo de busca individual simplificado
+      }
+    } catch (error) {
+      console.error("Erro ao carregar usuário:", error);
+    }
+  }, [handlers]);
+
+  const handleSelectCharacter = useCallback(async (character: CharacterDocument) => {
     try {
       handlers.setSelectedCharacter?.(character);
       await selectCharacter(character.id);
@@ -77,13 +126,12 @@ export function useGalleryActions(
       console.error("Erro ao selecionar personagem:", error);
       handlers.setError("Erro ao selecionar personagem");
     }
-  };
+  }, [handlers, selectCharacter, push]);
 
-  const handleDeleteCharacter = async (characterId: string) => {
+  const handleDeleteCharacter = useCallback(async (characterId: string) => {
     handlers.setDeletingId(characterId);
     try {
       await removeCharacter(characterId);
-      handlers.setCharacters((prev) => prev.filter((char) => char.id !== characterId));
       handlers.setError(null);
     } catch (error) {
       console.error("Erro ao deletar personagem:", error);
@@ -91,43 +139,39 @@ export function useGalleryActions(
     } finally {
       handlers.setDeletingId(null);
     }
-  };
+  }, [handlers, removeCharacter]);
 
-  const handleCreateFolder = async (name: string, parentId: string | null = null) => {
+  const handleCreateFolder = useCallback(async (name: string, parentId: string | null = null) => {
     try {
       await createFolder(name, parentId);
-    } catch (error) {
-      console.error("Erro ao criar pasta:", error);
+    } catch {
       handlers.setError("Erro ao criar pasta");
     }
-  };
+  }, [handlers, createFolder]);
 
-  const handleUpdateFolder = async (folderId: string, name: string) => {
+  const handleUpdateFolder = useCallback(async (folderId: string, name: string) => {
     try {
       await updateFolder(folderId, name);
-    } catch (error) {
-      console.error("Erro ao atualizar pasta:", error);
+    } catch {
       handlers.setError("Erro ao atualizar pasta");
     }
-  };
+  }, [handlers, updateFolder]);
 
-  const handleDeleteFolder = async (folderId: string) => {
+  const handleDeleteFolder = useCallback(async (folderId: string) => {
     try {
       await deleteFolder(folderId);
-    } catch (error) {
-      console.error("Erro ao deletar pasta:", error);
+    } catch {
       handlers.setError("Erro ao deletar pasta");
     }
-  };
+  }, [handlers, deleteFolder]);
 
-  const handleMoveToFolder = async (characterId: string, folderId: string | null) => {
+  const handleMoveToFolder = useCallback(async (characterId: string, folderId: string | null) => {
     try {
       await moveCharacterToFolder(characterId, folderId);
-    } catch (error) {
-      console.error("Erro ao mover personagem:", error);
+    } catch {
       handlers.setError("Erro ao mover personagem");
     }
-  };
+  }, [handlers, moveCharacterToFolder]);
 
   return {
     handleSelectCharacter,
@@ -138,5 +182,42 @@ export function useGalleryActions(
     handleMoveToFolder,
     listenToCharacters,
     listenToFolders,
+    fetchUsers,
+    fetchUser
+  };
+}
+
+/**
+ * NOVO: Hook unificado (Recomendado)
+ * Resolve o acoplamento excessivo e centraliza tudo em uma interface limpa.
+ */
+export function useGallery() {
+  const router = useRouter();
+  const { user, isAdmin } = useAuth();
+  const { setSelectedCharacter } = useCharacter();
+  const { isAdminMode, targetUserId, setIsAdminMode, setTargetUserId } = useAdmin();
+  
+  const state = useGalleryState();
+  
+  const handlers = useMemo(() => ({
+    setCharacters: state.setCharacters,
+    setFolders: state.setFolders,
+    setUsers: state.setUsers,
+    setError: state.setError,
+    setDeletingId: state.setDeletingId,
+    setSelectedCharacter
+  }), [state.setCharacters, state.setFolders, state.setUsers, state.setError, state.setDeletingId, setSelectedCharacter]);
+
+  const actions = useGalleryActions(user?.uid || null, handlers, router.push);
+
+  return {
+    ...state,
+    ...actions,
+    isAdmin,
+    isAdminMode,
+    targetUserId,
+    setIsAdminMode,
+    setTargetUserId,
+    ownUserId: user?.uid || null
   };
 }

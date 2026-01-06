@@ -57,7 +57,7 @@ export interface CharacterRepository {
 }
 
 export class FirebaseCharacterRepository implements CharacterRepository {
-  private userId: string;
+  public readonly userId: string;
   constructor(userId: string) {
     this.userId = userId;
   }
@@ -150,13 +150,20 @@ export class FirebaseCharacterRepository implements CharacterRepository {
     await deleteDoc(this.getDocRef(characterId));
   }
 
-  onCharactersChange(callback: (characters: CharacterDocument[]) => void): Unsubscribe {
-    return onSnapshot(query(this.characterCollection), (snapshot) => {
-      const chars = snapshot.docs
-        .map((d) => mapFirestoreToCharacter(d.id, d.data()))
-        .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
-      callback(chars);
-    });
+  onCharactersChange(callback: (characters: CharacterDocument[]) => void, onError?: (error: Error) => void): Unsubscribe {
+    return onSnapshot(
+      query(this.characterCollection), 
+      (snapshot) => {
+        const chars = snapshot.docs
+          .map((d) => mapFirestoreToCharacter(d.id, d.data()))
+          .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
+        callback(chars);
+      },
+      (error) => {
+        console.error("[FirebaseCharacterRepository] error in onCharactersChange:", error);
+        onError?.(error as Error);
+      }
+    );
   }
 
   onCharacterChange(characterId: string, callback: (character: CharacterDocument | null) => void): Unsubscribe {
@@ -218,15 +225,22 @@ export class FirebaseCharacterRepository implements CharacterRepository {
     await updateDoc(this.getDocRef(characterId), { folderId, updatedAt: new Date() });
   }
 
-  onFoldersChange(callback: (folders: Folder[]) => void): Unsubscribe {
-    return onSnapshot(query(this.folderCollection, orderBy("name", "asc")), (snapshot) => {
-      callback(snapshot.docs.map(d => ({
-        ...d.data(),
-        id: d.id,
-        createdAt: toDateSafe(d.data().createdAt),
-        updatedAt: toDateSafe(d.data().updatedAt),
-      } as Folder)));
-    });
+  onFoldersChange(callback: (folders: Folder[]) => void, onError?: (error: Error) => void): Unsubscribe {
+    return onSnapshot(
+      query(this.folderCollection, orderBy("name", "asc")), 
+      (snapshot) => {
+        callback(snapshot.docs.map(d => ({
+          ...d.data(),
+          id: d.id,
+          createdAt: toDateSafe(d.data().createdAt),
+          updatedAt: toDateSafe(d.data().updatedAt),
+        } as Folder)));
+      },
+      (error) => {
+        console.error("[FirebaseCharacterRepository] error in onFoldersChange:", error);
+        onError?.(error as Error);
+      }
+    );
   }
 
   private prepareUpdatePayload(updates: Partial<CharacterData>): Record<string, unknown> {
