@@ -6,6 +6,7 @@ import { PersistenceManager } from "@/services/persistence-manager";
 import { setItemAsync } from "@/lib/local-storage-async";
 import { measureAndWarn } from "@/lib/perf-utils";
 import { getCheapFingerprint } from "@/lib/utils";
+import { mapFirestoreToCharacter } from "@/lib/mappers/character-mapper";
 
 export function useCharacterPersistence(
   userId: string | null,

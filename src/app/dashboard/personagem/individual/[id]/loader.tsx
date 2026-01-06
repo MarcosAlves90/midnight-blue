@@ -57,7 +57,7 @@ export default function Loader({ id }: { id: string }) {
 
     load();
     return () => { cancelled = true; };
-  }, [id, effectiveUserId, authLoading, loadCharacter, setSelectedCharacter]);
+  }, [id, effectiveUserId, authLoading, loadCharacter, setSelectedCharacter, isAdminRestored]);
 
   if (loading) return <IndividualSkeleton />;
   if (error) return <div className="text-red-500">{error}</div>;

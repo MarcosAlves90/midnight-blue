@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { ShieldCheck, ChevronLeft, FolderPlus, PlusCircle } from "lucide-react";
+import { ShieldCheck, FolderPlus, PlusCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 

@@ -16,7 +16,6 @@ import {
 } from "lucide-react";
 
 import { useAuth } from "@/contexts/AuthContext";
-import { useCharacter } from "@/contexts/CharacterContext";
 import { useGallery } from "@/components/pages/gallery/use-gallery";
 import type { CharacterDocument } from "@/lib/types/character";
 
@@ -227,7 +226,6 @@ export default function DashboardPage() {
   const { 
     characters, 
     isLoading, 
-    error,
     dialogOpen,
     setDialogOpen, 
     deletingId,

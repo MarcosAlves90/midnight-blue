@@ -44,7 +44,7 @@ export const UserService = {
         id: snap.id,
         email: data.email || null,
         displayName: data.displayName || null,
-        photoURL: data.photoURL || null,
+        photoURL: data.avatar?.url || data.photoURL || null,
         updatedAt: toDateSafe(data.updatedAt),
       };
     } catch (err) {
@@ -69,7 +69,7 @@ export const UserService = {
             id: d.id,
             email: data.email || null,
             displayName: data.displayName || null,
-            photoURL: data.photoURL || null,
+            photoURL: data.avatar?.url || data.photoURL || null,
             updatedAt: toDateSafe(data.updatedAt),
           } as UserProfile;
         })

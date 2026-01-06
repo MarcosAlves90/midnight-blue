@@ -5,7 +5,7 @@ import { useCharacterPersistence } from "@/hooks/use-character-persistence";
 import type { CharacterDocument, Folder } from "@/lib/types/character";
 import { useAdmin } from "@/contexts/AdminContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { UserService, type UserProfile } from "@/services/user-service";
+import { type UserProfile } from "@/services/user-service";
 import { useRouter } from "next/navigation";
 import { useCharacter } from "@/contexts/CharacterContext";
 
@@ -33,7 +33,7 @@ export function useGallery() {
   const { setSelectedCharacter } = useCharacter();
   const { 
     isAdminMode, targetUserId, targetUserLabel, isAdminRestored,
-    users, fetchUsers, isLoadingUsers,
+    users, fetchUsers,
     setIsAdminMode, setTargetUserId, setTargetUserLabel, resetAdmin 
   } = useAdmin();
 
@@ -105,7 +105,7 @@ export function useGallery() {
       unsubChars();
       unsubFolders();
     };
-  }, [effectiveUserId, isAdminMode, targetUserId, listenToCharacters, listenToFolders, patchState]);
+  }, [effectiveUserId, isAdminMode, targetUserId, listenToCharacters, listenToFolders, patchState, isAdminRestored]);
 
   // -- Handlers de Negócio --
   const handleSelectCharacter = useCallback(async (character: CharacterDocument) => {

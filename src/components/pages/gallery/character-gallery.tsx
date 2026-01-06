@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, lazy, useCallback, useEffect, useMemo } from "react";
+import { Suspense, lazy, useCallback, useMemo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 
 import { GalleryLayout } from "@/components/ui/custom/gallery-layout";
@@ -26,7 +26,7 @@ const CharacterGallery = React.memo(function CharacterGallery() {
     isAdmin, isAdminMode, targetUserId, targetUserLabel, setIsAdminMode, resetAdmin, ownUserId,
     isLoading, error, searchQuery, setSearchQuery, currentFolderId, setCurrentFolderId,
     folders, characters, users,
-    fetchUsers, handleSelectUser, handleSelectCharacter, handleDeleteCharacter, 
+    handleSelectUser, handleSelectCharacter, handleDeleteCharacter, 
     handleCreateFolder, handleUpdateFolder, handleDeleteFolder, handleMoveToFolder,
     setDialogOpen, setFolderDialogOpen, setFolderToDelete, setDeleteFolderDialogOpen, setFolderToEdit,
     dialogOpen, folderDialogOpen, deleteFolderDialogOpen, folderToDelete, folderToEdit, deletingId
@@ -65,7 +65,12 @@ const CharacterGallery = React.memo(function CharacterGallery() {
 
     // Se estiver em modo admin e visualizando um usuário, injetamos ele na trilha
     if (isAdminMode && targetUserId) {
-      path.push({ id: "admin-root", name: targetUserLabel || "CONTA" });
+      path.push({ 
+        id: "admin-root", 
+        name: targetUserLabel || "CONTA",
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
     }
 
     let currentId = currentFolderId;
@@ -80,7 +85,12 @@ const CharacterGallery = React.memo(function CharacterGallery() {
     // Lógica correta de path:
     const finalPath: Folder[] = [];
     if (isAdminMode && targetUserId) {
-        finalPath.push({ id: "admin-root", name: targetUserLabel || "CONTA" });
+        finalPath.push({ 
+            id: "admin-root", 
+            name: targetUserLabel || "CONTA",
+            createdAt: new Date(),
+            updatedAt: new Date()
+        });
     }
     
     const subPath: Folder[] = [];
@@ -125,8 +135,6 @@ const CharacterGallery = React.memo(function CharacterGallery() {
     );
   }, [characters, searchQuery, currentFolderId, isAdminMode, targetUserId]);
 
-  const targetUser = useMemo(() => users.find(u => u.id === targetUserId), [users, targetUserId]);
-  
   const handleUserClick = useCallback((userId: string) => {
     const u = users.find(x => x.id === userId);
     if (u) handleSelectUser(u);
@@ -135,7 +143,6 @@ const CharacterGallery = React.memo(function CharacterGallery() {
   if (!user && !isLoading) return <UnauthenticatedState />;
 
   const isShowingUserList = isAdminMode && !targetUserId;
-  const isAdminViewingUser = isAdminMode && !!targetUserId;
   const isGalleryEmpty = characters.length === 0 && folders.length === 0;
 
   return (

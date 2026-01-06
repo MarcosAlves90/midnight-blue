@@ -183,7 +183,7 @@ export function CharacterProvider({ children }: { children: React.ReactNode }) {
       };
       restoreOwnCharacter();
     }
-  }, [isAdminMode, isAdminRestored, user?.uid, loadCharacter]);
+  }, [isAdminMode, isAdminRestored, user?.uid, loadCharacter, selectedCharacter, setSelectedCharacter]);
 
   // Ao logar / montar, restaura última seleção
   useEffect(() => {
