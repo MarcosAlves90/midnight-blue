@@ -1,4 +1,4 @@
-import { toast, ToastOptions } from "react-toastify";
+import { toast as rtToast, ToastOptions } from "react-toastify";
 
 const baseOptions: ToastOptions = {
   position: "bottom-right",
@@ -6,14 +6,20 @@ const baseOptions: ToastOptions = {
   className: "notification-toast",
 };
 
+export const toast = {
+  success: (msg: string) => rtToast.success(msg, baseOptions),
+  error: (msg: string) => rtToast.error(msg, baseOptions),
+  info: (msg: string) => rtToast.info(msg, baseOptions),
+};
+
 export function authSuccess(message: string) {
-  toast.success(message, baseOptions);
+  rtToast.success(message, baseOptions);
 }
 
 export function authError(message: string) {
-  toast.error(message, baseOptions);
+  rtToast.error(message, baseOptions);
 }
 
 export function authInfo(message: string) {
-  toast.info(message, baseOptions);
+  rtToast.info(message, baseOptions);
 }

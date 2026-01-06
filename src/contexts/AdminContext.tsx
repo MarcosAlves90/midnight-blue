@@ -15,6 +15,8 @@ type AdminContextValue = {
   isAdminRestored: boolean;
   users: UserProfile[];
   fetchUsers: () => Promise<void>;
+  updateUserSettings: (userId: string, data: { isAdmin?: boolean, disabled?: boolean }) => Promise<void>;
+  deleteUser: (userId: string) => Promise<void>;
   isLoadingUsers: boolean;
 };
 
@@ -73,19 +75,42 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
     }
   }, [isAdmin]);
 
-  // Carrega usuários automaticamente se entrar no modo admin e a lista estiver vazia
-  React.useEffect(() => {
-    if (isAdminMode && users.length === 0 && !isLoadingUsers) {
-      fetchUsers();
-    }
-  }, [isAdminMode, users.length, isLoadingUsers, fetchUsers]);
-
   const resetAdmin = React.useCallback(() => {
     setTargetUserId(null);
     setTargetUserLabel(null);
     localStorage.removeItem("admin_target_id");
     localStorage.removeItem("admin_target_label");
   }, []);
+
+  const updateUserSettings = React.useCallback(async (userId: string, data: { isAdmin?: boolean, disabled?: boolean }) => {
+    try {
+      await UserService.updateAdminSettings(userId, data);
+      setUsers(prev => prev.map(u => u.id === userId ? { ...u, ...data } : u));
+    } catch (err) {
+      console.error("Erro ao atualizar configurações do usuário:", err);
+      throw err;
+    }
+  }, []);
+
+  const deleteUser = React.useCallback(async (userId: string) => {
+    try {
+      await UserService.deleteUser(userId);
+      setUsers(prev => prev.filter(u => u.id !== userId));
+      if (targetUserId === userId) {
+        resetAdmin();
+      }
+    } catch (err) {
+      console.error("Erro ao excluir usuário:", err);
+      throw err;
+    }
+  }, [targetUserId, resetAdmin]);
+
+  // Carrega usuários automaticamente se entrar no modo admin e a lista estiver vazia
+  React.useEffect(() => {
+    if (isAdminMode && users.length === 0 && !isLoadingUsers) {
+      fetchUsers();
+    }
+  }, [isAdminMode, users.length, isLoadingUsers, fetchUsers]);
 
   // Desativa modo admin se o usuário perder permissão de admin (apenas após carregar auth)
   React.useEffect(() => {
@@ -107,6 +132,8 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
     isAdminRestored,
     users,
     fetchUsers,
+    updateUserSettings,
+    deleteUser,
     isLoadingUsers
   }), [
     isAdminMode, 
@@ -119,6 +146,8 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
     isAdminRestored,
     users,
     fetchUsers,
+    updateUserSettings,
+    deleteUser,
     isLoadingUsers
   ]);
 

@@ -1,6 +1,7 @@
 import { db } from "@/lib/firebase";
 import { doc, getDoc, setDoc, collection, getDocs } from "firebase/firestore";
 import type { User } from "firebase/auth";
+import { getAuth } from "firebase/auth";
 import { toDateSafe } from "@/lib/mappers/character-mapper";
 
 export interface UserProfile {
@@ -9,6 +10,8 @@ export interface UserProfile {
   displayName: string | null;
   photoURL: string | null;
   updatedAt: Date;
+  isAdmin?: boolean;
+  disabled?: boolean;
 }
 
 export const UserService = {
@@ -16,18 +19,28 @@ export const UserService = {
    * Sincroniza o perfil do usuário no Firestore
    */
   async syncUserProfile(user: User): Promise<void> {
-    const userRef = doc(db, "users", user.uid);
-    
-    // Simplificadamente sempre atualiza ou cria o perfil ao logar
-    const profile: Partial<UserProfile> = {
-      id: user.uid,
-      email: user.email,
-      displayName: user.displayName,
-      photoURL: user.photoURL,
-      updatedAt: new Date(),
-    };
+    try {
+      const userRef = doc(db, "users", user.uid);
+      
+      // Forçamos o refresh do token para garantir que as custom claims mais recentes (como admin) 
+      // sejam detectadas e sincronizadas com o Firestore.
+      const tokenResult = await user.getIdTokenResult(true);
+      const isAdminClaim = !!tokenResult.claims.admin;
 
-    await setDoc(userRef, profile, { merge: true });
+      const profile: Partial<UserProfile> = {
+        id: user.uid,
+        email: user.email,
+        displayName: user.displayName,
+        photoURL: user.photoURL,
+        updatedAt: new Date(),
+        isAdmin: isAdminClaim,
+      };
+
+      await setDoc(userRef, profile, { merge: true });
+      console.debug("[UserService] Profile synced", { uid: user.uid, isAdmin: isAdminClaim });
+    } catch (err) {
+      console.error("[UserService] Error syncing user profile:", err);
+    }
   },
 
   /**
@@ -46,6 +59,8 @@ export const UserService = {
         displayName: data.displayName || null,
         photoURL: data.avatar?.url || data.photoURL || null,
         updatedAt: toDateSafe(data.updatedAt),
+        isAdmin: data.isAdmin || false,
+        disabled: data.disabled || false,
       };
     } catch (err) {
       console.error("Erro ao buscar usuário:", err);
@@ -71,12 +86,56 @@ export const UserService = {
             displayName: data.displayName || null,
             photoURL: data.avatar?.url || data.photoURL || null,
             updatedAt: toDateSafe(data.updatedAt),
+            isAdmin: data.isAdmin || false,
+            disabled: data.disabled || false,
           } as UserProfile;
         })
         .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
     } catch (error) {
       console.error("[UserService] Erro ao listar usuários:", error);
       throw error;
+    }
+  },
+
+  /**
+   * Atualiza o perfil de um usuário (Admin only API)
+   */
+  async updateAdminSettings(userId: string, data: { isAdmin?: boolean, disabled?: boolean }): Promise<void> {
+    const auth = getAuth();
+    const token = await auth.currentUser?.getIdToken();
+
+    const response = await fetch(`/api/admin/users/${userId}`, {
+      method: "PATCH",
+      headers: { 
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || "Falha ao atualizar usuário");
+    }
+  },
+
+  /**
+   * Exclui um usuário (Admin only API)
+   */
+  async deleteUser(userId: string): Promise<void> {
+    const auth = getAuth();
+    const token = await auth.currentUser?.getIdToken();
+
+    const response = await fetch(`/api/admin/users/${userId}`, {
+      method: "DELETE",
+      headers: { 
+        "Authorization": `Bearer ${token}`
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || "Falha ao excluir usuário");
     }
   }
 };

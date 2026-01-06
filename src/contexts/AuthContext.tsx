@@ -32,9 +32,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Sincroniza perfil em background
         UserService.syncUserProfile(u).catch(console.error);
 
-        // Verifica claims de admin
+        // Verifica claims de admin (forçando refresh para detectar mudanças imediatas)
         try {
-          const token = await u.getIdTokenResult();
+          const token = await u.getIdTokenResult(true);
           setIsAdmin(!!token.claims.admin);
         } catch (err) {
           console.error("Erro ao verificar claims de admin:", err);

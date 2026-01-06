@@ -187,11 +187,11 @@ const CharacterSwitcherComponent = () => {
 
   const selectedCharacterName = selectedCharacter 
     ? (selectedCharacter.identity?.name || "Sem Nome")
-    : (isAdminMode ? "Modo de Seleção" : "Selecionar Ficha");
+    : (isAdminMode ? "ESPERANDO SELEÇÃO" : "Selecionar Ficha");
 
   const selectedCharacterPlayer = selectedCharacter
     ? (selectedCharacter.identity?.heroName || "Alternar Ficha")
-    : (isAdminMode ? "Infinity Corporation" : "");
+    : (isAdminMode ? "Infinity Corp" : "");
 
   const selectedProfileImage = selectedCharacter?.identity?.profileImage;
   const selectedImagePosition = selectedCharacter?.identity?.imagePosition;
