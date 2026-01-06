@@ -2,7 +2,6 @@
 
 import { Suspense, lazy, useCallback, useEffect, useMemo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { ShieldCheck } from "lucide-react";
 
 import { GalleryLayout } from "@/components/ui/custom/gallery-layout";
 // Consider lazy loading dialogs for better initial bundle size and performance
@@ -47,13 +46,18 @@ const CharacterGallery = React.memo(function CharacterGallery() {
   }, [setSearchQuery, setCurrentFolderId]);
 
   const handleFolderClick = useCallback((id: string | null) => {
-    if (id === "admin-root") {
+    if (isAdminMode && id === null) {
+      // Clicou em "CONTAS" - Volta para a listagem de usuários
       resetAdmin();
       setCurrentFolderId(null);
+    } else if (id === "admin-root") {
+      // Clicou no nome do usuário no Breadcrumb - Volta para a raiz deste usuário
+      setCurrentFolderId(null);
     } else {
+      // Comportamento normal para pastas
       setCurrentFolderId(id);
     }
-  }, [resetAdmin, setCurrentFolderId]);
+  }, [isAdminMode, resetAdmin, setCurrentFolderId]);
 
   // -- Derived Data --
   const folderPath = useMemo(() => {
@@ -145,14 +149,6 @@ const CharacterGallery = React.memo(function CharacterGallery() {
       folderPath={folderPath}
       onFolderClick={handleFolderClick}
       rootLabel={isAdminMode ? "CONTAS" : "RAIZ"}
-      extraContent={isAdminMode && (
-        <AdminUserList 
-          users={filteredUsers} 
-          compact
-          selectedUserId={targetUserId}
-          onUserClick={handleUserClick} 
-        />
-      )}
       actions={
         <GalleryActions 
           isAdmin={isAdmin}
@@ -189,20 +185,11 @@ const CharacterGallery = React.memo(function CharacterGallery() {
       ) : error ? (
         <ErrorState error={error} />
       ) : isShowingUserList ? (
-        <div className="flex flex-col items-center justify-center py-24 bg-accent/5 border-2 border-dashed rounded-3xl transition-all animate-in fade-in zoom-in duration-500">
-          <div className="relative group">
-            <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-primary to-blue-600 opacity-25 group-hover:opacity-50 blur transition duration-1000 group-hover:duration-200"></div>
-            <div className="relative flex items-center justify-center w-20 h-20 rounded-full bg-card shadow-xl">
-               <ShieldCheck className="w-10 h-10 text-primary" />
-            </div>
-          </div>
-          <h3 className="text-2xl font-black uppercase tracking-tighter mt-6 bg-clip-text text-transparent bg-gradient-to-b from-foreground to-foreground/70">
-            Painel Administrativo
-          </h3>
-          <p className="text-muted-foreground text-sm max-w-[320px] text-center mt-3 font-medium leading-relaxed">
-            Navegue pela lista de contas acima para gerenciar fichas e conteúdos de outros usuários.
-          </p>
-        </div>
+        <AdminUserList 
+          users={filteredUsers} 
+          onUserClick={handleUserClick} 
+          selectedUserId={targetUserId}
+        />
       ) : isGalleryEmpty ? (
         <div className={isAdminMode ? "text-center py-20 border-2 border-dashed rounded-2xl bg-muted/5" : ""}>
           {isAdminMode ? (

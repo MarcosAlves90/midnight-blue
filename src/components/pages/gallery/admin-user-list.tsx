@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Folder as FolderIcon, User as UserIcon, Check } from "lucide-react";
+import { Folder as FolderIcon, User as UserIcon, Check, ChevronRight } from "lucide-react";
 import type { UserProfile } from "@/services/user-service";
 import { cn } from "@/lib/utils";
 
@@ -71,29 +71,65 @@ export const AdminUserList = React.memo(function AdminUserList({
 
   return (
     <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
-      {users.map((u) => (
-        <div 
-          key={`user-${u.id}`}
-          onClick={() => onUserClick(u.id)}
-          className={cn(
-            "flex flex-col items-center justify-center p-6 bg-card hover:bg-accent/50 border rounded-xl cursor-pointer transition-all group",
-            selectedUserId === u.id && "ring-2 ring-primary border-primary bg-primary/5"
-          )}
-        >
-          <div className="relative mb-3">
-            <FolderIcon className={cn(
-              "w-16 h-16 transition-colors",
-              selectedUserId === u.id ? "text-primary/40" : "text-blue-500/40 group-hover:text-blue-500/60"
-            )} fill="currentColor" />
+      {users.map((u) => {
+        const isSelected = selectedUserId === u.id;
+        return (
+          <div 
+            key={`user-${u.id}`}
+            onClick={() => onUserClick(u.id)}
+            className={cn(
+              "group relative rounded-lg border bg-card p-4 transition-all duration-300 flex flex-col gap-3 shadow-md cursor-pointer overflow-hidden",
+              isSelected 
+                ? "border-primary bg-primary/5 ring-1 ring-primary" 
+                : "border-border hover:border-primary/50 hover:shadow-primary/5"
+            )}
+          >
+            {/* Decorative background icon */}
             <UserIcon className={cn(
-              "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-6",
-              selectedUserId === u.id ? "text-primary" : "text-blue-600"
+              "absolute -right-2 -bottom-2 w-20 h-20 text-primary/5 -rotate-12 group-hover:text-primary/10 transition-colors",
+              isSelected && "text-primary/10"
             )} />
+
+            <div className="flex justify-between items-start relative z-10">
+              <div className={cn(
+                "p-2 rounded-md transition-colors",
+                isSelected 
+                  ? "bg-primary text-primary-foreground" 
+                  : "bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground"
+              )}>
+                <UserIcon className="w-5 h-5" />
+              </div>
+              
+              {isSelected && (
+                <div className="h-8 w-8 flex items-center justify-center rounded-full bg-primary/20 text-primary animate-in zoom-in">
+                  <Check className="w-4 h-4" />
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-1 relative z-10">
+              <p className="text-[8px] text-primary font-bold uppercase tracking-tight opacity-80">Conta / Usuário</p>
+              <h3 className={cn(
+                "font-bold text-sm leading-tight truncate transition-colors uppercase italic tracking-tighter",
+                isSelected ? "text-primary" : "group-hover:text-primary"
+              )}>
+                {u.displayName || "Sem Nome"}
+              </h3>
+              <p className="text-[10px] text-muted-foreground truncate opacity-70 font-medium">
+                {u.email}
+              </p>
+            </div>
+
+            <div className="flex items-center justify-between mt-auto pt-2 border-t border-border/50 relative z-10">
+              <span className="text-[9px] font-mono text-muted-foreground uppercase">Explorar Fichas</span>
+              <ChevronRight className={cn(
+                "w-3 h-3 text-muted-foreground transition-all",
+                isSelected ? "text-primary translate-x-1" : "group-hover:text-primary group-hover:translate-x-1"
+              )} />
+            </div>
           </div>
-          <span className="text-sm font-medium text-center line-clamp-1">{u.displayName || "Sem Nome"}</span>
-          <span className="text-[10px] text-muted-foreground line-clamp-1">{u.email}</span>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 });

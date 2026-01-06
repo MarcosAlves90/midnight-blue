@@ -3,6 +3,7 @@
 import React from "react";
 import { ShieldCheck, ChevronLeft, FolderPlus, PlusCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface GalleryActionsProps {
   isAdmin: boolean;
@@ -35,18 +36,25 @@ export const GalleryActions = React.memo(function GalleryActions({
         </Button>
       )}
 
-      {(!isAdminMode || targetUserId) && (
-        <>
-          <Button variant="outline" size="sm" onClick={onNewFolder} className="h-9">
-            <FolderPlus className="w-4 h-4 mr-2" />
-            Nova Pasta
-          </Button>
-          <Button size="sm" onClick={onNewCharacter} className="h-9">
-            <PlusCircle className="w-4 h-4 mr-2" />
-            Nova Ficha
-          </Button>
-        </>
-      )}
+      <Button 
+        variant="outline" 
+        size="sm" 
+        onClick={onNewFolder} 
+        className={cn("h-9 transition-all", isAdminMode && !targetUserId && "opacity-40 grayscale-[0.5] pointer-events-none")}
+        disabled={isAdminMode && !targetUserId}
+      >
+        <FolderPlus className="w-4 h-4 mr-2" />
+        Nova Pasta
+      </Button>
+      <Button 
+        size="sm" 
+        onClick={onNewCharacter} 
+        className={cn("h-9 transition-all", isAdminMode && !targetUserId && "opacity-40 grayscale-[0.5] pointer-events-none")}
+        disabled={isAdminMode && !targetUserId}
+      >
+        <PlusCircle className="w-4 h-4 mr-2" />
+        Nova Ficha
+      </Button>
     </div>
   );
 });
