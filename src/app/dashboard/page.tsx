@@ -17,7 +17,7 @@ import {
 
 import { useAuth } from "@/contexts/AuthContext";
 import { useCharacter } from "@/contexts/CharacterContext";
-import { useGalleryState, useGalleryActions } from "@/components/pages/gallery/use-gallery";
+import { useGallery } from "@/components/pages/gallery/use-gallery";
 import type { CharacterDocument } from "@/lib/types/character";
 
 import { Card } from "@/components/ui/card";
@@ -222,51 +222,18 @@ function ProtocolSection() {
 export default function DashboardPage() {
   const router = useRouter();
   const { user } = useAuth();
-  const { setSelectedCharacter } = useCharacter();
   const bgText = useBackgroundRotation(BACKGROUND_ROTATION_TEXTS);
   
   const { 
     characters, 
-    setCharacters, 
-    setFolders,
     isLoading, 
-    setIsLoading, 
-    setError, 
+    error,
     dialogOpen,
     setDialogOpen, 
     deletingId,
-    setDeletingId
-  } = useGalleryState();
-
-  const { 
     handleSelectCharacter, 
-    handleDeleteCharacter, 
-    listenToCharacters,
-    listenToFolders
-  } = useGalleryActions(
-    user?.uid || null, 
-    { setCharacters, setFolders, setError, setDeletingId, setSelectedCharacter }, 
-    router.push
-  );
-
-  // Data Synchronization
-  useEffect(() => {
-    if (!user?.uid) return;
-
-    const unsubscribeChars = listenToCharacters((chars) => {
-      setCharacters(chars);
-      setIsLoading(false);
-    });
-
-    const unsubscribeFolders = listenToFolders((folders) => {
-      setFolders(folders);
-    });
-
-    return () => {
-      unsubscribeChars();
-      unsubscribeFolders();
-    };
-  }, [user?.uid, listenToCharacters, listenToFolders, setCharacters, setFolders, setIsLoading]);
+    handleDeleteCharacter,
+  } = useGallery();
 
   // Derived State (Memoized for performance)
   const recentCharacters = useMemo(() => 

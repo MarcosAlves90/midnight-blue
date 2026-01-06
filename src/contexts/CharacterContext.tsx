@@ -14,6 +14,7 @@ interface CharacterContextType {
   openNewDialog: boolean;
   setOpenNewDialog: (open: boolean) => void;
   isLoading: boolean;
+  effectiveUserId: string | null;
 }
 
 const CharacterContext = createContext<CharacterContextType | undefined>(undefined);
@@ -27,7 +28,7 @@ export function CharacterProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   const { user } = useAuth();
-  const { isAdminMode, targetUserId } = useAdmin();
+  const { isAdminMode, targetUserId, isAdminRestored } = useAdmin();
   
   // No início, tentamos ler do localStorage para saber quem é o dono salvo (se houver)
   const [persistedOwnerId, setPersistedOwnerId] = useState<string | null>(null);
@@ -39,13 +40,14 @@ export function CharacterProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   // Lógica de usuário efetivo:
-  // Se estiver em modo Admin e tiver um alvo, usa o alvo.
-  // Caso contrário, usa o dono do personagem selecionado (se houver), ou o usuario logado.
-  // IMPORTANTE: Priorizamos o targetUserId do modo Admin para garantir que lists/repositórios apontem para o lugar certo.
+  // Se estiver em modo Admin e tiver um alvo, usa o alvo. Caso contrário, usa o dono da ficha selecionada ou o usuario logado.
   const effectiveUserId = useMemo(() => {
+    // Se o AdminContext está restaurando, evitamos recalcular para não gerar flashes de Admin UID
+    if (!isAdminRestored) return null; 
+
     if (isAdminMode && targetUserId) return targetUserId;
     return selectedCharacter?.userId ?? persistedOwnerId ?? user?.uid ?? null;
-  }, [isAdminMode, targetUserId, selectedCharacter?.userId, persistedOwnerId, user?.uid]);
+  }, [isAdminMode, targetUserId, selectedCharacter?.userId, persistedOwnerId, user?.uid, isAdminRestored]);
 
   // Hook de persistência configurado para o usuário efetivo
   const { loadCharacter, loadLastSelected } = useCharacterPersistence(effectiveUserId);
@@ -56,19 +58,19 @@ export function CharacterProvider({ children }: { children: React.ReactNode }) {
   // Limpa seleção se mudarmos de contexto de usuário drasticamente (ex: Admin muda de alvo)
   // Mas preserva se o novo effectiveUserId ainda for compatível com o personagem selecionado.
   useEffect(() => {
+    // Só validamos a troca de usuário APÓS a restauração do admin estar concluída.
+    if (!isAdminRestored) return;
+
     if (selectedCharacter && effectiveUserId && selectedCharacter.userId !== effectiveUserId) {
        // Se o personagem selecionado não pertence ao usuário efetivo atual (ex: mudamos de alvo no admin),
        // deselecionamos para evitar inconsistência.
-       // Exceção: O admin pode selecionar qualquer personagem, mas se o 'repo' muda, 
-       // a subscription antiga morre.
-       // Melhor limpar para evitar "flashes" de dados errados.
        console.debug("[CharacterContext] Clearing selection due to user context switch", {
          charUser: selectedCharacter.userId,
          effective: effectiveUserId
        });
        internalSetSelectedCharacter(null);
     }
-  }, [effectiveUserId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [effectiveUserId, isAdminRestored]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Escuta mudanças em tempo real no personagem selecionado
   useEffect(() => {
@@ -146,21 +148,17 @@ export function CharacterProvider({ children }: { children: React.ReactNode }) {
 
   // Ao logar / montar, restaura última seleção
   useEffect(() => {
-    if (!user?.uid) {
-      internalSetSelectedCharacter(null);
-      setIsLoading(false);
+    if (!user?.uid || !isAdminRestored) {
+      if (!user?.uid) {
+        internalSetSelectedCharacter(null);
+        setIsLoading(false);
+      }
       return;
-    }
-
-    // Se estivermos em modo admin focando outro usuário, NÃO restauramos automaticamente a seleção do localStorage
-    // pois ela provavelmente pertence ao Admin (contexto "pessoal").
-    if (isAdminMode && targetUserId && targetUserId !== user.uid) {
-         setIsLoading(false);
-         return;
     }
 
     let cancelled = false;
 
+    // Restauração de seleção
     const restoreSelection = async () => {
       try {
         const localId = (() => {
@@ -170,6 +168,20 @@ export function CharacterProvider({ children }: { children: React.ReactNode }) {
         if (localId) {
           const char = await loadCharacter(localId);
           if (!cancelled && char) {
+            // Validação de segurança: se estamos em modo Admin, a ficha deve pertencer ao alvo.
+            // Se NÃO estamos em modo Admin, a ficha deve pertencer ao usuário logado.
+            // Isso evita restaurar fichas "vazadas" de outros contextos.
+            const expectedOwnerId = (isAdminMode && targetUserId) ? targetUserId : user.uid;
+            
+            if (char.userId !== expectedOwnerId) {
+              console.debug("[CharacterContext] Skipping restore: character owner mismatch", {
+                charOwner: char.userId,
+                expected: expectedOwnerId
+              });
+              setIsLoading(false);
+              return;
+            }
+
             // Assegura tipos corretos no restore
             const safeChar = {
                 ...char,
@@ -200,15 +212,16 @@ export function CharacterProvider({ children }: { children: React.ReactNode }) {
     restoreSelection();
 
     return () => { cancelled = true; };
-  }, [user?.uid, loadCharacter, loadLastSelected, isAdminMode, targetUserId]);
+  }, [user?.uid, loadCharacter, loadLastSelected, isAdminMode, targetUserId, isAdminRestored]);
 
   const value = React.useMemo(() => ({
     selectedCharacter,
     setSelectedCharacter,
     openNewDialog,
     setOpenNewDialog,
-    isLoading
-  }), [selectedCharacter, setSelectedCharacter, openNewDialog, setOpenNewDialog, isLoading]);
+    isLoading,
+    effectiveUserId
+  }), [selectedCharacter, setSelectedCharacter, openNewDialog, setOpenNewDialog, isLoading, effectiveUserId]);
 
   return (
     <CharacterContext.Provider value={value}>

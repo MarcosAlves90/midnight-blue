@@ -75,10 +75,8 @@ export function CharacterSwitcher() {
   const { isAdminMode, targetUserId } = useAdmin();
   const router = useRouter();
   const characterContext = useCharacter();
-  const { selectedCharacter, setSelectedCharacter } = characterContext;
+  const { selectedCharacter, setSelectedCharacter, effectiveUserId } = characterContext;
   
-  const effectiveUserId = (isAdminMode && targetUserId) ? targetUserId : (user?.uid || null);
-
   const { listenToCharacters, selectCharacter } = useCharacterPersistence(
     effectiveUserId,
   );

@@ -9,7 +9,7 @@ interface AdminUserListProps {
   onUserClick: (userId: string) => void;
 }
 
-export function AdminUserList({ users, onUserClick }: AdminUserListProps) {
+export const AdminUserList = React.memo(function AdminUserList({ users, onUserClick }: AdminUserListProps) {
   if (users.length === 0) {
     return (
       <div className="text-center py-12 border-2 border-dashed rounded-lg">
@@ -36,4 +36,4 @@ export function AdminUserList({ users, onUserClick }: AdminUserListProps) {
       ))}
     </div>
   );
-}
+});

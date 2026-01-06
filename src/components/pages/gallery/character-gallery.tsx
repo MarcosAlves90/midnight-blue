@@ -1,103 +1,61 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { Suspense, lazy, useCallback, useEffect, useMemo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 
 import { GalleryLayout } from "@/components/ui/custom/gallery-layout";
-import { NewCharacterDialog } from "./new-character-dialog";
-import { NewFolderDialog } from "./new-folder-dialog";
-import { DeleteFolderDialog } from "./delete-folder-dialog";
+// Consider lazy loading dialogs for better initial bundle size and performance
+const NewCharacterDialog = lazy(() => import("./new-character-dialog").then(m => ({ default: m.NewCharacterDialog })));
+const NewFolderDialog = lazy(() => import("./new-folder-dialog").then(m => ({ default: m.NewFolderDialog })));
+const DeleteFolderDialog = lazy(() => import("./delete-folder-dialog").then(m => ({ default: m.DeleteFolderDialog })));
+
 import { LoadingState, UnauthenticatedState, ErrorState, EmptyState } from "./gallery-states";
 import { AdminUserList } from "./admin-user-list";
 import { GalleryGrid } from "./gallery-grid";
 import { GalleryActions } from "./gallery-actions";
-import { useGalleryState, useGallery } from "./use-gallery";
+import { useGallery } from "./use-gallery";
 
 import type { Folder } from "@/lib/types/character";
+import React from "react";
 
-export default function CharacterGallery() {
+const CharacterGallery = React.memo(function CharacterGallery() {
   const { user } = useAuth();
   const gallery = useGallery();
   
   const { 
-    isAdmin, isAdminMode, targetUserId, setIsAdminMode, setTargetUserId, ownUserId,
+    isAdmin, isAdminMode, targetUserId, targetUserLabel, setIsAdminMode, resetAdmin, ownUserId,
     isLoading, error, searchQuery, setSearchQuery, currentFolderId, setCurrentFolderId,
-    folders, characters, users, setCharacters, setFolders, setIsLoading, setError,
-    fetchUsers, fetchUser, handleSelectCharacter, handleDeleteCharacter, 
+    folders, characters, users,
+    fetchUsers, handleSelectUser, handleSelectCharacter, handleDeleteCharacter, 
     handleCreateFolder, handleUpdateFolder, handleDeleteFolder, handleMoveToFolder,
-    listenToCharacters, listenToFolders, setDialogOpen, setFolderDialogOpen, 
-    setFolderToDelete, setDeleteFolderDialogOpen, setFolderToEdit
+    setDialogOpen, setFolderDialogOpen, setFolderToDelete, setDeleteFolderDialogOpen, setFolderToEdit,
+    dialogOpen, folderDialogOpen, deleteFolderDialogOpen, folderToDelete, folderToEdit, deletingId
   } = gallery;
 
-  // -- Data Loading & Sync --
-  
-  // 1. Limpa o estado quando o contexto de visualização muda
-  useEffect(() => {
-    setCurrentFolderId(null);
-    setCharacters([]);
-    setFolders([]);
-  }, [targetUserId, isAdminMode, setCurrentFolderId, setCharacters, setFolders]);
+  // -- Memoized Handlers --
+  const onToggleAdminMode = useCallback(() => {
+    setIsAdminMode(!isAdminMode);
+    resetAdmin();
+  }, [isAdminMode, setIsAdminMode, resetAdmin]);
 
-  // 2. Gerenciamento de Usuários (Modo Admin)
+  const onBackToUsers = useCallback(() => resetAdmin(), [resetAdmin]);
+  const onNewFolder = useCallback(() => setFolderDialogOpen(true), [setFolderDialogOpen]);
+  const onNewCharacter = useCallback(() => setDialogOpen(true), [setDialogOpen]);
+  const onResetFilters = useCallback(() => { 
+    setSearchQuery(""); 
+    setCurrentFolderId(null); 
+  }, [setSearchQuery, setCurrentFolderId]);
+
+  // -- Data Loading Initializer --
   useEffect(() => {
     if (isAdminMode && !targetUserId) {
-      setIsLoading(true);
-      fetchUsers().finally(() => setIsLoading(false));
-    } else if (isAdminMode && targetUserId) {
-      // Busca perfil básico para o header, sincronização de fichas é feita pelo outro efeito
-      fetchUser(targetUserId);
+      fetchUsers();
     }
-  }, [isAdminMode, targetUserId, fetchUsers, fetchUser, setIsLoading]);
-
-  // 3. Sincronização de Personagens e Pastas
-  useEffect(() => {
-    // Se estivermos na lista de usuários (admin sem target), não sincronizamos fichas ainda
-    if (!ownUserId || (isAdminMode && !targetUserId)) {
-      if (!ownUserId) setIsLoading(false);
-      return;
-    }
-
-    setIsLoading(true);
-    let unsubChars: (() => void) | undefined;
-    let unsubFolders: (() => void) | undefined;
-
-    try {
-      unsubChars = listenToCharacters(
-        (chars) => {
-          setCharacters(chars);
-          setError(null);
-          setIsLoading(false);
-        },
-        (err) => {
-          console.error("Characters Listener Error:", err);
-          setError("Erro ao sincronizar personagens");
-          setIsLoading(false);
-        }
-      );
-      
-      unsubFolders = listenToFolders(
-        setFolders,
-        (err) => {
-          console.error("Folders Listener Error:", err);
-          setError("Erro ao sincronizar pastas");
-          setIsLoading(false);
-        }
-      );
-    } catch (err) {
-      console.error("Gallery Sync Error:", err);
-      setError("Erro ao carregar dados da galeria");
-      setIsLoading(false);
-    }
-
-    return () => {
-      unsubChars?.();
-      unsubFolders?.();
-    };
-  }, [ownUserId, targetUserId, isAdminMode, listenToCharacters, listenToFolders, setCharacters, setFolders, setError, setIsLoading]);
+  }, [isAdminMode, targetUserId, fetchUsers]);
 
   // -- Derived Data --
   const folderPath = useMemo(() => {
-    const path = [];
+    const path: Folder[] = [];
     let currentId = currentFolderId;
     while (currentId) {
       const folder = folders.find(f => f.id === currentId);
@@ -119,29 +77,40 @@ export default function CharacterGallery() {
     );
   }, [isAdminMode, targetUserId, users, searchQuery]);
 
-  const filteredFolders = useMemo(() => 
-    folders.filter(f => 
-      f.name.toLowerCase().includes(searchQuery.toLowerCase()) && 
+  const filteredFolders = useMemo(() => {
+    if (isAdminMode && targetUserId) return [];
+    const q = searchQuery.toLowerCase();
+    return folders.filter(f => 
+      f.name.toLowerCase().includes(q) && 
       (f.parentId || null) === currentFolderId
-    ), [folders, searchQuery, currentFolderId]);
+    );
+  }, [folders, searchQuery, currentFolderId, isAdminMode, targetUserId]);
 
-  const filteredCharacters = useMemo(() => 
-    characters.filter(char => 
-      (char.identity.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-       char.identity.heroName.toLowerCase().includes(searchQuery.toLowerCase())) &&
-      (char.folderId || null) === currentFolderId
-    ), [characters, searchQuery, currentFolderId]);
+  const filteredCharacters = useMemo(() => {
+    const q = searchQuery.toLowerCase();
+    const isAdminViewingUser = isAdminMode && !!targetUserId;
 
-  const targetUser = users.find(u => u.id === targetUserId);
-  const galleryTitle = isAdminMode 
+    return characters.filter(char => 
+      (char.identity.name.toLowerCase().includes(q) ||
+       char.identity.heroName.toLowerCase().includes(q)) &&
+      (isAdminViewingUser ? true : (char.folderId || null) === currentFolderId)
+    );
+  }, [characters, searchQuery, currentFolderId, isAdminMode, targetUserId]);
+
+  const targetUser = useMemo(() => users.find(u => u.id === targetUserId), [users, targetUserId]);
+  
+  const galleryTitle = useMemo(() => isAdminMode 
     ? (targetUser ? `Fichas de ${targetUser.displayName || targetUser.email}` : "Visão de Admin")
-    : "Minhas Fichas";
+    : "Minhas Fichas", [isAdminMode, targetUser]);
 
   if (isLoading) return <LoadingState />;
   if (!user) return <UnauthenticatedState />;
 
   const isShowingUserList = isAdminMode && !targetUserId;
-  const isGalleryEmpty = characters.length === 0 && folders.length === 0;
+  const isAdminViewingUser = isAdminMode && !!targetUserId;
+  const isGalleryEmpty = isAdminViewingUser 
+    ? characters.length === 0 
+    : (characters.length === 0 && folders.length === 0);
 
   return (
     <GalleryLayout
@@ -150,38 +119,59 @@ export default function CharacterGallery() {
       searchPlaceholder={isShowingUserList ? "Pesquisar usuários..." : "Pesquisar por nome ou codinome..."}
       searchQuery={searchQuery}
       onSearchChange={setSearchQuery}
-      currentFolderId={currentFolderId}
-      folderPath={folderPath}
+      currentFolderId={isAdminViewingUser ? null : currentFolderId}
+      folderPath={isAdminViewingUser ? [] : folderPath}
       onFolderClick={setCurrentFolderId}
       actions={
         <GalleryActions 
           isAdmin={isAdmin}
           isAdminMode={isAdminMode}
-          onToggleAdminMode={() => { setIsAdminMode(!isAdminMode); setTargetUserId(null); }}
+          onToggleAdminMode={onToggleAdminMode}
           targetUserId={targetUserId}
-          onBackToUsers={() => setTargetUserId(null)}
-          onNewFolder={() => setFolderDialogOpen(true)}
-          onNewCharacter={() => setDialogOpen(true)}
+          targetUserLabel={targetUserLabel}
+          onBackToUsers={onBackToUsers}
+          onNewFolder={onNewFolder}
+          onNewCharacter={onNewCharacter}
         />
       }
     >
-      <Dialogs 
-        state={gallery} 
-        handlers={{ 
-          handleCreateFolder, handleUpdateFolder, handleDeleteFolder, 
-          setFolderDialogOpen, setFolderToEdit, setFolderToDelete, setDeleteFolderDialogOpen,
-          setCurrentFolderId
-        }} 
-      />
+      <Suspense fallback={null}>
+        <Dialogs 
+          dialogOpen={dialogOpen}
+          folderDialogOpen={folderDialogOpen}
+          deleteFolderDialogOpen={deleteFolderDialogOpen}
+          folderToDelete={folderToDelete}
+          folderToEdit={folderToEdit}
+          currentFolderId={currentFolderId}
+          setDialogOpen={setDialogOpen}
+          setFolderDialogOpen={setFolderDialogOpen}
+          setDeleteFolderDialogOpen={setDeleteFolderDialogOpen}
+          setFolderToDelete={setFolderToDelete}
+          setFolderToEdit={setFolderToEdit}
+          handleCreateFolder={handleCreateFolder}
+          handleUpdateFolder={handleUpdateFolder}
+          handleDeleteFolder={handleDeleteFolder}
+          setCurrentFolderId={setCurrentFolderId}
+        />
+      </Suspense>
 
-      {error && <ErrorState error={error} />}
-
-      {isShowingUserList ? (
-        <AdminUserList users={filteredUsers} onUserClick={setTargetUserId} />
+      {error ? (
+        <ErrorState error={error} />
+      ) : isShowingUserList ? (
+        <AdminUserList 
+          users={filteredUsers} 
+          onUserClick={(userId) => {
+            const u = users.find(x => x.id === userId);
+            if (u) handleSelectUser(u);
+          }} 
+        />
       ) : isGalleryEmpty ? (
-        <div className={isAdminMode ? "text-center py-12 border-2 border-dashed rounded-lg" : ""}>
-          <EmptyState onCreate={isAdminMode ? () => {} : () => setDialogOpen(true)} />
-          {isAdminMode && <p className="mt-2 text-sm text-muted-foreground">Este usuário ainda não possui fichas.</p>}
+        <div className={isAdminMode ? "text-center py-12 border-2 border-dashed rounded-xl bg-muted/5" : ""}>
+          {isAdminMode ? (
+            <p className="text-sm text-muted-foreground">Este usuário ainda não possui fichas ou pastas registradas.</p>
+          ) : (
+            <EmptyState onCreate={onNewCharacter} />
+          )}
         </div>
       ) : (
         <GalleryGrid 
@@ -194,80 +184,107 @@ export default function CharacterGallery() {
           onCharacterSelect={handleSelectCharacter}
           onCharacterDelete={handleDeleteCharacter}
           onMoveToFolder={handleMoveToFolder}
-          deletingId={gallery.deletingId}
+          deletingId={deletingId}
           isAdminMode={isAdminMode}
           targetUserId={targetUserId}
           ownUserId={ownUserId}
-          onResetFilters={() => { setSearchQuery(""); setCurrentFolderId(null); }}
+          onResetFilters={onResetFilters}
         />
       )}
     </GalleryLayout>
   );
-}
+});
 
-// Sub-component for Dialogs to keep the main component cleaner
-function Dialogs({ 
-  state, 
-  handlers 
+export default CharacterGallery;
+
+// Optimized Dialogs Component
+const Dialogs = React.memo(function Dialogs({ 
+  dialogOpen,
+  folderDialogOpen,
+  deleteFolderDialogOpen,
+  folderToDelete,
+  folderToEdit,
+  currentFolderId,
+  setDialogOpen,
+  setFolderDialogOpen,
+  setDeleteFolderDialogOpen,
+  setFolderToDelete,
+  setFolderToEdit,
+  handleCreateFolder,
+  handleUpdateFolder,
+  handleDeleteFolder,
+  setCurrentFolderId
 }: { 
-  state: ReturnType<typeof useGalleryState>, 
-  handlers: {
-    handleCreateFolder: (name: string, parentId?: string | null) => Promise<void>;
-    handleUpdateFolder: (folderId: string, name: string) => Promise<void>;
-    handleDeleteFolder: (folderId: string) => Promise<void>;
-    setFolderDialogOpen: (open: boolean) => void;
-    setFolderToEdit: (folder: Folder | null) => void;
-    setFolderToDelete: (folder: Folder | null) => void;
-    setDeleteFolderDialogOpen: (open: boolean) => void;
-    setCurrentFolderId: (id: string | null) => void;
-  }
+  dialogOpen: boolean;
+  folderDialogOpen: boolean;
+  deleteFolderDialogOpen: boolean;
+  folderToDelete: Folder | null;
+  folderToEdit: Folder | null;
+  currentFolderId: string | null;
+  setDialogOpen: (open: boolean) => void;
+  setFolderDialogOpen: (open: boolean) => void;
+  setDeleteFolderDialogOpen: (open: boolean) => void;
+  setFolderToDelete: (folder: Folder | null) => void;
+  setFolderToEdit: (folder: Folder | null) => void;
+  handleCreateFolder: (name: string, parentId?: string | null) => Promise<void>;
+  handleUpdateFolder: (folderId: string, name: string) => Promise<void>;
+  handleDeleteFolder: (folderId: string) => Promise<void>;
+  setCurrentFolderId: (id: string | null) => void;
 }) {
+  const onNewCharacterOpenChange = useCallback((open: boolean) => {
+    if (!open) setTimeout(() => setDialogOpen(false), 0);
+    else setDialogOpen(true);
+  }, [setDialogOpen]);
+
+  const onNewFolderOpenChange = useCallback((open: boolean) => {
+    if (!open) {
+      setTimeout(() => {
+        setFolderDialogOpen(false);
+        setFolderToEdit(null);
+      }, 0);
+    } else setFolderDialogOpen(true);
+  }, [setFolderDialogOpen, setFolderToEdit]);
+
+  const onDeleteFolderOpenChange = useCallback((open: boolean) => {
+    if (!open) {
+      setTimeout(() => {
+        setDeleteFolderDialogOpen(false);
+        setFolderToDelete(null);
+      }, 0);
+    } else setDeleteFolderDialogOpen(true);
+  }, [setDeleteFolderDialogOpen, setFolderToDelete]);
+
+  const onConfirmDelete = useCallback(async () => {
+    if (folderToDelete) {
+      await handleDeleteFolder(folderToDelete.id);
+      if (currentFolderId === folderToDelete.id) {
+        setCurrentFolderId(folderToDelete.parentId || null);
+      }
+    }
+  }, [folderToDelete, handleDeleteFolder, currentFolderId, setCurrentFolderId]);
+
   return (
     <>
       <NewCharacterDialog
-        open={state.dialogOpen}
-        onOpenChange={(open) => {
-          if (!open) setTimeout(() => state.setDialogOpen(false), 0);
-          else state.setDialogOpen(true);
-        }}
+        open={dialogOpen}
+        onOpenChange={onNewCharacterOpenChange}
       />
 
       <NewFolderDialog
-        open={state.folderDialogOpen}
-        onOpenChange={(open) => {
-          if (!open) {
-            setTimeout(() => {
-              handlers.setFolderDialogOpen(false);
-              handlers.setFolderToEdit(null);
-            }, 0);
-          } else handlers.setFolderDialogOpen(true);
-        }}
-        onCreate={handlers.handleCreateFolder}
-        onUpdate={handlers.handleUpdateFolder}
-        parentId={state.currentFolderId}
-        folderToEdit={state.folderToEdit}
+        open={folderDialogOpen}
+        onOpenChange={onNewFolderOpenChange}
+        onCreate={handleCreateFolder}
+        onUpdate={handleUpdateFolder}
+        parentId={currentFolderId}
+        folderToEdit={folderToEdit}
       />
 
       <DeleteFolderDialog
-        open={state.deleteFolderDialogOpen}
-        folderName={state.folderToDelete?.name || ""}
-        onOpenChange={(open) => {
-          if (!open) {
-            setTimeout(() => {
-              handlers.setDeleteFolderDialogOpen(false);
-              handlers.setFolderToDelete(null);
-            }, 0);
-          } else handlers.setDeleteFolderDialogOpen(true);
-        }}
-        onConfirm={async () => {
-          if (state.folderToDelete) {
-            await handlers.handleDeleteFolder(state.folderToDelete.id);
-            if (state.currentFolderId === state.folderToDelete.id) {
-              handlers.setCurrentFolderId(state.folderToDelete.parentId || null);
-            }
-          }
-        }}
+        open={deleteFolderDialogOpen}
+        folderName={folderToDelete?.name || ""}
+        onOpenChange={onDeleteFolderOpenChange}
+        onConfirm={onConfirmDelete}
       />
     </>
   );
-}
+});

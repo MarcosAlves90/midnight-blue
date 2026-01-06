@@ -10,7 +10,7 @@ import { IndividualSkeleton } from "@/components/pages/individual/individual-ske
 
 export default function Loader({ id }: { id: string }) {
   const { user, loading: authLoading } = useAuth();
-  const { isAdminMode, targetUserId } = useAdmin();
+  const { isAdminMode, targetUserId, isAdminRestored } = useAdmin();
   
   // No modo admin, usamos o targetUserId. Caso contrário, usamos o uid do próprio usuário.
   const effectiveUserId = (isAdminMode && targetUserId) ? targetUserId : (user?.uid || null);
@@ -22,10 +22,12 @@ export default function Loader({ id }: { id: string }) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (authLoading) return;
+    // Aguarda o carregamento do Auth e a restauração do estado Admin para evitar race conditions no F5
+    if (authLoading || !isAdminRestored) return;
 
     let cancelled = false;
     const load = async () => {
+      setLoading(true); // Garante que mostre loading ao trocar context
       if (!effectiveUserId || !id) {
         setError("Usuário não autenticado ou id inválido");
         setLoading(false);

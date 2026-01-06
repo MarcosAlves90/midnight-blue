@@ -32,7 +32,7 @@ interface GalleryGridProps {
   onResetFilters: () => void;
 }
 
-export function GalleryGrid({
+export const GalleryGrid = React.memo(function GalleryGrid({
   folders,
   allFolders,
   characters,
@@ -121,4 +121,4 @@ export function GalleryGrid({
       ))}
     </div>
   );
-}
+});

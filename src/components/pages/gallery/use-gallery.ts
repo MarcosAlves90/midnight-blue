@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import { useCharacterPersistence } from "@/hooks/use-character-persistence";
 import type { CharacterDocument, Folder } from "@/lib/types/character";
 import { useAdmin } from "@/contexts/AdminContext";
@@ -10,80 +10,57 @@ import { useRouter } from "next/navigation";
 import { useCharacter } from "@/contexts/CharacterContext";
 
 /**
- * Hook para gerenciar o estado bruto da galeria.
- * Mantido por compatibilidade com componentes que ainda usam a estrutura antiga.
+ * Interface unificada para o estado da galeria
  */
-export function useGalleryState() {
-  const [characters, setCharacters] = useState<CharacterDocument[]>([]);
-  const [folders, setFolders] = useState<Folder[]>([]);
-  const [users, setUsers] = useState<UserProfile[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [folderDialogOpen, setFolderDialogOpen] = useState(false);
-  const [deleteFolderDialogOpen, setDeleteFolderDialogOpen] = useState(false);
-  const [folderToDelete, setFolderToDelete] = useState<Folder | null>(null);
-  const [folderToEdit, setFolderToEdit] = useState<Folder | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
-
-  const resetState = useCallback(() => {
-    setCharacters([]);
-    setFolders([]);
-    setCurrentFolderId(null);
-    setSearchQuery("");
-  }, []);
-
-  return {
-    characters,
-    setCharacters,
-    folders,
-    setFolders,
-    users,
-    setUsers,
-    isLoading,
-    setIsLoading,
-    error,
-    setError,
-    deletingId,
-    setDeletingId,
-    dialogOpen,
-    setDialogOpen,
-    folderDialogOpen,
-    setFolderDialogOpen,
-    deleteFolderDialogOpen,
-    setDeleteFolderDialogOpen,
-    folderToDelete,
-    setFolderToDelete,
-    folderToEdit,
-    setFolderToEdit,
-    searchQuery,
-    setSearchQuery,
-    currentFolderId,
-    setCurrentFolderId,
-    resetState,
-  };
+export interface GalleryState {
+  characters: CharacterDocument[];
+  folders: Folder[];
+  users: UserProfile[];
+  isLoading: boolean;
+  error: string | null;
+  deletingId: string | null;
+  dialogOpen: boolean;
+  folderDialogOpen: boolean;
+  deleteFolderDialogOpen: boolean;
+  folderToDelete: Folder | null;
+  folderToEdit: Folder | null;
+  searchQuery: string;
+  currentFolderId: string | null;
 }
 
-/**
- * Hook para gerenciar as ações da galeria.
- * Centraliza a lógica de negócio e interação com serviços de persistência.
- */
-export function useGalleryActions(
-  userId: string | null,
-  handlers: {
-    setCharacters: (c: CharacterDocument[]) => void;
-    setFolders: (f: Folder[]) => void;
-    setUsers?: (u: UserProfile[]) => void;
-    setError: (e: string | null) => void;
-    setDeletingId: (id: string | null) => void;
-    setSelectedCharacter?: (c: CharacterDocument | null) => void;
-  },
-  push: (url: string) => void
-) {
-  const { isAdminMode, targetUserId } = useAdmin();
-  const effectiveUserId = (isAdminMode && targetUserId) ? targetUserId : userId;
+export function useGallery() {
+  const router = useRouter();
+  const { user, isAdmin } = useAuth();
+  const { setSelectedCharacter } = useCharacter();
+  const { 
+    isAdminMode, targetUserId, targetUserLabel, isAdminRestored,
+    setIsAdminMode, setTargetUserId, setTargetUserLabel, resetAdmin 
+  } = useAdmin();
+
+  const [state, setState] = useState<GalleryState>({
+    characters: [],
+    folders: [],
+    users: [],
+    isLoading: true,
+    error: null,
+    deletingId: null,
+    dialogOpen: false,
+    folderDialogOpen: false,
+    deleteFolderDialogOpen: false,
+    folderToDelete: null,
+    folderToEdit: null,
+    searchQuery: "",
+    currentFolderId: null,
+  });
+
+  // Auxiliar para atualizar estado parcial
+  const patchState = useCallback((patch: Partial<GalleryState>) => {
+    setState(prev => ({ ...prev, ...patch }));
+  }, []);
+
+  const effectiveUserId = useMemo(() => 
+    (isAdminMode && targetUserId) ? targetUserId : (user?.uid || null)
+  , [isAdminMode, targetUserId, user?.uid]);
 
   const { 
     listenToCharacters, 
@@ -96,128 +73,120 @@ export function useGalleryActions(
     listenToFolders
   } = useCharacterPersistence(effectiveUserId);
 
+  // -- Ações de Usuários (Admin) --
   const fetchUsers = useCallback(async () => {
+    if (!isAdminMode) return;
+    patchState({ isLoading: true });
     try {
       const allUsers = await UserService.listAllUsers();
-      handlers.setUsers?.(allUsers);
-    } catch (error) {
-      console.error("Erro ao carregar usuários:", error);
-      handlers.setError("Erro ao carregar lista de usuários");
+      patchState({ users: allUsers, error: null });
+    } catch {
+      patchState({ error: "Erro ao carregar lista de usuários" });
+    } finally {
+      patchState({ isLoading: false });
     }
-  }, [handlers]);
+  }, [isAdminMode, patchState]);
 
-  const fetchUser = useCallback(async (uid: string) => {
-    try {
-      const user = await UserService.getUser(uid);
-      if (user) {
-        handlers.setUsers?.([user]); // No modo de busca individual simplificado
-      }
-    } catch (error) {
-      console.error("Erro ao carregar usuário:", error);
+  const handleSelectUser = useCallback((targetUser: UserProfile) => {
+    setTargetUserId(targetUser.id);
+    setTargetUserLabel(targetUser.displayName || targetUser.email || "Usuário");
+    patchState({ searchQuery: "", currentFolderId: null });
+  }, [setTargetUserId, setTargetUserLabel, patchState]);
+
+  // -- Sincronização de Dados --
+  useEffect(() => {
+    if (!isAdminRestored) return;
+
+    // Reset ao trocar de usuário ou modo
+    patchState({ characters: [], folders: [], isLoading: !!effectiveUserId });
+
+    if (!effectiveUserId || (isAdminMode && !targetUserId)) {
+      if (!effectiveUserId) patchState({ isLoading: false });
+      return;
     }
-  }, [handlers]);
 
+    const unsubChars = listenToCharacters(
+      (chars) => patchState({ characters: chars, isLoading: false, error: null }),
+      () => patchState({ error: "Erro ao sincronizar personagens", isLoading: false })
+    );
+
+    const unsubFolders = listenToFolders(
+      (f) => patchState({ folders: f }),
+      () => console.error("Erro ao sincronizar pastas")
+    );
+
+    return () => {
+      unsubChars();
+      unsubFolders();
+    };
+  }, [effectiveUserId, isAdminMode, targetUserId, listenToCharacters, listenToFolders, patchState]);
+
+  // -- Handlers de Negócio --
   const handleSelectCharacter = useCallback(async (character: CharacterDocument) => {
     try {
-      handlers.setSelectedCharacter?.(character);
+      setSelectedCharacter(character);
       await selectCharacter(character.id);
-      push(`/dashboard/personagem/individual/${character.id}`);
-    } catch (error) {
-      console.error("Erro ao selecionar personagem:", error);
-      handlers.setError("Erro ao selecionar personagem");
+      router.push(`/dashboard/personagem/individual/${character.id}`);
+    } catch {
+      patchState({ error: "Erro ao abrir personagem" });
     }
-  }, [handlers, selectCharacter, push]);
+  }, [setSelectedCharacter, selectCharacter, router, patchState]);
 
-  const handleDeleteCharacter = useCallback(async (characterId: string) => {
-    handlers.setDeletingId(characterId);
+  const handleDeleteCharacter = useCallback(async (id: string) => {
+    patchState({ deletingId: id });
     try {
-      await removeCharacter(characterId);
-      handlers.setError(null);
-    } catch (error) {
-      console.error("Erro ao deletar personagem:", error);
-      handlers.setError("Erro ao deletar ficha");
+      await removeCharacter(id);
+    } catch {
+      patchState({ error: "Erro ao deletar personagem" });
     } finally {
-      handlers.setDeletingId(null);
+      patchState({ deletingId: null });
     }
-  }, [handlers, removeCharacter]);
+  }, [removeCharacter, patchState]);
 
+  // ... rest of the handlers wrapped in useCallback ...
   const handleCreateFolder = useCallback(async (name: string, parentId: string | null = null) => {
-    try {
-      await createFolder(name, parentId);
-    } catch {
-      handlers.setError("Erro ao criar pasta");
-    }
-  }, [handlers, createFolder]);
+    try { await createFolder(name, parentId); } catch { patchState({ error: "Erro ao criar pasta" }); }
+  }, [createFolder, patchState]);
 
-  const handleUpdateFolder = useCallback(async (folderId: string, name: string) => {
-    try {
-      await updateFolder(folderId, name);
-    } catch {
-      handlers.setError("Erro ao atualizar pasta");
-    }
-  }, [handlers, updateFolder]);
+  const handleUpdateFolder = useCallback(async (id: string, name: string) => {
+    try { await updateFolder(id, name); } catch { patchState({ error: "Erro ao atualizar pasta" }); }
+  }, [updateFolder, patchState]);
 
-  const handleDeleteFolder = useCallback(async (folderId: string) => {
-    try {
-      await deleteFolder(folderId);
-    } catch {
-      handlers.setError("Erro ao deletar pasta");
-    }
-  }, [handlers, deleteFolder]);
+  const handleDeleteFolder = useCallback(async (id: string) => {
+    try { await deleteFolder(id); } catch { patchState({ error: "Erro ao deletar pasta" }); }
+  }, [deleteFolder, patchState]);
 
-  const handleMoveToFolder = useCallback(async (characterId: string, folderId: string | null) => {
-    try {
-      await moveCharacterToFolder(characterId, folderId);
-    } catch {
-      handlers.setError("Erro ao mover personagem");
-    }
-  }, [handlers, moveCharacterToFolder]);
+  const handleMoveToFolder = useCallback(async (charId: string, folderId: string | null) => {
+    try { await moveCharacterToFolder(charId, folderId); } catch { patchState({ error: "Erro ao mover" }); }
+  }, [moveCharacterToFolder, patchState]);
 
   return {
+    ...state,
+    isAdmin,
+    isAdminMode,
+    targetUserId,
+    targetUserLabel,
+    ownUserId: user?.uid || null,
+    setIsAdminMode,
+    setTargetUserId,
+    resetAdmin,
+    fetchUsers,
+    handleSelectUser,
     handleSelectCharacter,
     handleDeleteCharacter,
     handleCreateFolder,
     handleUpdateFolder,
     handleDeleteFolder,
     handleMoveToFolder,
-    listenToCharacters,
-    listenToFolders,
-    fetchUsers,
-    fetchUser
+    setSearchQuery: (q: string) => patchState({ searchQuery: q }),
+    setCurrentFolderId: (id: string | null) => patchState({ currentFolderId: id }),
+    setDialogOpen: (open: boolean) => patchState({ dialogOpen: open }),
+    setFolderDialogOpen: (open: boolean) => patchState({ folderDialogOpen: open }),
+    setDeleteFolderDialogOpen: (open: boolean) => patchState({ deleteFolderDialogOpen: open }),
+    setFolderToDelete: (f: Folder | null) => patchState({ folderToDelete: f }),
+    setFolderToEdit: (f: Folder | null) => patchState({ folderToEdit: f }),
+    setError: (e: string | null) => patchState({ error: e }),
+    setIsLoading: (l: boolean) => patchState({ isLoading: l }),
   };
 }
 
-/**
- * NOVO: Hook unificado (Recomendado)
- * Resolve o acoplamento excessivo e centraliza tudo em uma interface limpa.
- */
-export function useGallery() {
-  const router = useRouter();
-  const { user, isAdmin } = useAuth();
-  const { setSelectedCharacter } = useCharacter();
-  const { isAdminMode, targetUserId, setIsAdminMode, setTargetUserId } = useAdmin();
-  
-  const state = useGalleryState();
-  
-  const handlers = useMemo(() => ({
-    setCharacters: state.setCharacters,
-    setFolders: state.setFolders,
-    setUsers: state.setUsers,
-    setError: state.setError,
-    setDeletingId: state.setDeletingId,
-    setSelectedCharacter
-  }), [state.setCharacters, state.setFolders, state.setUsers, state.setError, state.setDeletingId, setSelectedCharacter]);
-
-  const actions = useGalleryActions(user?.uid || null, handlers, router.push);
-
-  return {
-    ...state,
-    ...actions,
-    isAdmin,
-    isAdminMode,
-    targetUserId,
-    setIsAdminMode,
-    setTargetUserId,
-    ownUserId: user?.uid || null
-  };
-}
