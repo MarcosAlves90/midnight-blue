@@ -20,9 +20,11 @@ interface GalleryLayoutProps {
   folderPath: Folder[];
   onFolderClick: (folderId: string | null) => void;
   children: React.ReactNode;
+  extraContent?: React.ReactNode;
+  rootLabel?: string;
 }
 
-export function GalleryLayout({
+export const GalleryLayout = React.memo(function GalleryLayout({
   title,
   description,
   searchPlaceholder = "Pesquisar...",
@@ -33,6 +35,8 @@ export function GalleryLayout({
   folderPath,
   onFolderClick,
   children,
+  extraContent,
+  rootLabel = "RAIZ",
 }: GalleryLayoutProps) {
   return (
     <div className="space-y-6">
@@ -48,16 +52,19 @@ export function GalleryLayout({
         </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            placeholder={searchPlaceholder}
-            className="pl-9"
-            value={searchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
-          />
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder={searchPlaceholder}
+              className="pl-9"
+              value={searchQuery}
+              onChange={(e) => onSearchChange(e.target.value)}
+            />
+          </div>
         </div>
+        {extraContent}
       </div>
 
       {/* Breadcrumb Navigation */}
@@ -72,7 +79,7 @@ export function GalleryLayout({
           )}
         >
           <Home className="w-3.5 h-3.5" />
-          RAIZ
+          {rootLabel.toUpperCase()}
         </Button>
 
         {folderPath.map((folder, index) => (
@@ -98,4 +105,4 @@ export function GalleryLayout({
       </div>
     </div>
   );
-}
+});

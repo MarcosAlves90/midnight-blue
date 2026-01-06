@@ -15,7 +15,6 @@ import { useCharacter } from "@/contexts/CharacterContext";
 export interface GalleryState {
   characters: CharacterDocument[];
   folders: Folder[];
-  users: UserProfile[];
   isLoading: boolean;
   error: string | null;
   deletingId: string | null;
@@ -34,13 +33,13 @@ export function useGallery() {
   const { setSelectedCharacter } = useCharacter();
   const { 
     isAdminMode, targetUserId, targetUserLabel, isAdminRestored,
+    users, fetchUsers, isLoadingUsers,
     setIsAdminMode, setTargetUserId, setTargetUserLabel, resetAdmin 
   } = useAdmin();
 
   const [state, setState] = useState<GalleryState>({
     characters: [],
     folders: [],
-    users: [],
     isLoading: true,
     error: null,
     deletingId: null,
@@ -58,9 +57,10 @@ export function useGallery() {
     setState(prev => ({ ...prev, ...patch }));
   }, []);
 
-  const effectiveUserId = useMemo(() => 
-    (isAdminMode && targetUserId) ? targetUserId : (user?.uid || null)
-  , [isAdminMode, targetUserId, user?.uid]);
+  const effectiveUserId = useMemo(() => {
+    if (isAdminMode) return targetUserId || null;
+    return user?.uid || null;
+  }, [isAdminMode, targetUserId, user?.uid]);
 
   const { 
     listenToCharacters, 
@@ -72,20 +72,6 @@ export function useGallery() {
     moveCharacterToFolder,
     listenToFolders
   } = useCharacterPersistence(effectiveUserId);
-
-  // -- Ações de Usuários (Admin) --
-  const fetchUsers = useCallback(async () => {
-    if (!isAdminMode) return;
-    patchState({ isLoading: true });
-    try {
-      const allUsers = await UserService.listAllUsers();
-      patchState({ users: allUsers, error: null });
-    } catch {
-      patchState({ error: "Erro ao carregar lista de usuários" });
-    } finally {
-      patchState({ isLoading: false });
-    }
-  }, [isAdminMode, patchState]);
 
   const handleSelectUser = useCallback((targetUser: UserProfile) => {
     setTargetUserId(targetUser.id);
@@ -160,15 +146,18 @@ export function useGallery() {
     try { await moveCharacterToFolder(charId, folderId); } catch { patchState({ error: "Erro ao mover" }); }
   }, [moveCharacterToFolder, patchState]);
 
-  return {
+  return useMemo(() => ({
     ...state,
+    users,
     isAdmin,
     isAdminMode,
     targetUserId,
     targetUserLabel,
+    isAdminRestored,
     ownUserId: user?.uid || null,
     setIsAdminMode,
     setTargetUserId,
+    setTargetUserLabel,
     resetAdmin,
     fetchUsers,
     handleSelectUser,
@@ -187,6 +176,11 @@ export function useGallery() {
     setFolderToEdit: (f: Folder | null) => patchState({ folderToEdit: f }),
     setError: (e: string | null) => patchState({ error: e }),
     setIsLoading: (l: boolean) => patchState({ isLoading: l }),
-  };
+  }), [
+    state, users, isAdmin, isAdminMode, targetUserId, targetUserLabel, isAdminRestored, user?.uid,
+    setIsAdminMode, setTargetUserId, setTargetUserLabel, resetAdmin, fetchUsers,
+    handleSelectUser, handleSelectCharacter, handleDeleteCharacter, 
+    handleCreateFolder, handleUpdateFolder, handleDeleteFolder, handleMoveToFolder, patchState
+  ]);
 }
 

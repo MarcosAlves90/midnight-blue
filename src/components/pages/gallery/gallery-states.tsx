@@ -2,10 +2,10 @@
 
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { GallerySkeleton } from "./gallery-skeleton";
+import { GridSkeleton } from "./gallery-skeleton";
 
 export function LoadingState() {
-  return <GallerySkeleton />;
+  return <GridSkeleton />;
 }
 
 export function UnauthenticatedState() {

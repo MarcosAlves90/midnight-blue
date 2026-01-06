@@ -21,6 +21,7 @@ const CharacterContext = createContext<CharacterContextType | undefined>(undefin
 
 const CURRENT_CHAR_KEY = "midnight-current-character-id";
 const CURRENT_CHAR_OWNER_KEY = "midnight-current-character-owner-id";
+const LAST_OWN_CHAR_KEY = "midnight-last-own-character-id";
 
 export function CharacterProvider({ children }: { children: React.ReactNode }) {
   const [selectedCharacter, internalSetSelectedCharacter] = useState<CharacterDocument | null>(null);
@@ -40,14 +41,18 @@ export function CharacterProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   // Lógica de usuário efetivo:
-  // Se estiver em modo Admin e tiver um alvo, usa o alvo. Caso contrário, usa o dono da ficha selecionada ou o usuario logado.
+  // Decoplado do targetUserId do AdminContext para evitar que o Sidebar/Switcher pisque ao navegar na galeria.
+  // O contexto global só muda quando uma ficha é efetivamente selecionada.
   const effectiveUserId = useMemo(() => {
-    // Se o AdminContext está restaurando, evitamos recalcular para não gerar flashes de Admin UID
     if (!isAdminRestored) return null; 
 
-    if (isAdminMode && targetUserId) return targetUserId;
-    return selectedCharacter?.userId ?? persistedOwnerId ?? user?.uid ?? null;
-  }, [isAdminMode, targetUserId, selectedCharacter?.userId, persistedOwnerId, user?.uid, isAdminRestored]);
+    // 1. Se temos uma ficha selecionada, o contexto é o dono daquela ficha.
+    if (selectedCharacter?.userId) return selectedCharacter.userId;
+
+    // 2. Fallback para o usuário logado ou o dono da última ficha persistida.
+    // Isso mantém o Sidebar estável no contexto do administrador enquanto ele apenas navega na galeria.
+    return persistedOwnerId ?? user?.uid ?? null;
+  }, [selectedCharacter?.userId, persistedOwnerId, user?.uid, isAdminRestored]);
 
   // Hook de persistência configurado para o usuário efetivo
   const { loadCharacter, loadLastSelected } = useCharacterPersistence(effectiveUserId);
@@ -128,6 +133,12 @@ export function CharacterProvider({ children }: { children: React.ReactNode }) {
       if (character) {
         try { setStringItemAsync(CURRENT_CHAR_KEY, character.id); } catch {}
         try { setStringItemAsync(CURRENT_CHAR_OWNER_KEY, character.userId); } catch {}
+        
+        // Se NÃO estamos em modo admin, guardamos como "minha última ficha"
+        if (!isAdminMode || character.userId === user?.uid) {
+           try { setStringItemAsync(LAST_OWN_CHAR_KEY, character.id); } catch {}
+        }
+
         // Serializamos com cuidado. Datas viram strings no JSON.
         try { setItemAsync(`midnight-current-character-doc:${character.id}`, character); } catch {}
         setPersistedOwnerId(character.userId);
@@ -144,7 +155,35 @@ export function CharacterProvider({ children }: { children: React.ReactNode }) {
     } catch {
       // ignore
     }
-  }, []);
+  }, [isAdminMode, user?.uid]);
+
+  // Restaura a ficha própria ao sair do modo admin
+  useEffect(() => {
+    if (!isAdminRestored) return;
+
+    // Se o modo admin foi desativado e temos um personagem de outro usuário selecionado
+    if (!isAdminMode && selectedCharacter && selectedCharacter.userId !== user?.uid) {
+      const restoreOwnCharacter = async () => {
+        const lastOwnId = localStorage.getItem(LAST_OWN_CHAR_KEY);
+        if (lastOwnId) {
+          const char = await loadCharacter(lastOwnId);
+          if (char && char.userId === user?.uid) {
+             console.debug("[CharacterContext] Restoring own character after admin exit", char.id);
+             setSelectedCharacter({
+                ...char,
+                updatedAt: asDate(char.updatedAt),
+                createdAt: asDate(char.createdAt)
+             });
+          } else {
+             setSelectedCharacter(null); // Fallback: nada selecionada do próprio
+          }
+        } else {
+          setSelectedCharacter(null); // Fallback: nada selecionada do próprio
+        }
+      };
+      restoreOwnCharacter();
+    }
+  }, [isAdminMode, isAdminRestored, user?.uid, loadCharacter]);
 
   // Ao logar / montar, restaura última seleção
   useEffect(() => {
@@ -168,20 +207,9 @@ export function CharacterProvider({ children }: { children: React.ReactNode }) {
         if (localId) {
           const char = await loadCharacter(localId);
           if (!cancelled && char) {
-            // Validação de segurança: se estamos em modo Admin, a ficha deve pertencer ao alvo.
-            // Se NÃO estamos em modo Admin, a ficha deve pertencer ao usuário logado.
-            // Isso evita restaurar fichas "vazadas" de outros contextos.
-            const expectedOwnerId = (isAdminMode && targetUserId) ? targetUserId : user.uid;
+            // Validação de segurança simplificada: se a ficha existe e temos acesso, restauramos.
+            // O effectiveUserId agora é derivado da ficha, não o contrário.
             
-            if (char.userId !== expectedOwnerId) {
-              console.debug("[CharacterContext] Skipping restore: character owner mismatch", {
-                charOwner: char.userId,
-                expected: expectedOwnerId
-              });
-              setIsLoading(false);
-              return;
-            }
-
             // Assegura tipos corretos no restore
             const safeChar = {
                 ...char,

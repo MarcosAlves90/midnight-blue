@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useAuth } from "./AuthContext";
+import { UserService, type UserProfile } from "@/services/user-service";
 
 type AdminContextValue = {
   isAdminMode: boolean;
@@ -12,6 +13,9 @@ type AdminContextValue = {
   setTargetUserLabel: (label: string | null) => void;
   resetAdmin: () => void;
   isAdminRestored: boolean;
+  users: UserProfile[];
+  fetchUsers: () => Promise<void>;
+  isLoadingUsers: boolean;
 };
 
 const AdminContext = React.createContext<AdminContextValue | undefined>(undefined);
@@ -22,6 +26,8 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
   const [targetUserId, setTargetUserId] = React.useState<string | null>(null);
   const [targetUserLabel, setTargetUserLabel] = React.useState<string | null>(null);
   const [isAdminRestored, setIsAdminRestored] = React.useState(false);
+  const [users, setUsers] = React.useState<UserProfile[]>([]);
+  const [isLoadingUsers, setIsLoadingUsers] = React.useState(false);
 
   // Recupera estado do Admin do LocalStorage para suportar F5
   React.useEffect(() => {
@@ -54,6 +60,26 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
     }
   }, [isAdminMode, targetUserId, targetUserLabel, isAdminRestored]);
 
+  const fetchUsers = React.useCallback(async () => {
+    if (!isAdmin) return;
+    setIsLoadingUsers(true);
+    try {
+      const allUsers = await UserService.listAllUsers();
+      setUsers(allUsers);
+    } catch (err) {
+      console.error("Erro ao carregar usuários:", err);
+    } finally {
+      setIsLoadingUsers(false);
+    }
+  }, [isAdmin]);
+
+  // Carrega usuários automaticamente se entrar no modo admin e a lista estiver vazia
+  React.useEffect(() => {
+    if (isAdminMode && users.length === 0 && !isLoadingUsers) {
+      fetchUsers();
+    }
+  }, [isAdminMode, users.length, isLoadingUsers, fetchUsers]);
+
   const resetAdmin = React.useCallback(() => {
     setTargetUserId(null);
     setTargetUserLabel(null);
@@ -66,22 +92,38 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
     if (!authLoading && !isAdmin) {
       setIsAdminMode(false);
       resetAdmin();
+      setUsers([]);
     }
   }, [isAdmin, authLoading, resetAdmin]);
 
+  const value = React.useMemo(() => ({ 
+    isAdminMode, 
+    setIsAdminMode,
+    targetUserId,
+    setTargetUserId,
+    targetUserLabel,
+    setTargetUserLabel,
+    resetAdmin,
+    isAdminRestored,
+    users,
+    fetchUsers,
+    isLoadingUsers
+  }), [
+    isAdminMode, 
+    setIsAdminMode,
+    targetUserId, 
+    setTargetUserId,
+    targetUserLabel, 
+    setTargetUserLabel,
+    resetAdmin, 
+    isAdminRestored,
+    users,
+    fetchUsers,
+    isLoadingUsers
+  ]);
+
   return (
-    <AdminContext.Provider 
-      value={{ 
-        isAdminMode, 
-        setIsAdminMode,
-        targetUserId,
-        setTargetUserId,
-        targetUserLabel,
-        setTargetUserLabel,
-        resetAdmin,
-        isAdminRestored
-      }}
-    >
+    <AdminContext.Provider value={value}>
       {children}
     </AdminContext.Provider>
   );

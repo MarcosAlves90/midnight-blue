@@ -9,8 +9,6 @@ interface GalleryActionsProps {
   isAdminMode: boolean;
   onToggleAdminMode: () => void;
   targetUserId: string | null;
-  targetUserLabel?: string | null;
-  onBackToUsers: () => void;
   onNewFolder: () => void;
   onNewCharacter: () => void;
 }
@@ -20,8 +18,6 @@ export const GalleryActions = React.memo(function GalleryActions({
   isAdminMode,
   onToggleAdminMode,
   targetUserId,
-  targetUserLabel,
-  onBackToUsers,
   onNewFolder,
   onNewCharacter,
 }: GalleryActionsProps) {
@@ -39,21 +35,7 @@ export const GalleryActions = React.memo(function GalleryActions({
         </Button>
       )}
 
-      {isAdminMode && targetUserId && (
-        <>
-          <div className="hidden md:flex items-center px-3 py-1 bg-accent/30 rounded-full border border-accent">
-            <span className="text-xs font-medium text-accent-foreground">
-              Visualizando: {targetUserLabel}
-            </span>
-          </div>
-          <Button variant="outline" size="sm" onClick={onBackToUsers} className="h-9">
-            <ChevronLeft className="w-4 h-4 mr-2" />
-            Voltar
-          </Button>
-        </>
-      )}
-
-      {!isAdminMode && (
+      {(!isAdminMode || targetUserId) && (
         <>
           <Button variant="outline" size="sm" onClick={onNewFolder} className="h-9">
             <FolderPlus className="w-4 h-4 mr-2" />

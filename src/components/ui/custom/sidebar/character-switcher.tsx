@@ -1,10 +1,11 @@
 "use client";
 
 import * as React from "react";
-import { ChevronsUpDown, Plus, BookOpen, AlertCircle } from "lucide-react";
+import { ChevronsUpDown, Plus, BookOpen, AlertCircle, ShieldAlert } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CharacterImage } from "@/components/ui/custom/character-image";
+import { cn } from "@/lib/utils";
 
 import {
   DropdownMenu,
@@ -69,7 +70,7 @@ function InitialCharacterButton({ onCreate }: { onCreate: () => void }) {
   );
 }
 
-export function CharacterSwitcher() {
+const CharacterSwitcherComponent = () => {
   const { isMobile } = useSidebar();
   const { user, loading: authLoading } = useAuth();
   const { isAdminMode, targetUserId } = useAdmin();
@@ -102,8 +103,8 @@ export function CharacterSwitcher() {
 
     let unsubscribe: (() => void) | undefined;
     
-    // Limpa estado anterior ao mudar de usuário para evitar flashes
-    setCharacters([]);
+    // NÃO limpa estado anterior imediatamente para evitar flashes visíveis
+    // Apenas se o ID do usuário de fato mudou drasticamente
     setIsLoading(true);
 
     try {
@@ -137,7 +138,6 @@ export function CharacterSwitcher() {
   };
 
   const handleCreateNewCharacter = () => {
-    // Use o contexto para sinalizar abertura de novo dialog em vez de query param
     characterContext.setOpenNewDialog(true);
     router.push("/dashboard/galeria");
   }; 
@@ -146,7 +146,13 @@ export function CharacterSwitcher() {
     router.push("/dashboard/galeria");
   };
 
-  if (isLoading) {
+  // Se estivermos em modo admin e a ficha selecionada (ou o target da galeria) não for a nossa
+  const isViewingAdminContext = isAdminMode && (
+    (targetUserId && targetUserId !== user?.uid) || 
+    (selectedCharacter && selectedCharacter.userId !== user?.uid)
+  );
+
+  if (isLoading && characters.length === 0) {
     return (
       <SidebarMenu>
         <SidebarMenuItem>
@@ -193,7 +199,10 @@ export function CharacterSwitcher() {
               <SidebarMenuButton
                 size="lg"
                 tooltip={selectedCharacterName}
-                className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                className={cn(
+                  "data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground transition-all duration-200",
+                  isViewingAdminContext && "border-l-2 border-primary bg-primary/5"
+                )}
               >
                 <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 shrink-0 items-center justify-center rounded-lg overflow-hidden relative">
                   <CharacterImage
@@ -208,13 +217,18 @@ export function CharacterSwitcher() {
                       </span>
                     }
                   />
+                  {isViewingAdminContext && (
+                    <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
+                      <ShieldAlert className="size-4 text-primary animate-pulse" />
+                    </div>
+                  )}
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight min-w-0">
-                  <span className="truncate font-medium">
+                  <span className="truncate font-medium flex items-center gap-1">
                     {selectedCharacterName}
                   </span>
                   <span className="truncate text-xs text-muted-foreground">
-                    {selectedCharacterPlayer}
+                    {isViewingAdminContext ? "Sua Conta (Modo Admin)" : selectedCharacterPlayer || "Alternar Ficha"}
                   </span>
                 </div>
                 <ChevronsUpDown className="ml-auto shrink-0" />
@@ -287,4 +301,6 @@ export function CharacterSwitcher() {
       </SidebarMenuItem>
     </SidebarMenu>
   );
-}
+};
+
+export const CharacterSwitcher = React.memo(CharacterSwitcherComponent);

@@ -203,7 +203,7 @@ export function useCharacterPersistence(
    */
   const loadCharacter = useCallback(
     async (charId: string, options?: { forceFresh?: boolean }): Promise<CharacterDocument | null> => {
-      if (!userId) throw new Error("Usuário não autenticado");
+      if (!userId) return null;
       console.debug("[loadCharacter] fetching", { userId, charId, forceFresh: options?.forceFresh });
 
       if (!repoRef.current) {
@@ -422,7 +422,7 @@ export function useCharacterPersistence(
    * Recupera o último personagem selecionado com todos os dados
    */
   const loadLastSelected = useCallback(async () => {
-    if (!userId) throw new Error("Usuário não autenticado");
+    if (!userId) return null;
     if (!repoRef.current) repoRef.current = new FirebaseCharacterRepository(userId);
     const id = await repoRef.current.getLastSelectedCharacterId();
     if (!id) return null;

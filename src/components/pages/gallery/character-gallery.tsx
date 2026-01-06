@@ -2,6 +2,7 @@
 
 import { Suspense, lazy, useCallback, useEffect, useMemo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { ShieldCheck } from "lucide-react";
 
 import { GalleryLayout } from "@/components/ui/custom/gallery-layout";
 // Consider lazy loading dialogs for better initial bundle size and performance
@@ -38,7 +39,6 @@ const CharacterGallery = React.memo(function CharacterGallery() {
     resetAdmin();
   }, [isAdminMode, setIsAdminMode, resetAdmin]);
 
-  const onBackToUsers = useCallback(() => resetAdmin(), [resetAdmin]);
   const onNewFolder = useCallback(() => setFolderDialogOpen(true), [setFolderDialogOpen]);
   const onNewCharacter = useCallback(() => setDialogOpen(true), [setDialogOpen]);
   const onResetFilters = useCallback(() => { 
@@ -46,39 +46,64 @@ const CharacterGallery = React.memo(function CharacterGallery() {
     setCurrentFolderId(null); 
   }, [setSearchQuery, setCurrentFolderId]);
 
-  // -- Data Loading Initializer --
-  useEffect(() => {
-    if (isAdminMode && !targetUserId) {
-      fetchUsers();
+  const handleFolderClick = useCallback((id: string | null) => {
+    if (id === "admin-root") {
+      resetAdmin();
+      setCurrentFolderId(null);
+    } else {
+      setCurrentFolderId(id);
     }
-  }, [isAdminMode, targetUserId, fetchUsers]);
+  }, [resetAdmin, setCurrentFolderId]);
 
   // -- Derived Data --
   const folderPath = useMemo(() => {
     const path: Folder[] = [];
+
+    // Se estiver em modo admin e visualizando um usuário, injetamos ele na trilha
+    if (isAdminMode && targetUserId) {
+      path.push({ id: "admin-root", name: targetUserLabel || "CONTA" });
+    }
+
     let currentId = currentFolderId;
     while (currentId) {
       const folder = folders.find(f => f.id === currentId);
       if (folder) {
-        path.unshift(folder);
-        currentId = folder.parentId || null;
-      } else break;
+        path.push(folder); // Adicionando ao final e depois corrigindo se necessário
+      }
+      currentId = folders.find(f => f.id === currentId)?.parentId || null;
     }
-    return path;
-  }, [currentFolderId, folders]);
+
+    // Lógica correta de path:
+    const finalPath: Folder[] = [];
+    if (isAdminMode && targetUserId) {
+        finalPath.push({ id: "admin-root", name: targetUserLabel || "CONTA" });
+    }
+    
+    const subPath: Folder[] = [];
+    let cid = currentFolderId;
+    while (cid) {
+        const f = folders.find(x => x.id === cid);
+        if (f) {
+            subPath.unshift(f);
+            cid = f.parentId || null;
+        } else break;
+    }
+    
+    return [...finalPath, ...subPath];
+  }, [currentFolderId, folders, isAdminMode, targetUserId, targetUserLabel]);
 
   const filteredUsers = useMemo(() => {
-    if (!isAdminMode || targetUserId) return [];
+    if (!isAdminMode) return [];
     const q = searchQuery.toLowerCase();
     return users.filter(u => 
       !q || 
       (u.displayName || "").toLowerCase().includes(q) || 
       (u.email || "").toLowerCase().includes(q)
     );
-  }, [isAdminMode, targetUserId, users, searchQuery]);
+  }, [isAdminMode, users, searchQuery]);
 
   const filteredFolders = useMemo(() => {
-    if (isAdminMode && targetUserId) return [];
+    if (isAdminMode && !targetUserId) return [];
     const q = searchQuery.toLowerCase();
     return folders.filter(f => 
       f.name.toLowerCase().includes(q) && 
@@ -87,49 +112,53 @@ const CharacterGallery = React.memo(function CharacterGallery() {
   }, [folders, searchQuery, currentFolderId, isAdminMode, targetUserId]);
 
   const filteredCharacters = useMemo(() => {
+    if (isAdminMode && !targetUserId) return [];
     const q = searchQuery.toLowerCase();
-    const isAdminViewingUser = isAdminMode && !!targetUserId;
-
     return characters.filter(char => 
       (char.identity.name.toLowerCase().includes(q) ||
        char.identity.heroName.toLowerCase().includes(q)) &&
-      (isAdminViewingUser ? true : (char.folderId || null) === currentFolderId)
+      (char.folderId || null) === currentFolderId
     );
   }, [characters, searchQuery, currentFolderId, isAdminMode, targetUserId]);
 
   const targetUser = useMemo(() => users.find(u => u.id === targetUserId), [users, targetUserId]);
   
-  const galleryTitle = useMemo(() => isAdminMode 
-    ? (targetUser ? `Fichas de ${targetUser.displayName || targetUser.email}` : "Visão de Admin")
-    : "Minhas Fichas", [isAdminMode, targetUser]);
+  const handleUserClick = useCallback((userId: string) => {
+    const u = users.find(x => x.id === userId);
+    if (u) handleSelectUser(u);
+  }, [users, handleSelectUser]);
 
-  if (isLoading) return <LoadingState />;
-  if (!user) return <UnauthenticatedState />;
+  if (!user && !isLoading) return <UnauthenticatedState />;
 
   const isShowingUserList = isAdminMode && !targetUserId;
   const isAdminViewingUser = isAdminMode && !!targetUserId;
-  const isGalleryEmpty = isAdminViewingUser 
-    ? characters.length === 0 
-    : (characters.length === 0 && folders.length === 0);
+  const isGalleryEmpty = characters.length === 0 && folders.length === 0;
 
   return (
     <GalleryLayout
-      title={galleryTitle}
-      description={isAdminMode ? "Modo de administração ativado" : "Gerencie e organize seus personagens"}
-      searchPlaceholder={isShowingUserList ? "Pesquisar usuários..." : "Pesquisar por nome ou codinome..."}
+      title="Minhas Fichas"
+      description="Gerencie e organize seus personagens"
+      searchPlaceholder="Pesquisar por nome ou codinome..."
       searchQuery={searchQuery}
       onSearchChange={setSearchQuery}
-      currentFolderId={isAdminViewingUser ? null : currentFolderId}
-      folderPath={isAdminViewingUser ? [] : folderPath}
-      onFolderClick={setCurrentFolderId}
+      currentFolderId={currentFolderId}
+      folderPath={folderPath}
+      onFolderClick={handleFolderClick}
+      rootLabel={isAdminMode ? "CONTAS" : "RAIZ"}
+      extraContent={isAdminMode && (
+        <AdminUserList 
+          users={filteredUsers} 
+          compact
+          selectedUserId={targetUserId}
+          onUserClick={handleUserClick} 
+        />
+      )}
       actions={
         <GalleryActions 
           isAdmin={isAdmin}
           isAdminMode={isAdminMode}
           onToggleAdminMode={onToggleAdminMode}
           targetUserId={targetUserId}
-          targetUserLabel={targetUserLabel}
-          onBackToUsers={onBackToUsers}
           onNewFolder={onNewFolder}
           onNewCharacter={onNewCharacter}
         />
@@ -155,20 +184,32 @@ const CharacterGallery = React.memo(function CharacterGallery() {
         />
       </Suspense>
 
-      {error ? (
+      {isLoading ? (
+        <LoadingState />
+      ) : error ? (
         <ErrorState error={error} />
       ) : isShowingUserList ? (
-        <AdminUserList 
-          users={filteredUsers} 
-          onUserClick={(userId) => {
-            const u = users.find(x => x.id === userId);
-            if (u) handleSelectUser(u);
-          }} 
-        />
+        <div className="flex flex-col items-center justify-center py-24 bg-accent/5 border-2 border-dashed rounded-3xl transition-all animate-in fade-in zoom-in duration-500">
+          <div className="relative group">
+            <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-primary to-blue-600 opacity-25 group-hover:opacity-50 blur transition duration-1000 group-hover:duration-200"></div>
+            <div className="relative flex items-center justify-center w-20 h-20 rounded-full bg-card shadow-xl">
+               <ShieldCheck className="w-10 h-10 text-primary" />
+            </div>
+          </div>
+          <h3 className="text-2xl font-black uppercase tracking-tighter mt-6 bg-clip-text text-transparent bg-gradient-to-b from-foreground to-foreground/70">
+            Painel Administrativo
+          </h3>
+          <p className="text-muted-foreground text-sm max-w-[320px] text-center mt-3 font-medium leading-relaxed">
+            Navegue pela lista de contas acima para gerenciar fichas e conteúdos de outros usuários.
+          </p>
+        </div>
       ) : isGalleryEmpty ? (
-        <div className={isAdminMode ? "text-center py-12 border-2 border-dashed rounded-xl bg-muted/5" : ""}>
+        <div className={isAdminMode ? "text-center py-20 border-2 border-dashed rounded-2xl bg-muted/5" : ""}>
           {isAdminMode ? (
-            <p className="text-sm text-muted-foreground">Este usuário ainda não possui fichas ou pastas registradas.</p>
+            <div className="flex flex-col items-center gap-2">
+              <p className="text-lg font-bold uppercase">Galeria Vazia</p>
+              <p className="text-sm text-muted-foreground">Este usuário não possui fichas nesta pasta.</p>
+            </div>
           ) : (
             <EmptyState onCreate={onNewCharacter} />
           )}
