@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { ChevronsUpDown, Plus, BookOpen, AlertCircle, ShieldAlert } from "lucide-react";
+import { ChevronsUpDown, Plus, BookOpen, AlertCircle, Eye, RefreshCw } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CharacterImage } from "@/components/ui/custom/character-image";
@@ -181,12 +181,18 @@ const CharacterSwitcherComponent = () => {
     );
   }
 
-  if (!selectedCharacter && characters.length === 0) {
+  if (!selectedCharacter && characters.length === 0 && !isAdminMode) {
     return <InitialCharacterButton onCreate={handleCreateNewCharacter} />;
   }
 
-  const selectedCharacterName = selectedCharacter?.identity?.name || "Selecionar Ficha";
-  const selectedCharacterPlayer = selectedCharacter?.identity?.heroName || "";
+  const selectedCharacterName = selectedCharacter 
+    ? (selectedCharacter.identity?.name || "Sem Nome")
+    : (isAdminMode ? "Modo de Seleção" : "Selecionar Ficha");
+
+  const selectedCharacterPlayer = selectedCharacter
+    ? (selectedCharacter.identity?.heroName || "Alternar Ficha")
+    : (isAdminMode ? "Infinity Corporation" : "");
+
   const selectedProfileImage = selectedCharacter?.identity?.profileImage;
   const selectedImagePosition = selectedCharacter?.identity?.imagePosition;
 
@@ -201,25 +207,29 @@ const CharacterSwitcherComponent = () => {
                 tooltip={selectedCharacterName}
                 className={cn(
                   "data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground transition-all duration-200",
-                  isViewingAdminContext && "border-l-2 border-primary bg-primary/5"
+                  isViewingAdminContext && "bg-primary/5"
                 )}
               >
                 <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 shrink-0 items-center justify-center rounded-lg overflow-hidden relative">
-                  <CharacterImage
-                    src={selectedProfileImage}
-                    alt={selectedCharacterName}
-                    imagePosition={selectedImagePosition}
-                    fill
-                    sizes="32px"
-                    fallback={
-                      <span className="text-xs font-bold">
-                        {selectedCharacterName.charAt(0).toUpperCase()}
-                      </span>
-                    }
-                  />
-                  {isViewingAdminContext && (
-                    <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
-                      <ShieldAlert className="size-4 text-primary animate-pulse" />
+                  {isAdminMode && !selectedCharacter ? (
+                    <RefreshCw className="size-4 animate-spin text-primary-foreground" />
+                  ) : (
+                    <CharacterImage
+                      src={selectedProfileImage}
+                      alt={selectedCharacterName}
+                      imagePosition={selectedImagePosition}
+                      fill
+                      sizes="32px"
+                      fallback={
+                        <span className="text-xs font-bold">
+                          {selectedCharacterName.charAt(0).toUpperCase()}
+                        </span>
+                      }
+                    />
+                  )}
+                  {isViewingAdminContext && selectedCharacter && (
+                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                      <Eye className="size-4 text-primary animate-pulse" />
                     </div>
                   )}
                 </div>
@@ -228,7 +238,9 @@ const CharacterSwitcherComponent = () => {
                     {selectedCharacterName}
                   </span>
                   <span className="truncate text-xs text-muted-foreground">
-                    {isViewingAdminContext ? "Sua Conta (Modo Admin)" : selectedCharacterPlayer || "Alternar Ficha"}
+                    {isViewingAdminContext && selectedCharacter 
+                      ? "Rastreando..." 
+                      : selectedCharacterPlayer}
                   </span>
                 </div>
                 <ChevronsUpDown className="ml-auto shrink-0" />
@@ -274,18 +286,22 @@ const CharacterSwitcherComponent = () => {
         ) : (
           <SidebarMenuButton size="lg" tooltip={selectedCharacterName}>
             <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 shrink-0 items-center justify-center rounded-lg overflow-hidden relative">
-              <CharacterImage
-                src={selectedProfileImage}
-                alt={selectedCharacterName}
-                imagePosition={selectedImagePosition}
-                fill
-                sizes="32px"
-                fallback={
-                  <span className="text-xs font-bold">
-                    {selectedCharacterName.charAt(0).toUpperCase()}
-                  </span>
-                }
-              />
+              {isAdminMode && !selectedCharacter ? (
+                <RefreshCw className="size-4 animate-spin text-primary-foreground" />
+              ) : (
+                <CharacterImage
+                  src={selectedProfileImage}
+                  alt={selectedCharacterName}
+                  imagePosition={selectedImagePosition}
+                  fill
+                  sizes="32px"
+                  fallback={
+                    <span className="text-xs font-bold">
+                      {selectedCharacterName.charAt(0).toUpperCase()}
+                    </span>
+                  }
+                />
+              )}
             </div>
             <div className="grid flex-1 text-left text-sm leading-tight min-w-0">
               <span className="truncate font-medium">

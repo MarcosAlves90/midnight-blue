@@ -46,13 +46,19 @@ export function CharacterProvider({ children }: { children: React.ReactNode }) {
   const effectiveUserId = useMemo(() => {
     if (!isAdminRestored) return null; 
 
+    // Se NÃO estamos em modo admin, o usuário efetivo SOMENTE pode ser o logado
+    if (!isAdminMode) return user?.uid ?? null;
+
+    // Em modo admin:
     // 1. Se temos uma ficha selecionada, o contexto é o dono daquela ficha.
     if (selectedCharacter?.userId) return selectedCharacter.userId;
 
-    // 2. Fallback para o usuário logado ou o dono da última ficha persistida.
-    // Isso mantém o Sidebar estável no contexto do administrador enquanto ele apenas navega na galeria.
+    // 2. Fallback para o alvo atual do admin (se houver) para manter o Sidebar consistente
+    if (targetUserId) return targetUserId;
+
+    // 3. Fallback para o usuário logado ou o dono da última ficha persistida.
     return persistedOwnerId ?? user?.uid ?? null;
-  }, [selectedCharacter?.userId, persistedOwnerId, user?.uid, isAdminRestored]);
+  }, [selectedCharacter?.userId, persistedOwnerId, user?.uid, isAdminRestored, isAdminMode, targetUserId]);
 
   // Hook de persistência configurado para o usuário efetivo
   const { loadCharacter, loadLastSelected } = useCharacterPersistence(effectiveUserId);
@@ -157,12 +163,25 @@ export function CharacterProvider({ children }: { children: React.ReactNode }) {
     }
   }, [isAdminMode, user?.uid]);
 
+  // Deseleciona ficha ao trocar o modo admin para evitar vazamento de contexto
+  useEffect(() => {
+    if (!isAdminRestored) return;
+    
+    // Ao alternar admin mode, limpamos a seleção atual para forçar uma nova escolha condizente com o contexto
+    // Preservamos o LAST_OWN_CHAR_KEY que está no setSelectedCharacter para restauração posterior
+    internalSetSelectedCharacter(null);
+    try {
+      localStorage.removeItem(CURRENT_CHAR_KEY);
+      localStorage.removeItem(CURRENT_CHAR_OWNER_KEY);
+    } catch {}
+  }, [isAdminMode, isAdminRestored]);
+
   // Restaura a ficha própria ao sair do modo admin
   useEffect(() => {
     if (!isAdminRestored) return;
 
-    // Se o modo admin foi desativado e temos um personagem de outro usuário selecionado
-    if (!isAdminMode && selectedCharacter && selectedCharacter.userId !== user?.uid) {
+    // Se o modo admin foi desativado e NADA está selecionado (limpo pelo efeito acima), tentamos restaurar a própria
+    if (!isAdminMode && !selectedCharacter) {
       const restoreOwnCharacter = async () => {
         const lastOwnId = localStorage.getItem(LAST_OWN_CHAR_KEY);
         if (lastOwnId) {
@@ -174,11 +193,7 @@ export function CharacterProvider({ children }: { children: React.ReactNode }) {
                 updatedAt: asDate(char.updatedAt),
                 createdAt: asDate(char.createdAt)
              });
-          } else {
-             setSelectedCharacter(null); // Fallback: nada selecionada do próprio
           }
-        } else {
-          setSelectedCharacter(null); // Fallback: nada selecionada do próprio
         }
       };
       restoreOwnCharacter();
@@ -199,6 +214,14 @@ export function CharacterProvider({ children }: { children: React.ReactNode }) {
 
     // Restauração de seleção
     const restoreSelection = async () => {
+      // Se estamos em modo admin e não temos um alvo definido (estamos na lista de contas),
+      // não devemos ter nenhuma ficha selecionada.
+      if (isAdminMode && !targetUserId) {
+        internalSetSelectedCharacter(null);
+        setIsLoading(false);
+        return;
+      }
+
       try {
         const localId = (() => {
           try { return localStorage.getItem(CURRENT_CHAR_KEY); } catch { return null; }
