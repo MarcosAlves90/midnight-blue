@@ -8,6 +8,13 @@ export interface UseFieldLocalStateOptions {
   onDirty?: (fieldName?: string) => void;
 }
 
+/**
+ * A robust hook for local input state that manages synchronization with an external value.
+ * Features:
+ * - Optimistic local state with debounced commits.
+ * - Prevents overwrite loops by tracking 'clean' vs 'dirty' status locally.
+ * - Supports manual flushing and blurring.
+ */
 export function useFieldLocalState(
   externalValue: string | undefined,
   onCommit: (value: string) => void,
@@ -16,55 +23,71 @@ export function useFieldLocalState(
   const debounceMs = options?.debounceMs ?? 300;
   const fieldName = options?.fieldName;
   const onDirty = options?.onDirty;
+
   const [value, setValue] = useState(String(externalValue ?? ""));
   const timeoutRef = useRef<number | undefined>(undefined);
+  const isDirtyRef = useRef(false);
+  const lastCommittedValueRef = useRef(String(externalValue ?? ""));
 
-  // Sync when external value changes (e.g., selected different character)
+  // Sincroniza com valor externo apenas se NÃO estivermos editando localmente
+  // ou se o valor externo mudar drasticamente (ex: troca de personagem)
   useEffect(() => {
-    setValue(String(externalValue ?? ""));
+    const ext = String(externalValue ?? "");
+    if (!isDirtyRef.current || lastCommittedValueRef.current !== ext) {
+      setValue(ext);
+      lastCommittedValueRef.current = ext;
+    }
   }, [externalValue]);
+
+  const commit = useCallback((v: string) => {
+    if (v === lastCommittedValueRef.current) return;
+    
+    lastCommittedValueRef.current = v;
+    onCommit(v);
+    isDirtyRef.current = false; // Marcar como limpo após commit inicial (o servidor confirmará depois)
+  }, [onCommit]);
 
   const flush = useCallback(() => {
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
       timeoutRef.current = undefined;
     }
-    // commit current value
-    onCommit(value);
-  }, [onCommit, value]);
+    commit(value);
+  }, [commit, value]);
 
   const scheduleCommit = useCallback((v: string) => {
-    if (!debounceMs) {
-      onCommit(v);
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    
+    if (debounceMs <= 0) {
+      commit(v);
       return;
     }
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+
     timeoutRef.current = window.setTimeout(() => {
       timeoutRef.current = undefined;
-      onCommit(v);
+      commit(v);
     }, debounceMs) as unknown as number;
-  }, [debounceMs, onCommit]);
+  }, [debounceMs, commit]);
 
   const handleChange = useCallback((payload: string | React.ChangeEvent<HTMLInputElement> | React.ChangeEvent<HTMLTextAreaElement>) => {
     const newVal = typeof payload === "string" ? payload : payload.target.value ?? "";
+    
     setValue(newVal);
-    // notify dirty state if requested
+    isDirtyRef.current = true;
+
+    // Notify dirty state once per session
     try {
       if (fieldName && onDirty) onDirty(fieldName);
     } catch {
-      // ignore onDirty errors
+      // ignore
     }
+
     scheduleCommit(newVal);
   }, [scheduleCommit, fieldName, onDirty]);
 
   const handleBlur = useCallback(() => {
-    // flush pending and commit the latest local value
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = undefined;
-    }
-    onCommit(value);
-  }, [onCommit, value]);
+    flush();
+  }, [flush]);
 
   useEffect(() => {
     return () => {

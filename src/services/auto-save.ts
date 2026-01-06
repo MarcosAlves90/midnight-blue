@@ -77,31 +77,62 @@ export class AutoSaveService<T extends Record<string, unknown> = Record<string, 
    * Internal: execute save in background (non-blocking)
    * Runs async work without awaiting in sync context
    */
-  private executeInBackground() {
+  private async executeInBackground() {
     // If already executing or nothing to save, skip
     if (this.inFlight || !this.pendingObj) return;
 
-    const toSave = this.pendingObj;
+    const toSave = { ...this.pendingObj };
     this.pendingObj = null;
     this.inFlight = true;
 
-    // Run the actual handler asynchronously (fire and forget)
-    // Schedule on next event loop tick to be non-blocking
-    this.executionTimeoutId = setTimeout(async () => {
-      try {
-        const result = await this.handler(toSave);
-        this.opts.onSuccess?.(result);
-      } catch (err) {
-        this.opts.onError?.(err);
-      } finally {
-        this.inFlight = false;
+    try {
+      // Pequeno atraso para garantir que não estamos bloqueando a thread principal de UI
+      await new Promise(resolve => setTimeout(resolve, 0));
+      const result = await this.handler(toSave);
+      this.opts.onSuccess?.(result);
+    } catch (err) {
+      // Se falhar, tentamos reintegrar o que não foi salvo ao pendingObj
+      // para que a próxima tentativa inclua esses dados.
+      this.mergePending(toSave);
+      this.opts.onError?.(err);
+    } finally {
+      this.inFlight = false;
 
-        // If new pending data arrived, execute again
-        if (this.pendingObj) {
+      // If new pending data arrived during save, schedule another one
+      if (this.pendingObj && !this.timeoutId) {
+        this.timeoutId = setTimeout(() => {
+          this.timeoutId = null;
           void this.executeInBackground();
-        }
+        }, this.debounceMs);
       }
-    }, 0);
+    }
+  }
+
+  private mergePending(data: T) {
+    if (!this.pendingObj) {
+      this.pendingObj = { ...data };
+      return;
+    }
+    
+    const merged = { ...data };
+    Object.keys(this.pendingObj).forEach((key) => {
+      const val = this.pendingObj![key];
+      const existing = merged[key];
+      
+      if (
+        (key === "identity" || key === "status") && 
+        typeof val === "object" && val !== null &&
+        typeof existing === "object" && existing !== null
+      ) {
+        merged[key as keyof T] = { 
+          ...(existing as Record<string, unknown>), 
+          ...(val as Record<string, unknown>) 
+        } as T[keyof T];
+      } else {
+        merged[key as keyof T] = val as T[keyof T];
+      }
+    });
+    this.pendingObj = merged;
   }
 
   /**

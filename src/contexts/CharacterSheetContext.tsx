@@ -188,7 +188,15 @@ export function CharacterSheetProvider({ children }: { children: React.ReactNode
       
       setDirtyFields(d => {
         const n = new Set(d);
-        Object.keys(nextUpdates).forEach(k => n.add(k));
+        Object.keys(nextUpdates).forEach(k => {
+          n.add(k);
+          // Se for objeto aninhado (identity ou status), marcamos também as subchaves
+          // para que o merge em background saiba o que preservar.
+          const val = nextUpdates[k as keyof CharacterSheetState];
+          if (val && typeof val === "object" && !Array.isArray(val)) {
+            Object.keys(val).forEach(subK => n.add(`${k}.${subK}`));
+          }
+        });
         return n;
       });
 
@@ -198,15 +206,30 @@ export function CharacterSheetProvider({ children }: { children: React.ReactNode
   }, [scheduleAutoSave]);
 
   const updateIdentity = useCallback((identity: Partial<IdentityData> | ((prev: IdentityData) => Partial<IdentityData>)) => {
-    setIsSyncing(true);
     setState(prev => {
       if (!prev) return prev;
       const nextIdentityUpdates = typeof identity === "function" ? identity(prev.identity) : identity;
-      const nextIdentity = { ...prev.identity, ...nextIdentityUpdates };
+      
+      // Filtramos apenas as mudanças REAIS para evitar disparar autosave e marcar como dirty sem necessidade
+      const realChanges: Partial<IdentityData> = {};
+      let hasChanges = false;
+      
+      Object.keys(nextIdentityUpdates).forEach(k => {
+        const key = k as keyof IdentityData;
+        if (nextIdentityUpdates[key] !== prev.identity[key]) {
+          realChanges[key] = nextIdentityUpdates[key] as any;
+          hasChanges = true;
+        }
+      });
+
+      if (!hasChanges) return prev;
+
+      setIsSyncing(true);
+      const nextIdentity = { ...prev.identity, ...realChanges };
       
       setDirtyFields(d => {
         const n = new Set(d);
-        Object.keys(nextIdentityUpdates).forEach(k => n.add(`identity.${k}`));
+        Object.keys(realChanges).forEach(k => n.add(`identity.${k}`));
         return n;
       });
 
@@ -216,15 +239,29 @@ export function CharacterSheetProvider({ children }: { children: React.ReactNode
   }, [scheduleAutoSave]);
 
   const updateStatus = useCallback((status: Partial<CharacterSheetState["status"]> | ((prev: CharacterSheetState["status"]) => Partial<CharacterSheetState["status"]>)) => {
-    setIsSyncing(true);
     setState(prev => {
       if (!prev) return prev;
       const nextStatusUpdates = typeof status === "function" ? status(prev.status) : status;
-      const nextStatus = { ...prev.status, ...nextStatusUpdates };
+      
+      const realChanges: Partial<CharacterSheetState["status"]> = {};
+      let hasChanges = false;
+      
+      Object.keys(nextStatusUpdates).forEach(k => {
+        const key = k as keyof CharacterSheetState["status"];
+        if (nextStatusUpdates[key] !== prev.status[key]) {
+          realChanges[key] = nextStatusUpdates[key] as any;
+          hasChanges = true;
+        }
+      });
+
+      if (!hasChanges) return prev;
+
+      setIsSyncing(true);
+      const nextStatus = { ...prev.status, ...realChanges };
       
       setDirtyFields(d => {
         const n = new Set(d);
-        Object.keys(nextStatusUpdates).forEach(k => n.add(`status.${k}`));
+        Object.keys(realChanges).forEach(k => n.add(`status.${k}`));
         return n;
       });
 

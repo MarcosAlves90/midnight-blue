@@ -45,17 +45,23 @@ export function useCharacterPersistence(
       autoSaveServiceRef.current = new AutoSaveService(async (data) => {
         if (!persistenceManagerRef.current) throw new Error("PersistenceManager not initialized");
 
+        // Capturamos os campos que estão sendo salvos NESTE lote para limpar apenas eles no sucesso.
+        // Isso evita limpar campos que foram modificados enquanto o salvamento estava em voo.
+        const currentBatchFields = new Set(pendingFieldsRef.current);
+
         // Delegate complex save logic to PersistenceManager
-        return persistenceManagerRef.current.save(characterId, data, pendingFieldsRef.current);
+        const result = await persistenceManagerRef.current.save(characterId, data, currentBatchFields);
+        return { ...result, batchFields: Array.from(currentBatchFields) };
       }, {
         debounceMs: 3000,
         onSuccess: (result?: unknown) => {
-          // Update fingerprint ONLY after successful save
+          let batchFields: string[] = [];
           let fingerprint: string | null = null;
           
           if (result && typeof result === "object") {
-            const res = result as { fingerprint?: string; savedFields?: string[] };
+            const res = result as { fingerprint?: string; batchFields?: string[] };
             fingerprint = res.fingerprint ?? null;
+            batchFields = res.batchFields ?? [];
           }
           
           if (fingerprint) {
@@ -63,17 +69,15 @@ export function useCharacterPersistence(
             pendingObjRef.current = null;
           }
           
-          // Clear accumulated pending fields after successful save
-          const fieldsToClear = Array.from(pendingFieldsRef.current);
-          pendingFieldsRef.current.clear();
+          // Removemos do pendingFieldsRef APENAS os campos que acabamos de salvar com sucesso.
+          // Se o usuário digitou algo novo no mesmo campo enquanto salvava, o campo continuará no set.
+          batchFields.forEach(f => pendingFieldsRef.current.delete(f));
           
-          // Notify that fields were saved (will be handled by IdentityContext via callback)
-          console.debug("[auto-save] success (service)", { userId, characterId, savedFields: fieldsToClear });
+          console.debug("[auto-save] success (service)", { userId, characterId, savedFields: batchFields });
           
-          // Call callback to notify IdentityContext that fields were saved
-          if (fieldsToClear.length > 0 && onSaveSuccessRef.current) {
+          if (batchFields.length > 0 && onSaveSuccessRef.current) {
             try {
-              onSaveSuccessRef.current(fieldsToClear);
+              onSaveSuccessRef.current(batchFields);
             } catch (err) {
               console.error("[auto-save] Error in onSaveSuccess callback:", err);
             }
