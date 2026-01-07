@@ -69,7 +69,7 @@ export function NoteEditorDialog({ note, open, onOpenChange, onSave, onDelete }:
             <Input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="border-none bg-transparent text-lg font-bold uppercase tracking-tighter focus-visible:ring-0 p-0 h-auto"
+              className="text-lg font-bold uppercase border-none"
               placeholder="Título da nota"
             />
           </div>
@@ -90,7 +90,7 @@ export function NoteEditorDialog({ note, open, onOpenChange, onSave, onDelete }:
           <Textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            className="w-full h-full resize-none border-none bg-transparent focus-visible:ring-0 p-0 font-mono text-sm leading-relaxed"
+            className="w-full h-full resize-none text-sm border-none"
             placeholder="Comece a escrever..."
           />
         </div>
