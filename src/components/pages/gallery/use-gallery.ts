@@ -30,7 +30,7 @@ export interface GalleryState {
 export function useGallery() {
   const router = useRouter();
   const { user, isAdmin } = useAuth();
-  const { setSelectedCharacter } = useCharacter();
+  const { setSelectedCharacter, openNewDialog, setOpenNewDialog } = useCharacter();
   const { 
     isAdminMode, targetUserId, targetUserLabel, isAdminRestored, activeContextId,
     users, fetchUsers,
@@ -56,6 +56,14 @@ export function useGallery() {
   const patchState = useCallback((patch: Partial<GalleryState>) => {
     setState(prev => ({ ...prev, ...patch }));
   }, []);
+
+  // Sincroniza abertura de dialog via contexto global (ex: atalho do sidebar)
+  useEffect(() => {
+    if (openNewDialog) {
+      patchState({ dialogOpen: true });
+      setOpenNewDialog(false);
+    }
+  }, [openNewDialog, setOpenNewDialog, patchState]);
 
   const { 
     listenToCharacters, 

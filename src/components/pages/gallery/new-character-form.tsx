@@ -3,18 +3,15 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAdmin } from "@/contexts/AdminContext";
 import { useCharacterPersistence } from "@/hooks/use-character-persistence";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Loader2, User, Fingerprint, AlertCircle } from "lucide-react";
 import type { CharacterData } from "@/lib/types/character";
 import { cn } from "@/lib/utils";
-import {
-  INITIAL_ATTRIBUTES,
-} from "@/components/pages/status/attributes-grid/constants";
-import {
-  INITIAL_SKILLS,
-} from "@/components/pages/status/skills/constants";
+import { INITIAL_ATTRIBUTES } from "@/components/pages/status/attributes-grid/constants";
+import { INITIAL_SKILLS } from "@/components/pages/status/skills/constants";
 
 const INITIAL_CHARACTER_NAME = "";
 
@@ -26,8 +23,11 @@ interface NewCharacterFormProps {
 export function NewCharacterForm({ onSuccess, onCancel }: NewCharacterFormProps) {
   const router = useRouter();
   const { user } = useAuth();
+  const { activeContextId } = useAdmin();
+  
+  // Usamos activeContextId para garantir que a ficha seja criada no contexto correto (Admin ou Próprio)
   const { createCharacter, selectCharacter } = useCharacterPersistence(
-    user?.uid || null,
+    activeContextId,
   );
 
   const [formData, setFormData] = useState({
@@ -46,8 +46,8 @@ export function NewCharacterForm({ onSuccess, onCancel }: NewCharacterFormProps)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!user?.uid) {
-      setError("Você precisa estar autenticado");
+    if (!activeContextId) {
+      setError("Contexto de usuário não identificado");
       return;
     }
 
@@ -64,9 +64,9 @@ export function NewCharacterForm({ onSuccess, onCancel }: NewCharacterFormProps)
     setIsLoading(true);
 
     try {
-      // Criar dados iniciais do personagem
+      // Criar dados iniciais do personagem (Single Responsibility Principle)
       const newCharacterData: CharacterData = {
-        userId: user.uid,
+        userId: activeContextId,
         createdAt: new Date(),
         updatedAt: new Date(),
         version: 1,
@@ -110,23 +110,21 @@ export function NewCharacterForm({ onSuccess, onCancel }: NewCharacterFormProps)
         customDescriptors: [],
       };
 
-      // Criar personagem no Firebase
+      // Criar personagem no Firebase (Inversion of Control via Repository pattern no hook)
       const characterId = await createCharacter(newCharacterData);
 
-      // Marcar como selecionado
+      // Sincronizar com o perfil do usuário alvo
       await selectCharacter(characterId);
 
-      // Callback ou redirecionamento
-      if (onSuccess) {
-        onSuccess(characterId);
-      } else {
+      onSuccess?.(characterId);
+      
+      // Se não houver callback, redireciona para a visão individual
+      if (!onSuccess) {
         router.push(`/dashboard/personagem/individual/${characterId}`);
       }
     } catch (err) {
-      console.error("Erro ao criar personagem:", err);
-      setError(
-        err instanceof Error ? err.message : "Erro ao criar personagem",
-      );
+      console.error("[NewCharacterForm] Erro ao criar:", err);
+      setError(err instanceof Error ? err.message : "Erro ao criar dossier");
     } finally {
       setIsLoading(false);
     }

@@ -83,29 +83,41 @@ export function CharacterProvider({ children }: { children: React.ReactNode }) {
 
     let isSubscribed = true;
 
-    const performRestoration = async () => {
+    const resolveInitialCharacter = async () => {
         setIsLoading(true);
-        const currentId = CharacterStorageService.getStoredCurrentId();
-        const storedOwnerId = CharacterStorageService.getStoredOwnerId();
-        
-        // Caso A: Existe uma ficha no cache e o dono dela bate com o contexto ativo
-        if (currentId && storedOwnerId === activeContextId) {
-            const char = await loadCharacter(currentId);
-            if (isSubscribed && char) internalSetSelectedCharacter(char);
-        } 
-        // Caso B: Voltamos ao modo usuário comum, tentamos recuperar a última própria
-        else if (!isAdminMode) {
-            const lastOwnId = CharacterStorageService.getStoredLastOwnId();
-            const char = lastOwnId ? await loadCharacter(lastOwnId) : await loadLastSelected();
-            if (isSubscribed && char && char.userId === user?.uid) {
-                internalSetSelectedCharacter(char);
-            }
-        }
+        try {
+            const currentId = CharacterStorageService.getStoredCurrentId();
+            const storedOwnerId = CharacterStorageService.getStoredOwnerId();
+            
+            // Prioridade 1: Cache local se pertencer ao contexto atual
+            if (currentId && storedOwnerId === activeContextId) {
+                const char = await loadCharacter(currentId);
+                if (isSubscribed && char) {
+                    internalSetSelectedCharacter(char);
+                    return;
+                }
+            } 
 
-        if (isSubscribed) setIsLoading(false);
+            // Prioridade 2: Modo Usuário - Recuperar última própria
+            if (!isAdminMode) {
+                const lastOwnId = CharacterStorageService.getStoredLastOwnId();
+                const char = lastOwnId ? await loadCharacter(lastOwnId) : await loadLastSelected();
+                if (isSubscribed && char && char.userId === user?.uid) {
+                    internalSetSelectedCharacter(char);
+                    return;
+                }
+            }
+
+            // Fallback: Nada selecionado para este contexto
+            if (isSubscribed) internalSetSelectedCharacter(null);
+        } catch (err) {
+            console.error("[CharacterContext] Erro na restauração:", err);
+        } finally {
+            if (isSubscribed) setIsLoading(false);
+        }
     };
 
-    performRestoration();
+    resolveInitialCharacter();
     return () => { isSubscribed = false; };
   }, [activeContextId, isAdminRestored, isAdminMode, loadCharacter, loadLastSelected, user?.uid]);
 

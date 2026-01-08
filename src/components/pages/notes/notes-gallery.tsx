@@ -24,6 +24,10 @@ export default function NotesGallery() {
   const { user } = useAuth();
   const { character, isLoading: isCharLoading } = useSelectedCharacter();
   const state = useNotesState();
+  
+  // Determinamos o dono dos dados (dono da ficha ou usuário logado como fallback)
+  const effectiveUserId = character?.userId || user?.uid || null;
+
   const { 
     setNotes, 
     setFolders,
@@ -56,7 +60,7 @@ export default function NotesGallery() {
     handleUpdateFolder,
     handleDeleteFolder,
     openEditor
-  } = useNotesActions(user?.uid || null, character?.id || null, state);
+  } = useNotesActions(effectiveUserId, character?.id || null, state);
 
   const { 
     folderToEdit,
@@ -65,7 +69,7 @@ export default function NotesGallery() {
 
   // Escuta mudanças em tempo real
   useEffect(() => {
-    if (!user?.uid || !character?.id) {
+    if (!effectiveUserId || !character?.id) {
       if (!isCharLoading && !character) {
         setIsLoading(false);
       }
