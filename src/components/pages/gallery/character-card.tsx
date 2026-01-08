@@ -108,7 +108,7 @@ function MugshotArea({ character, heroName }: { character: CharacterDocument; he
         </p>
       </div>
 
-      <div className="absolute top-2 left-2 -rotate-12 border-2 border-destructive/40 px-1.5 py-0.5 invert rounded-sm pointer-events-none font-mono">
+      <div className="absolute top-3 left-2 -rotate-12 border-2 border-destructive/40 px-1.5 py-1.5 invert rounded-sm pointer-events-none font-mono flex items-center">
         <span className="text-[8px] font-black text-destructive/60 tracking-tighter uppercase">Confidencial</span>
       </div>
     </div>
