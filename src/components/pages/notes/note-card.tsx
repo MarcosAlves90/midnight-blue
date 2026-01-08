@@ -1,8 +1,7 @@
 "use client";
 
 import { Note } from "@/lib/note-service";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileText, MoreVertical, Trash2, ExternalLink } from "lucide-react";
+import { StickyNote, MoreVertical, Trash2, ExternalLink, Clock, FileText, ChevronRight } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,6 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface NoteCardProps {
   note: Note;
@@ -18,28 +18,43 @@ interface NoteCardProps {
 }
 
 export function NoteCard({ note, onClick, onDelete }: NoteCardProps) {
+  const formattedDate = new Intl.DateTimeFormat('pt-BR', { 
+    day: '2-digit', 
+    month: '2-digit', 
+    year: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  }).format(note.updatedAt instanceof Date ? note.updatedAt : new Date(note.updatedAt));
+
   return (
-    <Card 
-      className="group relative hover:border-primary/50 transition-all cursor-pointer overflow-hidden flex flex-col h-40"
+    <div
       onClick={onClick}
+      className={cn(
+        "group relative rounded-lg border border-border/40 bg-card/40 backdrop-blur-sm p-4 hover:border-primary/50 transition-all duration-300 flex flex-col gap-3 shadow-md hover:shadow-[0_0_20px_rgba(var(--primary),0.05)] cursor-pointer overflow-hidden h-48"
+      )}
     >
-      <CardHeader className="p-3 pb-0 flex flex-row items-start justify-between space-y-0">
-        <div className="flex items-center gap-2 overflow-hidden">
-          <FileText className="w-4 h-4 text-primary shrink-0" />
-          <CardTitle className="text-sm font-bold truncate uppercase tracking-tighter">
-            {note.title || "Sem título"}
-          </CardTitle>
+      {/* Decorative background icon */}
+      <StickyNote className="absolute -right-4 -bottom-4 w-24 h-24 text-primary/5 -rotate-12 group-hover:text-primary/10 transition-colors pointer-events-none" />
+
+      <div className="flex justify-between items-start relative z-10">
+        <div className="p-2 rounded-md bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+          <FileText className="w-5 h-5" />
         </div>
-        <DropdownMenu>
+        
+        <DropdownMenu modal={false}>
           <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-            <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-8 w-8 rounded-full opacity-0 group-hover:opacity-100 data-[state=open]:opacity-100 transition-all"
+            >
               <MoreVertical className="w-4 h-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onClick(); }}>
               <ExternalLink className="w-4 h-4 mr-2" />
-              Abrir
+              Abrir Registro
             </DropdownMenuItem>
             <DropdownMenuItem 
               className="text-destructive focus:text-destructive"
@@ -50,21 +65,31 @@ export function NoteCard({ note, onClick, onDelete }: NoteCardProps) {
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-      </CardHeader>
-      <CardContent className="p-3 pt-2 flex-1 flex flex-col justify-between overflow-hidden">
-        <p className="text-xs text-muted-foreground line-clamp-3 font-mono leading-relaxed">
-          {note.content || "Nenhum conteúdo..."}
-        </p>
-        <div className="text-[10px] text-muted-foreground/50 font-mono mt-2">
-          {new Intl.DateTimeFormat('pt-BR', { 
-            day: '2-digit', 
-            month: '2-digit', 
-            year: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit'
-          }).format(note.updatedAt)}
+      </div>
+
+      <div className="space-y-1 relative z-10">
+        <div className="flex items-center gap-2">
+          <p className="text-[8px] text-primary font-bold uppercase tracking-tight opacity-80">Memorando / Registro</p>
+          <div className="flex gap-1">
+            <div className="w-1 h-1 rounded-full bg-primary/30 animate-pulse" />
+            <div className="w-1 h-1 rounded-full bg-primary/20" />
+          </div>
         </div>
-      </CardContent>
-    </Card>
+        <h3 className="font-bold text-sm leading-tight truncate group-hover:text-primary transition-colors uppercase italic tracking-tighter">
+          {note.title || "Sem título"}
+        </h3>
+        <p className="text-[10px] text-muted-foreground/80 line-clamp-2 font-mono leading-tight mt-1 opacity-70 group-hover:opacity-100 transition-opacity">
+          {note.content || "Nenhum conteúdo registrado..."}
+        </p>
+      </div>
+
+      <div className="flex items-center justify-between mt-auto pt-2 border-t border-border/20 relative z-10">
+        <div className="flex items-center gap-1.5 text-[9px] font-mono text-muted-foreground uppercase">
+          <Clock className="w-3 h-3" />
+          {formattedDate}
+        </div>
+        <ChevronRight className="w-3 h-3 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
+      </div>
+    </div>
   );
 }

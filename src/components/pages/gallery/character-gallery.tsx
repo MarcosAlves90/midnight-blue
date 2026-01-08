@@ -158,9 +158,7 @@ const CharacterGallery = React.memo(function CharacterGallery() {
       rootLabel={isAdminMode ? "CONTAS" : "RAIZ"}
       actions={
         <GalleryActions 
-          isAdmin={isAdmin}
           isAdminMode={isAdminMode}
-          onToggleAdminMode={onToggleAdminMode}
           targetUserId={targetUserId}
           onNewFolder={onNewFolder}
           onNewCharacter={onNewCharacter}

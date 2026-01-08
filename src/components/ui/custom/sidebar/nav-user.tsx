@@ -9,8 +9,10 @@ import {
   LogOut,
   Monitor,
   Moon,
+  Infinity,
 } from "lucide-react";
 
+import { useAdmin } from "@/contexts/AdminContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -45,9 +47,21 @@ export function NavUser({
 }) {
   const { isMobile } = useSidebar();
   const { theme, setTheme } = useTheme();
-  const { signOut } = useAuth();
+  const { signOut, isAdmin } = useAuth();
+  const adminMode = useAdmin();
   const router = useRouter();
   const [mounted, setMounted] = React.useState(false);
+
+  const isAdminMode = adminMode?.isAdminMode;
+  const setIsAdminMode = adminMode?.setIsAdminMode;
+  const resetAdmin = adminMode?.resetAdmin;
+
+  const toggleAdminMode = () => {
+    if (setIsAdminMode && resetAdmin) {
+      setIsAdminMode(!isAdminMode);
+      resetAdmin();
+    }
+  };
 
   React.useEffect(() => {
     setMounted(true);
@@ -148,6 +162,16 @@ export function NavUser({
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
               <DropdownMenuGroup>
+                {isAdmin && (
+                  <DropdownMenuItem
+                    onClick={toggleAdminMode}
+                    className={isAdminMode ? "text-primary" : ""}
+                  >
+                    <Infinity className={isAdminMode ? "text-primary anim-pulse" : ""} />
+                    Infinity Corp
+                    {isAdminMode && <span className="ml-auto text-[10px] bg-primary/10 px-1 rounded uppercase font-bold">ON</span>}
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem
                   onClick={() => router.push("/dashboard/conta")}
                 >
