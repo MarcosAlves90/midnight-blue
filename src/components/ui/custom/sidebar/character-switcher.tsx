@@ -76,26 +76,34 @@ const CharacterSwitcherComponent = () => {
   const { isAdminMode, targetUserId } = useAdmin();
   const router = useRouter();
   const characterContext = useCharacter();
-  const { selectedCharacter, setSelectedCharacter, effectiveUserId } = characterContext;
+  const { selectedCharacter, setSelectedCharacter, activeContextId } = characterContext;
   
   const { listenToCharacters, selectCharacter } = useCharacterPersistence(
-    effectiveUserId,
+    activeContextId,
   );
 
   const [characters, setCharacters] = React.useState<CharacterDocument[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
   const [mounted, setMounted] = React.useState(false);
+  const [dropdownOpen, setDropdownOpen] = React.useState(false);
 
   React.useEffect(() => {
     setMounted(true);
   }, []);
 
+  // Auto-abrindo o menu de seleção ao entrar no modo admin sem ficha selecionada
+  React.useEffect(() => {
+    if (isAdminMode && !selectedCharacter && mounted) {
+      setDropdownOpen(true);
+    }
+  }, [isAdminMode, selectedCharacter, mounted]);
+
   // Escuta mudanças em tempo real na lista de personagens
   React.useEffect(() => {
     if (authLoading) return;
 
-    if (!effectiveUserId) {
+    if (!activeContextId) {
       setIsLoading(false);
       setCharacters([]);
       return;
@@ -124,7 +132,7 @@ const CharacterSwitcherComponent = () => {
         unsubscribe();
       }
     };
-  }, [effectiveUserId, authLoading, listenToCharacters]);
+  }, [activeContextId, authLoading, listenToCharacters]);
 
   const handleSelectCharacter = async (character: CharacterDocument) => {
     setSelectedCharacter(character);
@@ -200,7 +208,7 @@ const CharacterSwitcherComponent = () => {
     <SidebarMenu>
       <SidebarMenuItem>
         {mounted ? (
-          <DropdownMenu>
+          <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
             <DropdownMenuTrigger asChild>
               <SidebarMenuButton
                 size="lg"

@@ -23,28 +23,16 @@ export class CharacterStorageService {
     setItemAsync(`${KEYS.DOC_PREFIX}:${char.id}`, char);
   }
 
-  static clearSelection(id?: string) {
+  static clearSelection() {
     if (typeof window === "undefined") return;
     
-    if (id) {
-      removeItemAsync(`${KEYS.DOC_PREFIX}:${id}`);
-    }
     removeItemAsync(KEYS.CURRENT_ID);
     removeItemAsync(KEYS.CURRENT_OWNER);
   }
 
-  static getStoredOwnerId(): string | null {
-    if (typeof window === "undefined") return null;
-    return localStorage.getItem(KEYS.CURRENT_OWNER);
-  }
+  static getStoredOwnerId = () => typeof window !== "undefined" ? localStorage.getItem(KEYS.CURRENT_OWNER) : null;
 
-  static getStoredLastOwnId(): string | null {
-    if (typeof window === "undefined") return null;
-    return localStorage.getItem(KEYS.LAST_OWN_ID);
-  }
+  static getStoredLastOwnId = () => typeof window !== "undefined" ? localStorage.getItem(KEYS.LAST_OWN_ID) : null;
 
-  static getStoredCurrentId(): string | null {
-    if (typeof window === "undefined") return null;
-    return localStorage.getItem(KEYS.CURRENT_ID);
-  }
+  static getStoredCurrentId = () => typeof window !== "undefined" ? localStorage.getItem(KEYS.CURRENT_ID) : null;
 }

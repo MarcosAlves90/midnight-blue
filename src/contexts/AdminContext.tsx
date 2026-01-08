@@ -18,18 +18,28 @@ type AdminContextValue = {
   updateUserSettings: (userId: string, data: { isAdmin?: boolean, disabled?: boolean }) => Promise<void>;
   deleteUser: (userId: string) => Promise<void>;
   isLoadingUsers: boolean;
+  activeContextId: string | null;
 };
 
 const AdminContext = React.createContext<AdminContextValue | undefined>(undefined);
 
 export function AdminProvider({ children }: { children: React.ReactNode }) {
-  const { isAdmin, loading: authLoading } = useAuth();
+  const { user, isAdmin, loading: authLoading } = useAuth();
   const [isAdminMode, setIsAdminMode] = React.useState(false);
   const [targetUserId, setTargetUserId] = React.useState<string | null>(null);
   const [targetUserLabel, setTargetUserLabel] = React.useState<string | null>(null);
   const [isAdminRestored, setIsAdminRestored] = React.useState(false);
   const [users, setUsers] = React.useState<UserProfile[]>([]);
   const [isLoadingUsers, setIsLoadingUsers] = React.useState(false);
+
+  // Resolve o ID de contexto centralizado (Single Source of Truth)
+  const activeContextId = React.useMemo(() => {
+    if (!isAdminRestored || authLoading) return null;
+    if (isAdminMode && targetUserId) return targetUserId;
+    // Se estiver em modo admin mas sem target, o contexto é "zerado" (null)
+    if (isAdminMode && !targetUserId) return null;
+    return user?.uid ?? null;
+  }, [user?.uid, isAdminMode, targetUserId, isAdminRestored, authLoading]);
 
   // Recupera estado do Admin do LocalStorage para suportar F5
   React.useEffect(() => {
@@ -134,7 +144,8 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
     fetchUsers,
     updateUserSettings,
     deleteUser,
-    isLoadingUsers
+    isLoadingUsers,
+    activeContextId
   }), [
     isAdminMode, 
     setIsAdminMode,
@@ -148,7 +159,8 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
     fetchUsers,
     updateUserSettings,
     deleteUser,
-    isLoadingUsers
+    isLoadingUsers,
+    activeContextId
   ]);
 
   return (

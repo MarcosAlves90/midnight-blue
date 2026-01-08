@@ -14,7 +14,7 @@ interface CharacterContextType {
   openNewDialog: boolean;
   setOpenNewDialog: (open: boolean) => void;
   isLoading: boolean;
-  effectiveUserId: string | null;
+  activeContextId: string | null;
 }
 
 const CharacterContext = createContext<CharacterContextType | undefined>(undefined);
@@ -25,39 +25,23 @@ export function CharacterProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   const { user } = useAuth();
-  const { isAdminMode, targetUserId, isAdminRestored } = useAdmin();
+  const { isAdminMode, targetUserId, isAdminRestored, activeContextId } = useAdmin();
+  const lastResolvedIdRef = React.useRef<string | null>(null);
   
-  // Resolve o usuário efetivo baseado no estado atual da aplicação (Padrão Strategy)
-  const effectiveUserId = useMemo(() => {
-    if (!isAdminRestored) return null; 
+  // Hook de persistência configurado para o usuário ativo no contexto
+  const { loadCharacter, loadLastSelected } = useCharacterPersistence(activeContextId);
 
-    // Se NÃO estamos em modo admin, o usuário efetivo SOMENTE pode ser o logado
-    if (!isAdminMode) return user?.uid ?? null;
+  // Instância do repositório garantida para o usuário ativo (Observer Pattern)
+  const repo = useMemo(() => activeContextId ? new FirebaseCharacterRepository(activeContextId) : null, [activeContextId]);
 
-    // Em modo admin: Prioridade p/ Personagem selecionado > Target Admin > Cache > Logado
-    return (
-        selectedCharacter?.userId || 
-        targetUserId || 
-        CharacterStorageService.getStoredOwnerId() || 
-        user?.uid || 
-        null
-    );
-  }, [selectedCharacter?.userId, user?.uid, isAdminRestored, isAdminMode, targetUserId]);
-
-  // Hook de persistência configurado para o usuário efetivo
-  const { loadCharacter, loadLastSelected } = useCharacterPersistence(effectiveUserId);
-
-  // Instância do repositório garantida para o usuário efetivo (Observer Pattern)
-  const repo = useMemo(() => effectiveUserId ? new FirebaseCharacterRepository(effectiveUserId) : null, [effectiveUserId]);
-
-  // Helper para garantir objetos Date válidos
-  const asDate = useCallback((d: unknown): Date => {
-      if (d instanceof Date) return d;
-      const candidate = d as { toDate?: () => Date } | null | undefined;
-      if (candidate && typeof candidate.toDate === 'function') return candidate.toDate();
-      if (typeof d === 'string' || typeof d === 'number') return new Date(d);
-      return new Date();
-  }, []);
+  // 1. Limpeza reativa em troca de contexto (Admin <-> User)
+  // Se o activeContextId mudar, resetamos a seleção local IMEDIATAMENTE
+  useEffect(() => {
+    if (activeContextId !== lastResolvedIdRef.current) {
+      internalSetSelectedCharacter(null);
+      lastResolvedIdRef.current = activeContextId;
+    }
+  }, [activeContextId]);
 
   // Escuta mudanças em tempo real (Subscription Strategy)
   useEffect(() => {
@@ -68,11 +52,9 @@ export function CharacterProvider({ children }: { children: React.ReactNode }) {
       (updatedChar) => {
         if (!updatedChar) return;
 
-        const updatedTime = updatedChar.updatedAt.getTime();
-        const selectedTime = selectedCharacter.updatedAt.getTime();
-
         // Só atualiza se houver mudança real de versão ou timestamp para evitar loops
-        if (updatedChar.version !== selectedCharacter.version || updatedTime !== selectedTime) {
+        if (updatedChar.version !== selectedCharacter.version || 
+            updatedChar.updatedAt.getTime() !== selectedCharacter.updatedAt.getTime()) {
           internalSetSelectedCharacter(updatedChar);
         }
       }
@@ -85,22 +67,14 @@ export function CharacterProvider({ children }: { children: React.ReactNode }) {
     if (character) {
       CharacterStorageService.saveSelection(character, character.userId === user?.uid);
     } else {
-      CharacterStorageService.clearSelection(selectedCharacter?.id);
+      CharacterStorageService.clearSelection();
     }
-  }, [user?.uid, selectedCharacter?.id]);
+  }, [user?.uid]);
 
-  // Limpa seleção ao alternar o modo administrativo (Segurança de Contexto)
+  // 2. Orquestrador de Restauração Simplificado
   useEffect(() => {
-    if (!isAdminRestored) return;
-    
-    internalSetSelectedCharacter(null);
-    CharacterStorageService.clearSelection();
-  }, [isAdminMode, isAdminRestored]);
-
-  // Restaura Personagem Próprio ou Última Seleção (Workflow de Recuperação)
-  useEffect(() => {
-    if (!user?.uid || !isAdminRestored) {
-        if (!user?.uid) {
+    if (!isAdminRestored || !activeContextId) {
+        if (!activeContextId && isAdminRestored) {
             internalSetSelectedCharacter(null);
             setIsLoading(false);
         }
@@ -110,32 +84,22 @@ export function CharacterProvider({ children }: { children: React.ReactNode }) {
     let isSubscribed = true;
 
     const performRestoration = async () => {
-        // Se mudou de Admin p/ User, tenta restaurar última ficha própria
-        if (!isAdminMode && !selectedCharacter) {
-            const lastOwnId = CharacterStorageService.getStoredLastOwnId();
-            if (lastOwnId) {
-                const char = await loadCharacter(lastOwnId);
-                if (isSubscribed && char && char.userId === user?.uid) {
-                    setSelectedCharacter(char);
-                }
-            }
-        }
-
-        // Restauração inicial após boot ou F5
+        setIsLoading(true);
         const currentId = CharacterStorageService.getStoredCurrentId();
-        if (!selectedCharacter && currentId) {
-            // Se estamos em modo admin e não temos um alvo definido, limpa
-            if (isAdminMode && !targetUserId && CharacterStorageService.getStoredOwnerId() !== user?.uid) {
-                setIsLoading(false);
-                return;
-            }
-
+        const storedOwnerId = CharacterStorageService.getStoredOwnerId();
+        
+        // Caso A: Existe uma ficha no cache e o dono dela bate com o contexto ativo
+        if (currentId && storedOwnerId === activeContextId) {
             const char = await loadCharacter(currentId);
             if (isSubscribed && char) internalSetSelectedCharacter(char);
-        } else if (!selectedCharacter) {
-            // Fallback: Busca último selecionado no Firestore via Repo
-            const last = await loadLastSelected();
-            if (isSubscribed && last) internalSetSelectedCharacter(last);
+        } 
+        // Caso B: Voltamos ao modo usuário comum, tentamos recuperar a última própria
+        else if (!isAdminMode) {
+            const lastOwnId = CharacterStorageService.getStoredLastOwnId();
+            const char = lastOwnId ? await loadCharacter(lastOwnId) : await loadLastSelected();
+            if (isSubscribed && char && char.userId === user?.uid) {
+                internalSetSelectedCharacter(char);
+            }
         }
 
         if (isSubscribed) setIsLoading(false);
@@ -143,7 +107,7 @@ export function CharacterProvider({ children }: { children: React.ReactNode }) {
 
     performRestoration();
     return () => { isSubscribed = false; };
-  }, [user?.uid, isAdminMode, targetUserId, isAdminRestored, loadCharacter, loadLastSelected, selectedCharacter, setSelectedCharacter]);
+  }, [activeContextId, isAdminRestored, isAdminMode, loadCharacter, loadLastSelected, user?.uid]);
 
   const value = useMemo(() => ({
     selectedCharacter,
@@ -151,8 +115,8 @@ export function CharacterProvider({ children }: { children: React.ReactNode }) {
     openNewDialog,
     setOpenNewDialog,
     isLoading,
-    effectiveUserId
-  }), [selectedCharacter, setSelectedCharacter, openNewDialog, setOpenNewDialog, isLoading, effectiveUserId]);
+    activeContextId
+  }), [selectedCharacter, setSelectedCharacter, openNewDialog, setOpenNewDialog, isLoading, activeContextId]);
 
   return <CharacterContext.Provider value={value}>{children}</CharacterContext.Provider>;
 }

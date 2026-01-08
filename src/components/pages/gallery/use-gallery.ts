@@ -32,7 +32,7 @@ export function useGallery() {
   const { user, isAdmin } = useAuth();
   const { setSelectedCharacter } = useCharacter();
   const { 
-    isAdminMode, targetUserId, targetUserLabel, isAdminRestored,
+    isAdminMode, targetUserId, targetUserLabel, isAdminRestored, activeContextId,
     users, fetchUsers,
     setIsAdminMode, setTargetUserId, setTargetUserLabel, resetAdmin 
   } = useAdmin();
@@ -57,11 +57,6 @@ export function useGallery() {
     setState(prev => ({ ...prev, ...patch }));
   }, []);
 
-  const effectiveUserId = useMemo(() => {
-    if (isAdminMode) return targetUserId || null;
-    return user?.uid || null;
-  }, [isAdminMode, targetUserId, user?.uid]);
-
   const { 
     listenToCharacters, 
     selectCharacter, 
@@ -71,7 +66,7 @@ export function useGallery() {
     deleteFolder,
     moveCharacterToFolder,
     listenToFolders
-  } = useCharacterPersistence(effectiveUserId);
+  } = useCharacterPersistence(activeContextId);
 
   const handleSelectUser = useCallback((targetUser: UserProfile) => {
     setTargetUserId(targetUser.id);
@@ -83,11 +78,16 @@ export function useGallery() {
   useEffect(() => {
     if (!isAdminRestored) return;
 
-    // Reset ao trocar de usuário ou modo
-    patchState({ characters: [], folders: [], isLoading: !!effectiveUserId });
+    // Reset ao trocar de usuário ou modo - IMPORTANT: Limpar currentFolderId ao mudar de contexto
+    patchState({ 
+      characters: [], 
+      folders: [], 
+      isLoading: !!activeContextId,
+      currentFolderId: null 
+    });
 
-    if (!effectiveUserId || (isAdminMode && !targetUserId)) {
-      if (!effectiveUserId) patchState({ isLoading: false });
+    if (!activeContextId || (isAdminMode && !targetUserId)) {
+      if (!activeContextId) patchState({ isLoading: false });
       return;
     }
 
@@ -105,7 +105,7 @@ export function useGallery() {
       unsubChars();
       unsubFolders();
     };
-  }, [effectiveUserId, isAdminMode, targetUserId, listenToCharacters, listenToFolders, patchState, isAdminRestored]);
+  }, [activeContextId, isAdminMode, targetUserId, listenToCharacters, listenToFolders, patchState, isAdminRestored]);
 
   // -- Handlers de Negócio --
   const handleSelectCharacter = useCallback(async (character: CharacterDocument) => {
