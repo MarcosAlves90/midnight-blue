@@ -58,8 +58,14 @@ export function NavUser({
 
   const toggleAdminMode = () => {
     if (setIsAdminMode && resetAdmin) {
-      setIsAdminMode(!isAdminMode);
+      const newMode = !isAdminMode;
+      setIsAdminMode(newMode);
       resetAdmin();
+      
+      // Se entrar no modo admin, redireciona automaticamente para a galeria
+      if (newMode) {
+        router.push("/dashboard/galeria");
+      }
     }
   };
 

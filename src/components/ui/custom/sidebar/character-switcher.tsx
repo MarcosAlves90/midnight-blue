@@ -92,13 +92,6 @@ const CharacterSwitcherComponent = () => {
     setMounted(true);
   }, []);
 
-  // Auto-abrindo o menu de seleção ao entrar no modo admin sem ficha selecionada
-  React.useEffect(() => {
-    if (isAdminMode && !selectedCharacter && mounted) {
-      setDropdownOpen(true);
-    }
-  }, [isAdminMode, selectedCharacter, mounted]);
-
   // Escuta mudanças em tempo real na lista de personagens
   React.useEffect(() => {
     if (authLoading) return;
