@@ -21,7 +21,7 @@ const SkillsContext = createContext<SkillsContextType | undefined>(undefined);
 export const SkillsProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const { state, updateSkills: updateSheet, isSyncing, dirtyFields } = useCharacterSheet();
+  const { state, updateSkills: updateSheet, isSyncing, dirtyFields, markFieldDirty } = useCharacterSheet();
 
   const skills = state?.skills ?? INITIAL_SKILLS;
 
@@ -37,7 +37,9 @@ export const SkillsProvider: React.FC<{ children: React.ReactNode }> = ({
     updateSkills((prev) =>
       prev.map((s) => (s.id === id ? { ...s, [field]: value } : s)),
     );
-  }, [updateSkills]);
+    // Marcamos a seção de perícias como suja de forma simplificada
+    markFieldDirty("skills");
+  }, [updateSkills, markFieldDirty]);
 
   const addSpecialization = useCallback((templateId: string, specialization: string) => {
     const template = INITIAL_SKILLS.find((s) => s.id === templateId);
@@ -60,8 +62,6 @@ export const SkillsProvider: React.FC<{ children: React.ReactNode }> = ({
   const removeSkill = useCallback((id: string) => {
     updateSkills((prev) => prev.filter((s) => s.id !== id));
   }, [updateSkills]);
-
-  const markFieldDirty = useCallback(() => {}, []);
 
   const value = useMemo(() => ({
     skills,

@@ -27,6 +27,8 @@ export function useCharacterPersistence(
   
   // Callback ref for notifying when save succeeds (used by IdentityContext to clear dirtyFields)
   const onSaveSuccessRef = useRef<((savedFields: string[]) => void) | null>(null);
+  // Callback ref for notifying errors or conflicts from autosave
+  const onSaveErrorRef = useRef<((payload: { type: "conflict" | "error"; server?: CharacterDocument; attempted?: Partial<CharacterData>; error?: unknown }) => void) | null>(null);
 
   // Initialize repo immediately when userId is available, and recreate if userId changes
   if (userId && (!repoRef.current || repoRef.current.userId !== userId)) {
@@ -73,9 +75,10 @@ export function useCharacterPersistence(
           // Se o usuário digitou algo novo no mesmo campo enquanto salvava, o campo continuará no set.
           batchFields.forEach(f => pendingFieldsRef.current.delete(f));
           
-          console.debug("[auto-save] success (service)", { userId, characterId, savedFields: batchFields });
+          console.debug("[auto-save] success (service)", { userId, characterId, savedFields: batchFields, fingerprint });
           
-          if (batchFields.length > 0 && onSaveSuccessRef.current) {
+          // Always notify the UI that an autosave attempt finished so UI syncing state can be cleared.
+          if (onSaveSuccessRef.current) {
             try {
               onSaveSuccessRef.current(batchFields);
             } catch (err) {
@@ -91,9 +94,23 @@ export function useCharacterPersistence(
           const maybeConflict = (err as Error & { conflict?: CharacterDocument }).conflict;
           if (maybeConflict) {
             console.warn("[auto-save] conflict (service)", maybeConflict);
+            // Notify context about conflict with server payload and our attempted pending object
+            try {
+              onSaveErrorRef.current?.({ type: "conflict", server: maybeConflict, attempted: pendingObjRef.current ?? undefined });
+            } catch (e) {
+              console.error("[auto-save] error notifying conflict handler:", e);
+            }
           } else {
             console.error("[auto-save] error (service)", err, { pendingFields: Array.from(pendingFieldsRef.current) });
+            try {
+              onSaveErrorRef.current?.({ type: "error", error: err });
+            } catch (e) {
+              console.error("[auto-save] error notifying error handler:", e);
+            }
           }
+
+          // Ensure UI syncing state is cleared even on error (we didn't save, but sync attempt finished)
+          try { onSaveSuccessRef.current?.([]); } catch (e) { /* ignore */ }
         },
       });
     } else {
@@ -125,11 +142,21 @@ export function useCharacterPersistence(
         return;
       }
 
+      console.debug("[scheduleAutoSave] Agendando salvamento", { 
+        fields: Object.keys(data),
+        hasSkills: !!data.skills
+      });
+
       const fingerprint = getCheapFingerprint(data);
 
       // Skip if identical to last saved (only if save was successful)
       if (lastSavedDataRef.current === fingerprint) {
         console.debug("[scheduleAutoSave] Skipping - identical fingerprint", { fingerprint });
+        // Importante: Notificar sucesso para limpar o estado isSyncing da UI, 
+        // mesmo que tenhamos pulado o save real.
+        if (onSaveSuccessRef.current) {
+          onSaveSuccessRef.current([]);
+        }
         return;
       }
 
@@ -148,21 +175,20 @@ export function useCharacterPersistence(
       }
 
       // Accumulate fields that are being scheduled for saving
-      // This ensures we clear ALL dirtyFields even when AutoSaveService coalesces multiple saves
       if (data.identity && typeof data.identity === "object") {
         const identityFields = data.identity as unknown as Record<string, unknown>;
         Object.keys(identityFields).forEach((key) => {
-          pendingFieldsRef.current.add(key);
+          pendingFieldsRef.current.add(`identity.${key}`);
         });
       }
       
-      // Also track other top-level fields
       if (data.status && typeof data.status === "object") {
         const statusFields = data.status as unknown as Record<string, unknown>;
         Object.keys(statusFields).forEach((key) => {
           pendingFieldsRef.current.add(`status.${key}`);
         });
       }
+      
       if (data.attributes) pendingFieldsRef.current.add("attributes");
       if (data.skills) pendingFieldsRef.current.add("skills");
       if (data.powers) pendingFieldsRef.current.add("powers");
@@ -175,7 +201,8 @@ export function useCharacterPersistence(
         console.debug("[scheduleAutoSave] Scheduled", { 
           fingerprint, 
           hasPending: !!pendingObjRef.current,
-          pendingFields: Array.from(pendingFieldsRef.current)
+          pendingFields: Array.from(pendingFieldsRef.current),
+          pendingObj: pendingObjRef.current
         });
       } else {
         console.warn("[scheduleAutoSave] AutoSaveService not initialized", { userId, characterId });
@@ -531,6 +558,10 @@ export function useCharacterPersistence(
     onSaveSuccessRef.current = callback;
   }, []);
 
+  const setOnSaveError = useCallback((callback: ((payload: { type: "conflict" | "error"; server?: CharacterDocument; attempted?: Partial<CharacterData>; error?: unknown }) => void) | null) => {
+    onSaveErrorRef.current = callback;
+  }, []);
+
   return {
     createCharacter,
     loadCharacter,
@@ -543,6 +574,7 @@ export function useCharacterPersistence(
     getLastSelectedId,
     loadLastSelected,
     setOnSaveSuccess,
+    setOnSaveError,
     createFolder,
     updateFolder,
     deleteFolder,

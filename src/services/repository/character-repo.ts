@@ -248,8 +248,15 @@ export class FirebaseCharacterRepository implements CharacterRepository {
     const payload: Record<string, unknown> = {};
     const updatesRecord = updates as Record<string, unknown>;
 
-    if (updatesRecord.attributes) payload.attributes = serializeAttributes(updates.attributes as Attribute[]);
-    if (updatesRecord.skills) payload.skills = serializeSkills(updates.skills as Skill[]);
+    console.debug("[CharacterRepo] prepareUpdatePayload - Inputs:", Object.keys(updatesRecord));
+
+    if (updatesRecord.attributes) {
+      payload.attributes = serializeAttributes(updates.attributes as Attribute[]);
+    }
+    if (updatesRecord.skills) {
+      payload.skills = serializeSkills(updates.skills as Skill[]);
+      console.debug("[CharacterRepo] Skills serializadas:", (payload.skills as any[]).length);
+    }
     if (updatesRecord.defenses) payload.defenses = updates.defenses;
 
     Object.keys(updatesRecord).forEach((key) => {

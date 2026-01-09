@@ -38,6 +38,7 @@ interface CharacterSheetContextType {
   updatePowers: (updater: Power[] | ((prev: Power[]) => Power[])) => void;
   updateStatus: (status: Partial<CharacterSheetState["status"]>) => void;
   updateDefenses: (updater: CharacterDocument["defenses"] | ((prev: CharacterDocument["defenses"] | undefined) => CharacterDocument["defenses"] | undefined)) => void;
+  markFieldDirty: (field: string) => void;
   updateCustomDescriptors: (updater: string[] | ((prev: string[]) => string[])) => void;
   
   // Persistence
@@ -55,10 +56,20 @@ export function CharacterSheetProvider({ children }: { children: React.ReactNode
   const [dirtyFields, setDirtyFields] = useState<Set<string>>(new Set());
   const [conflict, setConflict] = useState<null | { server: CharacterDocument; attempted: Partial<CharacterData> }>(null);
 
+  // Watchdog para evitar spinner infinito em caso de erro não capturado
+  useEffect(() => {
+    if (!isSyncing) return;
+    const timeout = setTimeout(() => {
+      console.warn("[CharacterSheet] Syncing watchdog: Forçando encerramento do indicador de sincronização.");
+      setIsSyncing(false);
+    }, 15000); // 15 segundos de segurança
+    return () => clearTimeout(timeout);
+  }, [isSyncing]);
+
   // Se o personagem selecionado pertencer a outro usuário (Admin mode), usamos o userId dono da ficha
   const persistenceUserId = selectedCharacter?.userId ?? user?.uid ?? null;
 
-  const { scheduleAutoSave, saveImmediately, setOnSaveSuccess } = useCharacterPersistence(
+  const { scheduleAutoSave, saveImmediately, setOnSaveSuccess, setOnSaveError } = useCharacterPersistence(
     persistenceUserId,
     selectedCharacter?.id
   );
@@ -73,8 +84,21 @@ export function CharacterSheetProvider({ children }: { children: React.ReactNode
         return next;
       });
     });
-    return () => setOnSaveSuccess(null);
-  }, [setOnSaveSuccess]);
+
+    // Handle autosave errors/conflicts
+    setOnSaveError((payload: { type: "conflict" | "error"; server?: CharacterDocument; attempted?: Partial<CharacterData>; error?: unknown }) => {
+      console.debug("[CharacterSheet] onSaveError callback", payload);
+      setIsSyncing(false);
+      if (payload.type === "conflict" && payload.server) {
+        setConflict({ server: payload.server, attempted: (payload.attempted as Partial<CharacterData>) ?? {} });
+      }
+    });
+
+    return () => {
+      setOnSaveSuccess(null);
+      setOnSaveError(null);
+    };
+  }, [setOnSaveSuccess, setOnSaveError, dirtyFields]);
 
   const resolveKeepLocal = useCallback(async () => {
     if (!conflict || !selectedCharacter?.id) return;
@@ -94,6 +118,7 @@ export function CharacterSheetProvider({ children }: { children: React.ReactNode
       skills: conflict.server.skills,
       powers: conflict.server.powers,
       status: conflict.server.status,
+      defenses: conflict.server.defenses,
       customDescriptors: conflict.server.customDescriptors,
     });
     setDirtyFields(new Set());
@@ -147,11 +172,16 @@ export function CharacterSheetProvider({ children }: { children: React.ReactNode
         };
       }
 
-      // Merge only non-dirty fields
+      // Mescla apenas campos que não estão sujos localmente
       const next = { ...prev };
       
       if (!dirtyFields.has("attributes")) next.attributes = selectedCharacter.attributes;
-      if (!dirtyFields.has("skills")) next.skills = selectedCharacter.skills;
+
+      // Simplificando: Sincroniza perícias somente se a seção inteira não estiver suja
+      if (!dirtyFields.has("skills")) {
+        next.skills = selectedCharacter.skills;
+      }
+
       if (!dirtyFields.has("powers")) next.powers = selectedCharacter.powers;
       if (!dirtyFields.has("customDescriptors")) next.customDescriptors = selectedCharacter.customDescriptors;
       
@@ -173,16 +203,10 @@ export function CharacterSheetProvider({ children }: { children: React.ReactNode
       });
       next.status = nextStatus;
 
-      // Defenses merge (normalize to ensure required fields)
-      const baseDefenses = { aparar: 0, esquiva: 0, fortitude: 0, resistencia: 0, vontade: 0 } as Required<CharacterDocument["defenses"]>;
-      const nextDefenses = {
-        aparar: dirtyFields.has('defenses.aparar') && prev.defenses ? prev.defenses.aparar : (selectedCharacter.defenses?.aparar ?? 0),
-        esquiva: dirtyFields.has('defenses.esquiva') && prev.defenses ? prev.defenses.esquiva : (selectedCharacter.defenses?.esquiva ?? 0),
-        fortitude: dirtyFields.has('defenses.fortitude') && prev.defenses ? prev.defenses.fortitude : (selectedCharacter.defenses?.fortitude ?? 0),
-        resistencia: dirtyFields.has('defenses.resistencia') && prev.defenses ? prev.defenses.resistencia : (selectedCharacter.defenses?.resistencia ?? 0),
-        vontade: dirtyFields.has('defenses.vontade') && prev.defenses ? prev.defenses.vontade : (selectedCharacter.defenses?.vontade ?? 0),
-      };
-      next.defenses = nextDefenses;
+      // Defenses merge 
+      if (!dirtyFields.has("defenses")) {
+        next.defenses = selectedCharacter.defenses;
+      }
 
       return next;
     });
@@ -196,17 +220,36 @@ export function CharacterSheetProvider({ children }: { children: React.ReactNode
   }, [state, selectedCharacter]);
 
   const updateState = useCallback((updates: Partial<CharacterSheetState> | ((prev: CharacterSheetState) => Partial<CharacterSheetState>)) => {
-    setIsSyncing(true);
     setState(prev => {
-      if (!prev) return prev;
+      if (!prev) {
+        console.warn("[CharacterSheet] updateState ignorado: state é null");
+        return prev;
+      }
+      
       const nextUpdates = typeof updates === "function" ? updates(prev) : updates;
       
+      // Detecção de mudança real para evitar disparos desnecessários
+      const hasChanges = Object.keys(nextUpdates).some(k => {
+        const key = k as keyof CharacterSheetState;
+        const isDiff = JSON.stringify(nextUpdates[key]) !== JSON.stringify(prev[key]);
+        return isDiff;
+      });
+
+      if (!hasChanges) {
+        return prev;
+      }
+
+      console.debug("[CharacterSheet] updateState - Iniciando sincronização", {
+        fields: Object.keys(nextUpdates),
+        skillsChanged: !!nextUpdates.skills
+      });
+      
+      setIsSyncing(true);
+
       setDirtyFields(d => {
         const n = new Set(d);
         Object.keys(nextUpdates).forEach(k => {
           n.add(k);
-          // Se for objeto aninhado (identity ou status), marcamos também as subchaves
-          // para que o merge em background saiba o que preservar.
           const val = nextUpdates[k as keyof CharacterSheetState];
           if (val && typeof val === "object" && !Array.isArray(val)) {
             Object.keys(val).forEach(subK => n.add(`${k}.${subK}`));
@@ -215,8 +258,13 @@ export function CharacterSheetProvider({ children }: { children: React.ReactNode
         return n;
       });
 
+      const nextState = { ...prev, ...nextUpdates };
+      stateRef.current = nextState; // Atualização imediata do ref para evitar lag em chamadas subsequentes
+
+      // Agenda o salvamento
       scheduleAutoSave(nextUpdates as Partial<CharacterData>);
-      return { ...prev, ...nextUpdates };
+      
+      return nextState;
     });
   }, [scheduleAutoSave]);
 
@@ -225,7 +273,6 @@ export function CharacterSheetProvider({ children }: { children: React.ReactNode
       if (!prev) return prev;
       const nextIdentityUpdates = typeof identity === "function" ? identity(prev.identity) : identity;
       
-      // Filtramos apenas as mudanças REAIS para evitar disparar autosave e marcar como dirty sem necessidade
       const realChanges: Partial<IdentityData> = {};
       let hasChanges = false;
       
@@ -239,7 +286,9 @@ export function CharacterSheetProvider({ children }: { children: React.ReactNode
 
       if (!hasChanges) return prev;
 
+      console.debug("[CharacterSheet] updateIdentity - Sincronizando", Object.keys(realChanges));
       setIsSyncing(true);
+
       const nextIdentity = { ...prev.identity, ...realChanges };
       
       setDirtyFields(d => {
@@ -248,8 +297,10 @@ export function CharacterSheetProvider({ children }: { children: React.ReactNode
         return n;
       });
 
+      const nextState = { ...prev, identity: nextIdentity };
+      stateRef.current = nextState;
       scheduleAutoSave({ identity: nextIdentity });
-      return { ...prev, identity: nextIdentity };
+      return nextState;
     });
   }, [scheduleAutoSave]);
 
@@ -271,7 +322,9 @@ export function CharacterSheetProvider({ children }: { children: React.ReactNode
 
       if (!hasChanges) return prev;
 
+      console.debug("[CharacterSheet] updateStatus - Sincronizando", Object.keys(realChanges));
       setIsSyncing(true);
+
       const nextStatus = { ...prev.status, ...realChanges };
       
       setDirtyFields(d => {
@@ -280,10 +333,24 @@ export function CharacterSheetProvider({ children }: { children: React.ReactNode
         return n;
       });
 
+      const nextState = { ...prev, status: nextStatus };
+      stateRef.current = nextState;
       scheduleAutoSave({ status: nextStatus });
-      return { ...prev, status: nextStatus };
+      return nextState;
     });
   }, [scheduleAutoSave]);
+
+  // Mark an arbitrary field as dirty (useful for per-field controls)
+  const markFieldDirty = useCallback((field: string) => {
+    console.debug("[CharacterSheet] markFieldDirty", { field });
+    setDirtyFields(d => {
+      if (d.has(field)) return d;
+      const n = new Set(d);
+      n.add(field);
+      console.debug("[CharacterSheet] dirtyFields now", Array.from(n));
+      return n;
+    });
+  }, []);
 
   const saveNow = useCallback(async () => {
     if (!stateRef.current || !selectedCharacter?.id) return;
@@ -301,6 +368,7 @@ export function CharacterSheetProvider({ children }: { children: React.ReactNode
     updateStatus,
     updateDefenses: (updater: CharacterDocument["defenses"] | ((prev: CharacterDocument["defenses"] | undefined) => CharacterDocument["defenses"] | undefined)) => 
       updateState(prev => ({ defenses: typeof updater === "function" ? updater(prev.defenses) : updater })),
+    markFieldDirty,
     updateCustomDescriptors: (updater: string[] | ((prev: string[]) => string[])) => 
       updateState(prev => ({ customDescriptors: typeof updater === "function" ? updater(prev.customDescriptors) : updater })),
     saveNow,
@@ -310,6 +378,7 @@ export function CharacterSheetProvider({ children }: { children: React.ReactNode
     updateIdentity, 
     updateState, 
     updateStatus, 
+    markFieldDirty,
     saveNow, 
     resolveKeepLocal, 
     resolveUseServer
