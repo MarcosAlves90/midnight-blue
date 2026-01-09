@@ -9,7 +9,7 @@ import { useStatusContext } from "@/contexts/StatusContext";
 import { useSkillsContext } from "@/contexts/SkillsContext";
 import { rollDice } from "@/lib/dice-system";
 import { DiceIcon } from "@/components/ui/icons/dice-icon";
-import { useEditableValue } from "../attributes-grid/use-editable-value";
+import { useEditableValue } from "@/hooks/use-editable-value";
 import SkillWarning from "@/components/ui/custom/warning-icon";
 import { Trash2 } from "lucide-react";
 import type { Skill } from "./types";

@@ -21,7 +21,7 @@ const AttributesContext = createContext<AttributesContextType | undefined>(
 export const AttributesProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const { state, updateAttributes: updateSheet, isSyncing, dirtyFields } = useCharacterSheet();
+  const { state, updateAttributes: updateSheet, isSyncing, dirtyFields, markFieldDirty } = useCharacterSheet();
 
   const attributes = state?.attributes ?? INITIAL_ATTRIBUTES;
 
@@ -32,8 +32,6 @@ export const AttributesProvider: React.FC<{ children: React.ReactNode }> = ({
   const resetAttributes = useCallback(() => {
     updateSheet(INITIAL_ATTRIBUTES);
   }, [updateSheet]);
-
-  const markFieldDirty = useCallback(() => {}, []);
 
   const value = useMemo(() => ({
     attributes,

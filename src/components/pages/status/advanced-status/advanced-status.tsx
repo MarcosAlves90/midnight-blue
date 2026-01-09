@@ -6,6 +6,8 @@ import { useAttributesContext } from "@/contexts/AttributesContext";
 import { useSkillsContext } from "@/contexts/SkillsContext";
 import { useStatusContext } from "@/contexts/StatusContext";
 import { useDefenses } from "@/contexts/DefensesContext";
+import { useCharacterSheet } from "@/contexts/CharacterSheetContext";
+import { useEditableValue } from "@/hooks/use-editable-value";
 import {
   Shield,
   Star,
@@ -34,6 +36,8 @@ interface DefenseCardProps {
   total: number;
   isEditMode: boolean;
   onInputChange: (value: string) => void;
+  onBlur?: () => void;
+  onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
   // Backwards-compatible single flags (kept for convenience)
   isLimitExceeded?: boolean;
   hasDisparity?: boolean;
@@ -55,6 +59,8 @@ function DefenseCard({
   total,
   isEditMode,
   onInputChange,
+  onBlur,
+  onKeyDown,
   isLimitExceeded = false,
   hasDisparity = false,
   exceedValue = 0,
@@ -129,6 +135,8 @@ function DefenseCard({
           type="number"
           value={inputValue}
           onChange={(e) => onInputChange(e.target.value)}
+          onBlur={onBlur}
+          onKeyDown={onKeyDown}
           disabled={!isEditMode}
           className="w-10 h-5 text-center text-xs font-mono bg-primary/10 rounded focus:bg-primary/15 border-0 outline-none transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none p-0"
           placeholder="0"
@@ -142,23 +150,6 @@ function DefenseCard({
   );
 }
 
-// Custom hook for editable numeric values
-function useEditableNumber(initial: number, min: number = 0) {
-  const [value, setValue] = useState(initial);
-  const [input, setInput] = useState(initial.toString());
-
-  const update = useCallback(
-    (str: string) => {
-      setInput(str);
-      const num = str === "" ? min : Number(str) || min;
-      setValue(num);
-    },
-    [min],
-  );
-
-  return { value, input, update };
-}
-
 export default function AdvancedStatus() {
   const { attributes } = useAttributesContext();
   const { skills } = useSkillsContext();
@@ -168,8 +159,8 @@ export default function AdvancedStatus() {
   const [isEditMode, setIsEditMode] = useState(false);
 
   // Editable values
-  const nivelInput = powerLevel.toString();
-  const deslocamento = useEditableNumber(8);
+  const nivelState = useEditableValue(powerLevel, (v) => updatePowerLevel(v), !isEditMode, { MIN_VALUE: 1 }, () => markFieldDirty('status'));
+  const deslocamentoState = useEditableValue(8, () => {}, !isEditMode); // Keeping it local for now as it's not in context
 
   const handleAddPoint = () => {
     if (extraPoints >= 14) {
@@ -198,12 +189,14 @@ export default function AdvancedStatus() {
   const totalPowerPoints = powerLevel * 15 + extraPoints;
 
   // Defense points (persisted via DefensesContext)
+  const { markFieldDirty } = useCharacterSheet();
   const { defenses, updateDefense } = useDefenses();
-  const apararPoints = { value: defenses.aparar, input: defenses.aparar.toString(), update: (s: string) => updateDefense('aparar', s === '' ? 0 : Number(s) || 0) };
-  const esquivaPoints = { value: defenses.esquiva, input: defenses.esquiva.toString(), update: (s: string) => updateDefense('esquiva', s === '' ? 0 : Number(s) || 0) };
-  const fortitudePoints = { value: defenses.fortitude, input: defenses.fortitude.toString(), update: (s: string) => updateDefense('fortitude', s === '' ? 0 : Number(s) || 0) };
-  const resistenciaPoints = { value: defenses.resistencia, input: defenses.resistencia.toString(), update: (s: string) => updateDefense('resistencia', s === '' ? 0 : Number(s) || 0) };
-  const vontadePoints = { value: defenses.vontade, input: defenses.vontade.toString(), update: (s: string) => updateDefense('vontade', s === '' ? 0 : Number(s) || 0) };
+  
+  const apararState = useEditableValue(defenses.aparar, (v) => updateDefense('aparar', v), !isEditMode, undefined, () => markFieldDirty('defenses'));
+  const esquivaState = useEditableValue(defenses.esquiva, (v) => updateDefense('esquiva', v), !isEditMode, undefined, () => markFieldDirty('defenses'));
+  const fortitudeState = useEditableValue(defenses.fortitude, (v) => updateDefense('fortitude', v), !isEditMode, undefined, () => markFieldDirty('defenses'));
+  const resistenciaState = useEditableValue(defenses.resistencia, (v) => updateDefense('resistencia', v), !isEditMode, undefined, () => markFieldDirty('defenses'));
+  const vontadeState = useEditableValue(defenses.vontade, (v) => updateDefense('vontade', v), !isEditMode, undefined, () => markFieldDirty('defenses'));
 
   const toggleEditMode = useCallback(() => {
     setIsEditMode((prev) => !prev);
@@ -230,11 +223,11 @@ export default function AdvancedStatus() {
   const prontidaoColor = getAttrColor("PRO");
 
   // Defense totals
-  const apararTotal = luta + apararPoints.value;
-  const esquivaTotal = agilidade + esquivaPoints.value;
-  const fortitudeTotal = vigor + fortitudePoints.value;
-  const resistenciaTotal = vigor + resistenciaPoints.value;
-  const vontadeTotal = prontidao + vontadePoints.value;
+  const apararTotal = luta + apararState.value;
+  const esquivaTotal = agilidade + esquivaState.value;
+  const fortitudeTotal = vigor + fortitudeState.value;
+  const resistenciaTotal = vigor + resistenciaState.value;
+  const vontadeTotal = prontidao + vontadeState.value;
 
   // Calculate spent points (Attributes: 2 per rank, Defenses: 1 per rank, Skills: 1 per 2 ranks)
   const attributesSpent = attributes.reduce(
@@ -242,11 +235,11 @@ export default function AdvancedStatus() {
     0,
   );
   const defensesSpent =
-    apararPoints.value +
-    esquivaPoints.value +
-    fortitudePoints.value +
-    resistenciaPoints.value +
-    vontadePoints.value;
+    apararState.value +
+    esquivaState.value +
+    fortitudeState.value +
+    resistenciaState.value +
+    vontadeState.value;
   const skillsSpent = Math.ceil(
     skills.reduce((acc, skill) => acc + (skill.value || 0), 0) / 2,
   );
@@ -341,8 +334,10 @@ export default function AdvancedStatus() {
             name="powerLevel"
             type="number"
             min={1}
-            value={nivelInput}
-            onChange={(e) => updatePowerLevel(Number(e.target.value) || 1)}
+            value={nivelState.inputValue}
+            onChange={(e) => nivelState.handleChange(e.target.value)}
+            onBlur={nivelState.handleBlur}
+            onKeyDown={nivelState.handleKeyDown}
             disabled={!isEditMode}
             className="text-center text-sm font-mono bg-primary/10 rounded-md focus:bg-primary/15 border-0 outline-none transition-colors h-8 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
           />
@@ -360,8 +355,10 @@ export default function AdvancedStatus() {
             name="displacement"
             type="number"
             min={0}
-            value={deslocamento.input}
-            onChange={(e) => deslocamento.update(e.target.value)}
+            value={deslocamentoState.inputValue}
+            onChange={(e) => deslocamentoState.handleChange(e.target.value)}
+            onBlur={deslocamentoState.handleBlur}
+            onKeyDown={deslocamentoState.handleKeyDown}
             disabled={!isEditMode}
             className="text-center text-sm font-mono bg-primary/10 rounded-md focus:bg-primary/15 border-0 outline-none transition-colors h-8 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
           />
@@ -461,10 +458,12 @@ export default function AdvancedStatus() {
             attributeValue={luta}
             attributeAbbrev="LUT"
             attributeColor={lutaColor}
-            inputValue={apararPoints.input}
+            inputValue={apararState.inputValue}
             total={apararTotal}
             isEditMode={isEditMode}
-            onInputChange={apararPoints.update}
+            onInputChange={apararState.handleChange}
+            onBlur={apararState.handleBlur}
+            onKeyDown={apararState.handleKeyDown}
             isLimitExceeded={isApararResistenciaExceeded}
             hasDisparity={hasApararResistenciaDisparity}
             exceedValue={Math.max(0, apararResistenciaTotal - defenseLimit)}
@@ -477,10 +476,12 @@ export default function AdvancedStatus() {
             attributeValue={agilidade}
             attributeAbbrev="AGI"
             attributeColor={agilidadeColor}
-            inputValue={esquivaPoints.input}
+            inputValue={esquivaState.inputValue}
             total={esquivaTotal}
             isEditMode={isEditMode}
-            onInputChange={esquivaPoints.update}
+            onInputChange={esquivaState.handleChange}
+            onBlur={esquivaState.handleBlur}
+            onKeyDown={esquivaState.handleKeyDown}
             isLimitExceeded={isEsquivaResistenciaExceeded}
             hasDisparity={hasEsquivaResistenciaDisparity}
             exceedValue={Math.max(0, esquivaResistenciaTotal - defenseLimit)}
@@ -493,10 +494,12 @@ export default function AdvancedStatus() {
             attributeValue={vigor}
             attributeAbbrev="VIG"
             attributeColor={vigorColor}
-            inputValue={fortitudePoints.input}
+            inputValue={fortitudeState.inputValue}
             total={fortitudeTotal}
             isEditMode={isEditMode}
-            onInputChange={fortitudePoints.update}
+            onInputChange={fortitudeState.handleChange}
+            onBlur={fortitudeState.handleBlur}
+            onKeyDown={fortitudeState.handleKeyDown}
             isLimitExceeded={isFortitudeVontadeExceeded}
             hasDisparity={hasFortitudeVontadeDisparity}
             exceedValue={Math.max(0, fortitudeVontadeTotal - defenseLimit)}
@@ -509,10 +512,12 @@ export default function AdvancedStatus() {
             attributeValue={vigor}
             attributeAbbrev="VIG"
             attributeColor={vigorColor}
-            inputValue={resistenciaPoints.input}
+            inputValue={resistenciaState.inputValue}
             total={resistenciaTotal}
             isEditMode={isEditMode}
-            onInputChange={resistenciaPoints.update}
+            onInputChange={resistenciaState.handleChange}
+            onBlur={resistenciaState.handleBlur}
+            onKeyDown={resistenciaState.handleKeyDown}
             // pass arrays so both pairs show if needed
             limitWarnings={[
               ...(isEsquivaResistenciaExceeded ? [{ pair: "Esquiva + Resistência", exceed: esquivaResistenciaTotal - defenseLimit }] : []),
@@ -530,10 +535,12 @@ export default function AdvancedStatus() {
             attributeValue={prontidao}
             attributeAbbrev="PRO"
             attributeColor={prontidaoColor}
-            inputValue={vontadePoints.input}
+            inputValue={vontadeState.inputValue}
             total={vontadeTotal}
             isEditMode={isEditMode}
-            onInputChange={vontadePoints.update}
+            onInputChange={vontadeState.handleChange}
+            onBlur={vontadeState.handleBlur}
+            onKeyDown={vontadeState.handleKeyDown}
             isLimitExceeded={isFortitudeVontadeExceeded}
             hasDisparity={hasFortitudeVontadeDisparity}
             exceedValue={Math.max(0, fortitudeVontadeTotal - defenseLimit)}

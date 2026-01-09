@@ -20,7 +20,7 @@ export function useFieldLocalState(
   onCommit: (value: string) => void,
   options?: UseFieldLocalStateOptions,
 ) {
-  const debounceMs = options?.debounceMs ?? 300;
+  const debounceMs = options?.debounceMs ?? 500;
   const fieldName = options?.fieldName;
   const onDirty = options?.onDirty;
 

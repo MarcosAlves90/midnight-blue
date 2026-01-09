@@ -6,12 +6,13 @@ import type { CharacterDocument } from "@/lib/types/character";
 interface DefensesContextType {
   defenses: NonNullable<CharacterDocument["defenses"]>;
   updateDefense: (key: keyof NonNullable<CharacterDocument["defenses"]>, value: number) => void;
+  markFieldDirty: (field?: string) => void;
 }
 
 const DefensesContext = createContext<DefensesContextType | undefined>(undefined);
 
 export const DefensesProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { state, updateDefenses } = useCharacterSheet();
+  const { state, updateDefenses, markFieldDirty: markSheetDirty } = useCharacterSheet();
 
   const defenses = useMemo(() => ({
     aparar: state?.defenses?.aparar ?? 0,
@@ -27,8 +28,12 @@ export const DefensesProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     updateDefenses((prev) => ({ ...baseDefenses, ...(prev || {}), [key]: value }));
   }, [updateDefenses]);
 
+  const markFieldDirty = useCallback((field: string = "defenses") => {
+    markSheetDirty(field as any);
+  }, [markSheetDirty]);
+
   return (
-    <DefensesContext.Provider value={{ defenses, updateDefense }}>
+    <DefensesContext.Provider value={{ defenses, updateDefense, markFieldDirty }}>
       {children}
     </DefensesContext.Provider>
   );

@@ -130,7 +130,8 @@ export const IdentityProvider: React.FC<{ children: React.ReactNode }> = ({
     conflict, 
     resolveKeepLocal, 
     resolveUseServer,
-    saveNow
+    saveNow,
+    markFieldDirty
   } = useCharacterSheet();
 
   const identity = state?.identity ?? INITIAL_IDENTITY;
@@ -182,7 +183,6 @@ export const IdentityProvider: React.FC<{ children: React.ReactNode }> = ({
     updateIdentitySheet({ [field]: value });
   }, [updateIdentitySheet]);
 
-  const markFieldDirty = useCallback(() => {}, []);
   const markFieldsSaved = useCallback(() => {}, []);
 
   const contextValue = useMemo(

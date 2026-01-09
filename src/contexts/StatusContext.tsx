@@ -24,7 +24,7 @@ const StatusContext = createContext<StatusContextType | undefined>(undefined);
 export const StatusProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const { state, updateStatus: updateSheet, isSyncing, dirtyFields } = useCharacterSheet();
+  const { state, updateStatus: updateSheet, isSyncing, dirtyFields, markFieldDirty: markSheetDirty } = useCharacterSheet();
 
   const powerLevel = state?.status?.powerLevel ?? 10;
   const extraPoints = state?.status?.extraPoints ?? 0;
@@ -37,7 +37,9 @@ export const StatusProvider: React.FC<{ children: React.ReactNode }> = ({
     updateSheet({ extraPoints: points });
   }, [updateSheet]);
 
-  const markFieldDirty = useCallback(() => {}, []);
+  const markFieldDirty = useCallback((field: string = "status") => {
+    markSheetDirty(field as any);
+  }, [markSheetDirty]);
 
   const value = useMemo(() => ({
     powerLevel,
