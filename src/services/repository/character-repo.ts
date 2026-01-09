@@ -90,6 +90,7 @@ export class FirebaseCharacterRepository implements CharacterRepository {
       skills: serializeSkills((data.skills as Skill[]) ?? INITIAL_SKILLS),
       powers: data.powers ?? [],
       status: data.status ?? { powerLevel: 10, extraPoints: 0 },
+      defenses: data.defenses ?? { aparar: 0, esquiva: 0, fortitude: 0, resistencia: 0, vontade: 0 },
       customDescriptors: data.customDescriptors ?? [],
       folderId: data.folderId ?? null,
     };
@@ -249,6 +250,7 @@ export class FirebaseCharacterRepository implements CharacterRepository {
 
     if (updatesRecord.attributes) payload.attributes = serializeAttributes(updates.attributes as Attribute[]);
     if (updatesRecord.skills) payload.skills = serializeSkills(updates.skills as Skill[]);
+    if (updatesRecord.defenses) payload.defenses = updates.defenses;
 
     Object.keys(updatesRecord).forEach((key) => {
       const val = updatesRecord[key];

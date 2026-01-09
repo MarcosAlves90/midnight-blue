@@ -93,6 +93,27 @@ function hydrateSkills(saved: SavedSkill[] = []): Skill[] {
 }
 
 /**
+ * Hidrata objeto de defesas com valores padrão (zeros) para evitar undefined
+ */
+function hydrateDefenses(saved: Record<string, unknown> | undefined): Required<CharacterDocument["defenses"]> {
+  const base: Required<CharacterDocument["defenses"]> = {
+    aparar: 0,
+    esquiva: 0,
+    fortitude: 0,
+    resistencia: 0,
+    vontade: 0,
+  };
+  if (!saved || typeof saved !== "object") return base;
+  return {
+    ...base,
+    aparar: Number((saved.aparar as number) ?? base.aparar),
+    esquiva: Number((saved.esquiva as number) ?? base.esquiva),
+    fortitude: Number((saved.fortitude as number) ?? base.fortitude),
+    resistencia: Number((saved.resistencia as number) ?? base.resistencia),
+    vontade: Number((saved.vontade as number) ?? base.vontade),
+  };
+}
+/**
  * Mapeia um documento bruto do Firestore para o modelo CharacterDocument do domínio.
  */
 export function mapFirestoreToCharacter(id: string, data: Record<string, unknown>): CharacterDocument {
@@ -121,6 +142,7 @@ export function mapFirestoreToCharacter(id: string, data: Record<string, unknown
       ...((data.status as Record<string, unknown>) || {}),
     },
     customDescriptors: (data.customDescriptors as string[]) || [],
+    defenses: hydrateDefenses(data.defenses as Record<string, unknown> | undefined),
     folderId: data.folderId ? String(data.folderId) : undefined,
   };
 

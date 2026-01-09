@@ -167,6 +167,7 @@ export function useCharacterPersistence(
       if (data.skills) pendingFieldsRef.current.add("skills");
       if (data.powers) pendingFieldsRef.current.add("powers");
       if (data.customDescriptors) pendingFieldsRef.current.add("customDescriptors");
+      if (data.defenses) pendingFieldsRef.current.add("defenses");
 
       // Delegate to AutoSaveService
       if (autoSaveServiceRef.current) {

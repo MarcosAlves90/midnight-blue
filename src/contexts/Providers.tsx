@@ -4,6 +4,7 @@ import { SkillsProvider } from "./SkillsContext";
 import { IdentityProvider } from "./IdentityContext";
 import { CustomDescriptorsProvider } from "./CustomDescriptorsContext";
 import { StatusProvider } from "./StatusContext";
+import { DefensesProvider } from "./DefensesContext";
 import { PowersProvider } from "./PowersContext";
 import { AuthProvider } from "./AuthContext";
 import { AdminProvider } from "./AdminContext";
@@ -23,13 +24,15 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
             <CharacterSheetProvider>
               <CustomDescriptorsProvider>
                 <StatusProvider>
-                  <PowersProvider>
-                    <AttributesProvider>
-                      <SkillsProvider>
-                        <IdentityProvider>{children}</IdentityProvider>
-                      </SkillsProvider>
-                    </AttributesProvider>
-                  </PowersProvider>
+                  <DefensesProvider>
+                    <PowersProvider>
+                      <AttributesProvider>
+                        <SkillsProvider>
+                          <IdentityProvider>{children}</IdentityProvider>
+                        </SkillsProvider>
+                      </AttributesProvider>
+                    </PowersProvider>
+                  </DefensesProvider>
                 </StatusProvider>
               </CustomDescriptorsProvider>
             </CharacterSheetProvider>

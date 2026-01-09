@@ -16,6 +16,7 @@ interface CharacterSheetState {
   skills: Skill[];
   powers: Power[];
   status: CharacterDocument["status"];
+  defenses?: CharacterDocument["defenses"];
   customDescriptors: string[];
 }
 
@@ -36,6 +37,7 @@ interface CharacterSheetContextType {
   updateSkills: (updater: Skill[] | ((prev: Skill[]) => Skill[])) => void;
   updatePowers: (updater: Power[] | ((prev: Power[]) => Power[])) => void;
   updateStatus: (status: Partial<CharacterSheetState["status"]>) => void;
+  updateDefenses: (updater: CharacterDocument["defenses"] | ((prev: CharacterDocument["defenses"] | undefined) => CharacterDocument["defenses"] | undefined)) => void;
   updateCustomDescriptors: (updater: string[] | ((prev: string[]) => string[])) => void;
   
   // Persistence
@@ -122,6 +124,7 @@ export function CharacterSheetProvider({ children }: { children: React.ReactNode
       skills: selectedCharacter.skills,
       powers: selectedCharacter.powers,
       status: selectedCharacter.status,
+      defenses: selectedCharacter.defenses,
       customDescriptors: selectedCharacter.customDescriptors,
     });
     const dataChanged = lastSyncedRef.current !== currentHash;
@@ -139,6 +142,7 @@ export function CharacterSheetProvider({ children }: { children: React.ReactNode
           skills: selectedCharacter.skills,
           powers: selectedCharacter.powers,
           status: selectedCharacter.status,
+          defenses: selectedCharacter.defenses,
           customDescriptors: selectedCharacter.customDescriptors,
         };
       }
@@ -168,6 +172,17 @@ export function CharacterSheetProvider({ children }: { children: React.ReactNode
         }
       });
       next.status = nextStatus;
+
+      // Defenses merge (normalize to ensure required fields)
+      const baseDefenses = { aparar: 0, esquiva: 0, fortitude: 0, resistencia: 0, vontade: 0 } as Required<CharacterDocument["defenses"]>;
+      const nextDefenses = {
+        aparar: dirtyFields.has('defenses.aparar') && prev.defenses ? prev.defenses.aparar : (selectedCharacter.defenses?.aparar ?? 0),
+        esquiva: dirtyFields.has('defenses.esquiva') && prev.defenses ? prev.defenses.esquiva : (selectedCharacter.defenses?.esquiva ?? 0),
+        fortitude: dirtyFields.has('defenses.fortitude') && prev.defenses ? prev.defenses.fortitude : (selectedCharacter.defenses?.fortitude ?? 0),
+        resistencia: dirtyFields.has('defenses.resistencia') && prev.defenses ? prev.defenses.resistencia : (selectedCharacter.defenses?.resistencia ?? 0),
+        vontade: dirtyFields.has('defenses.vontade') && prev.defenses ? prev.defenses.vontade : (selectedCharacter.defenses?.vontade ?? 0),
+      };
+      next.defenses = nextDefenses;
 
       return next;
     });
@@ -284,6 +299,8 @@ export function CharacterSheetProvider({ children }: { children: React.ReactNode
     updatePowers: (updater: Power[] | ((prev: Power[]) => Power[])) => 
       updateState(prev => ({ powers: typeof updater === "function" ? updater(prev.powers) : updater })),
     updateStatus,
+    updateDefenses: (updater: CharacterDocument["defenses"] | ((prev: CharacterDocument["defenses"] | undefined) => CharacterDocument["defenses"] | undefined)) => 
+      updateState(prev => ({ defenses: typeof updater === "function" ? updater(prev.defenses) : updater })),
     updateCustomDescriptors: (updater: string[] | ((prev: string[]) => string[])) => 
       updateState(prev => ({ customDescriptors: typeof updater === "function" ? updater(prev.customDescriptors) : updater })),
     saveNow,

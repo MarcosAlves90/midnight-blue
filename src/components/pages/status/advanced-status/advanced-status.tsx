@@ -5,6 +5,7 @@ import { Tip } from "@/components/ui/tip";
 import { useAttributesContext } from "@/contexts/AttributesContext";
 import { useSkillsContext } from "@/contexts/SkillsContext";
 import { useStatusContext } from "@/contexts/StatusContext";
+import { useDefenses } from "@/contexts/DefensesContext";
 import {
   Shield,
   Star,
@@ -196,12 +197,13 @@ export default function AdvancedStatus() {
 
   const totalPowerPoints = powerLevel * 15 + extraPoints;
 
-  // Defense points
-  const apararPoints = useEditableNumber(0);
-  const esquivaPoints = useEditableNumber(0);
-  const fortitudePoints = useEditableNumber(0);
-  const resistenciaPoints = useEditableNumber(0);
-  const vontadePoints = useEditableNumber(0);
+  // Defense points (persisted via DefensesContext)
+  const { defenses, updateDefense } = useDefenses();
+  const apararPoints = { value: defenses.aparar, input: defenses.aparar.toString(), update: (s: string) => updateDefense('aparar', s === '' ? 0 : Number(s) || 0) };
+  const esquivaPoints = { value: defenses.esquiva, input: defenses.esquiva.toString(), update: (s: string) => updateDefense('esquiva', s === '' ? 0 : Number(s) || 0) };
+  const fortitudePoints = { value: defenses.fortitude, input: defenses.fortitude.toString(), update: (s: string) => updateDefense('fortitude', s === '' ? 0 : Number(s) || 0) };
+  const resistenciaPoints = { value: defenses.resistencia, input: defenses.resistencia.toString(), update: (s: string) => updateDefense('resistencia', s === '' ? 0 : Number(s) || 0) };
+  const vontadePoints = { value: defenses.vontade, input: defenses.vontade.toString(), update: (s: string) => updateDefense('vontade', s === '' ? 0 : Number(s) || 0) };
 
   const toggleEditMode = useCallback(() => {
     setIsEditMode((prev) => !prev);

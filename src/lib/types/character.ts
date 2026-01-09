@@ -33,6 +33,15 @@ export interface CharacterDocument {
     extraPoints: number;
     [key: string]: unknown;
   };
+  /** Defesas ajustáveis pelo usuário (pontos investidos) */
+  defenses?: {
+    aparar: number;
+    esquiva: number;
+    fortitude: number;
+    resistencia: number;
+    vontade: number;
+    [key: string]: number;
+  };
   customDescriptors: string[];
   folderId?: string;
 }
