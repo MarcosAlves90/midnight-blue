@@ -31,11 +31,7 @@ export const PowerBuilderHeader = memo(
               </span>
               <span>→</span>
               <span className={step >= 3 ? "text-purple-400 font-medium" : ""}>
-                3. Modificadores
-              </span>
-              <span>→</span>
-              <span className={step >= 4 ? "text-purple-400 font-medium" : ""}>
-                4. Detalhes
+                3. Detalhes
               </span>
             </div>
           </div>

@@ -44,18 +44,20 @@ export const PowerBuilderPreview = memo(
               <div className="flex justify-between text-muted-foreground">
                 <span>Base ({selectedEffects.length} efeitos)</span>
                 <span>
-                  {selectedEffects.reduce(
-                    (acc: number, e: Effect) => acc + e.baseCost,
-                    0,
-                  )}{" "}
-                  PP/grad
+                  {selectedEffects.reduce((acc: number, e: Effect) => {
+                    const opts = power.effectOptions?.[e.id];
+                    const r = opts?.rank ?? 1;
+                    const b = opts?.ppCost ?? e.baseCost;
+                    return acc + r * b;
+                  }, 0)}{" "}
+                  PP
                 </span>
               </div>
 
               {selectedModifierInstances.length > 0 && (
                 <>
                   <div className="flex justify-between text-green-400">
-                    <span>Extras</span>
+                    <span>Extras (Graduação)</span>
                     <span>
                       +
                       {selectedModifierInstances
@@ -63,26 +65,52 @@ export const PowerBuilderPreview = memo(
                           (m) =>
                             m.modifier.type === "extra" && !m.modifier.isFlat,
                         )
-                        .reduce(
-                          (acc, m) => acc + m.modifier.costPerRank,
-                          0,
-                        )}{" "}
-                      /grad
+                        .reduce((acc, m) => {
+                          const costPerRank =
+                            (m.options?.costPerRank as number) ??
+                            m.modifier.costPerRank;
+                          const affectedEffects = selectedEffects.filter(
+                            (e) =>
+                              !m.appliesTo ||
+                              m.appliesTo.length === 0 ||
+                              m.appliesTo.includes(e.id),
+                          );
+                          const totalRanks = affectedEffects.reduce(
+                            (sum, e) =>
+                              sum + (power.effectOptions?.[e.id]?.rank ?? 1),
+                            0,
+                          );
+                          return acc + costPerRank * totalRanks;
+                        }, 0)}{" "}
+                      PP
                     </span>
                   </div>
                   <div className="flex justify-between text-red-400">
-                    <span>Falhas</span>
+                    <span>Falhas (Graduação)</span>
                     <span>
                       {selectedModifierInstances
                         .filter(
                           (m) =>
                             m.modifier.type === "falha" && !m.modifier.isFlat,
                         )
-                        .reduce(
-                          (acc, m) => acc + m.modifier.costPerRank,
-                          0,
-                        )}{" "}
-                      /grad
+                        .reduce((acc, m) => {
+                          const costPerRank =
+                            (m.options?.costPerRank as number) ??
+                            m.modifier.costPerRank;
+                          const affectedEffects = selectedEffects.filter(
+                            (e) =>
+                              !m.appliesTo ||
+                              m.appliesTo.length === 0 ||
+                              m.appliesTo.includes(e.id),
+                          );
+                          const totalRanks = affectedEffects.reduce(
+                            (sum, e) =>
+                              sum + (power.effectOptions?.[e.id]?.rank ?? 1),
+                            0,
+                          );
+                          return acc + costPerRank * totalRanks;
+                        }, 0)}{" "}
+                      PP
                     </span>
                   </div>
                   <div className="flex justify-between text-purple-400 border-t border-border/50 pt-1 mt-1">
@@ -91,7 +119,10 @@ export const PowerBuilderPreview = memo(
                       {selectedModifierInstances
                         .filter((m) => m.modifier.isFlat)
                         .reduce(
-                          (acc, m) => acc + m.modifier.costPerRank,
+                          (acc, m) =>
+                            acc +
+                            ((m.options?.costPerRank as number) ??
+                              m.modifier.costPerRank),
                           0,
                         )}{" "}
                       PP

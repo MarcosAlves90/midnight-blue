@@ -6,7 +6,6 @@ import { getPowerDefaults } from "@/lib/powers/utils";
 import { PowerBuilderHeader } from "./power-builder-header";
 import { PowerBuilderStepEffects } from "./power-builder-step-effects";
 import { PowerBuilderStepParameters } from "./power-builder-step-parameters";
-import { PowerBuilderStepModifiers } from "./power-builder-step-modifiers";
 import { PowerBuilderStepDetails } from "./power-builder-step-details";
 import { PowerBuilderFooter } from "./power-builder-footer";
 import { PowerBuilderPreview } from "./power-builder-preview";
@@ -38,7 +37,6 @@ function PowerBuilderModalContent({
     selectedModifierInstances,
     addModifierInstance,
     removeModifierInstance,
-    updateModifierDescription,
     updateModifierOptions,
     selectedDescriptors,
     toggleDescriptor,
@@ -97,6 +95,12 @@ function PowerBuilderModalContent({
                   effectOptions={effectOptions}
                   onUpdateEffectOptions={updateEffectOptions}
                   rank={rank}
+                  selectedModifierInstances={selectedModifierInstances}
+                  onAddModifier={addModifierInstance}
+                  onRemoveModifier={removeModifierInstance}
+                  onUpdateModifierOptions={updateModifierOptions}
+                  availableExtras={filteredExtras}
+                  availableFlaws={filteredFlaws}
                 />
               )}
 
@@ -118,20 +122,6 @@ function PowerBuilderModalContent({
               )}
 
               {step === 3 && (
-                <PowerBuilderStepModifiers
-                  searchTerm={searchTerm}
-                  onSearchChange={setSearchTerm}
-                  selectedModifierInstances={selectedModifierInstances}
-                  onUpdateDescription={updateModifierDescription}
-                  onUpdateOptions={updateModifierOptions}
-                  onRemoveInstance={removeModifierInstance}
-                  filteredExtras={filteredExtras}
-                  filteredFlaws={filteredFlaws}
-                  onAddModifier={addModifierInstance}
-                />
-              )}
-
-              {step === 4 && (
                 <PowerBuilderStepDetails
                   name={name}
                   onNameChange={setName}

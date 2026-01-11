@@ -37,7 +37,7 @@ export const PowerBuilderFooter = memo(
         </button>
 
         <div className="flex items-center gap-2">
-          {step < 4 ? (
+          {step < 3 ? (
             <button
               onClick={onNext}
               disabled={!canProceed}

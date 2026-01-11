@@ -7,55 +7,54 @@ import {
 } from "@/components/pages/status/powers/types";
 
 export const calculatePowerCost = (
-  rank: number,
   selectedEffects: Effect[],
   selectedModifierInstances: ModifierInstance[],
   effectOptions: Record<string, EffectOptions>,
+  fallbackRank: number = 1,
 ): number => {
   if (selectedEffects.length === 0) return 0;
 
-  // Calcular custo base dos efeitos, considerando effectOptions (ex: ppCost para Ambiente)
-  const baseEffect = selectedEffects.reduce((acc, e) => {
-    const opts = effectOptions[e.id];
-    const ppCost = typeof opts?.ppCost === "number" ? opts.ppCost : e.baseCost;
-    return acc + ppCost;
+  // Calcular o custo de cada efeito individualmente
+  const effectsCost = selectedEffects.reduce((acc, effect) => {
+    const opts = effectOptions[effect.id] || {};
+    const effectRank = opts.rank ?? fallbackRank;
+    const effectBaseCost = typeof opts.ppCost === "number" ? opts.ppCost : effect.baseCost;
+
+    // Modificadores que se aplicam a este efeito (ou a todos)
+    const costPerRankFromModifiers = selectedModifierInstances
+      .filter((inst) => {
+        if (inst.modifier.isFlat) return false;
+        
+        // Se a instância tiver alvos específicos, usa eles
+        const targets = inst.appliesTo || inst.modifier.appliesTo;
+        if (!targets || targets.length === 0) return true;
+        return targets.includes(effect.id);
+      })
+      .reduce((sum, inst) => {
+        return sum + ((inst.options?.costPerRank as number) ?? inst.modifier.costPerRank);
+      }, 0);
+
+    const totalCostPerRank = effectBaseCost + costPerRankFromModifiers;
+    let effectTotal: number;
+
+    if (totalCostPerRank <= 0) {
+      const ranksPerPoint = Math.min(5, Math.abs(totalCostPerRank - 1) + 1);
+      effectTotal = Math.ceil(effectRank / ranksPerPoint);
+    } else {
+      effectTotal = Math.ceil(totalCostPerRank * effectRank);
+    }
+
+    return acc + effectTotal;
   }, 0);
 
-  const extrasTotal = selectedModifierInstances
-    .filter((m) => m.modifier.type === "extra" && !m.modifier.isFlat)
-    .reduce(
-      (acc, m) =>
-        acc + ((m.options?.costPerRank as number) ?? m.modifier.costPerRank),
-      0,
-    );
+  // Modificadores fixos (Flat) são somados uma única vez ao total do poder
+  const flatModifiersTotal = selectedModifierInstances
+    .filter((inst) => inst.modifier.isFlat)
+    .reduce((sum, inst) => {
+      return sum + ((inst.options?.costPerRank as number) ?? inst.modifier.costPerRank);
+    }, 0);
 
-  const flawsTotal = selectedModifierInstances
-    .filter((m) => m.modifier.type === "falha" && !m.modifier.isFlat)
-    .reduce(
-      (acc, m) =>
-        acc + ((m.options?.costPerRank as number) ?? m.modifier.costPerRank),
-      0,
-    );
-
-  const flatModifiers = selectedModifierInstances
-    .filter((m) => m.modifier.isFlat)
-    .reduce(
-      (acc, m) =>
-        acc + ((m.options?.costPerRank as number) ?? m.modifier.costPerRank),
-      0,
-    );
-
-  const costPerRank = baseEffect + extrasTotal + flawsTotal;
-  let totalCost: number;
-
-  if (costPerRank <= 0) {
-    const ranksPerPoint = Math.min(5, Math.abs(costPerRank - 1) + 1);
-    totalCost = Math.ceil(rank / ranksPerPoint);
-  } else {
-    totalCost = Math.ceil(costPerRank * rank);
-  }
-
-  return Math.max(1, totalCost + flatModifiers);
+  return Math.max(1, effectsCost + flatModifiersTotal);
 };
 
 export const filterModifiers = (
@@ -86,9 +85,12 @@ export const getPowerDefaults = (selectedEffects: Effect[]) => {
 };
 
 export const checkPowerLimit = (power: Power, powerLevel: number): boolean => {
-  // Effects with attack roll: rank + attack bonus <= PL * 2
-  // Effects without attack (perception/save): rank <= PL
-  const hasAttack = power.effects.some((e) => e.range !== "percepcao");
-  const maxRank = hasAttack ? powerLevel * 2 : powerLevel;
-  return power.rank > maxRank;
+  // Para cada efeito, verificar se sua graduação respeita o limite do nível de poder
+  return power.effects.some((effect) => {
+    const opts = power.effectOptions?.[effect.id] || {};
+    const effectRank = opts.rank ?? power.rank; // Fallback para a graduação antiga se necessário
+    const hasAttack = effect.range !== "percepcao";
+    const maxRank = hasAttack ? powerLevel * 2 : powerLevel;
+    return effectRank > maxRank;
+  });
 };

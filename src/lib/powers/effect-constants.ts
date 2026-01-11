@@ -117,3 +117,78 @@ export const CARACTERISTICA_CATEGORIES = [
     ],
   },
 ];
+
+export const MOVIMENTO_SUBS = [
+  {
+    id: "adaptacao",
+    label: "Adaptação ao Ambiente",
+    maxRank: 1,
+    tip: "Escolha um ambiente (subaquático, gravidade zero, etc.). Você não sofre penalidades de movimento associadas.",
+  },
+  {
+    id: "andar-agua",
+    label: "Andar na Água",
+    maxRank: 2,
+    tip: "1 Graduação: Mover-se sobre líquidos sem afundar.\n2 Graduações: Pode ficar caído na superfície sem afundar.",
+  },
+  {
+    id: "balancar",
+    label: "Balançar-se",
+    maxRank: 1,
+    tip: "Mover-se pelo ar à sua velocidade terrestre normal usando uma linha (teias, cordas, cipós).",
+  },
+  {
+    id: "deslizar",
+    label: "Deslizar",
+    maxRank: 1,
+    tip: "Mover-se enquanto caído à velocidade normal e sem penalidade para atacar.",
+  },
+  {
+    id: "escalar",
+    label: "Escalar Paredes",
+    maxRank: 2,
+    tip: "1 Graduação: Velocidade terrestre -1 e vulnerável.\n2 Graduações: Velocidade total e não fica vulnerável.",
+  },
+  {
+    id: "estabilidade",
+    label: "Estabilidade",
+    maxRank: 3,
+    tip: "Reduza penalidades por obstáculos em 1 por graduação.",
+  },
+  {
+    id: "dimensional",
+    label: "Movimento Dimensional",
+    maxRank: 3,
+    tip: "1 Graduação: Uma outra dimensão.\n2 Graduações: Grupo de dimensões relacionadas.\n3 Graduações: Qualquer dimensão.",
+  },
+  {
+    id: "permear",
+    label: "Permear",
+    maxRank: 3,
+    tip: "1 Graduação: Velocidade -2.\n2 Graduações: Velocidade -1.\n3 Graduações: Velocidade normal.",
+  },
+  {
+    id: "queda-segura",
+    label: "Queda Segura",
+    maxRank: 1,
+    tip: "Cair de qualquer distância sem se ferir (exige capacidade de agir).",
+  },
+  {
+    id: "sem-rastros",
+    label: "Sem Rastros",
+    maxRank: 3,
+    tip: "1 Graduação: Imune a rastreio visual e sentido sísmico.\nCada graduação adicional cobre outro tipo de sentido.",
+  },
+  {
+    id: "espacial",
+    label: "Viagem Espacial",
+    maxRank: 3,
+    tip: "1 Graduação: Outros planetas.\n2 Graduações: Outros sistemas estelares.\n3 Graduações: Sistemas distantes ou galáxias.",
+  },
+  {
+    id: "temporal",
+    label: "Viagem Temporal",
+    maxRank: 3,
+    tip: "1 Graduação: Entre o presente e ponto fixo.\n2 Graduações: Qualquer ponto no passado ou futuro (um deles).\n3 Graduações: Qualquer ponto no tempo.",
+  },
+];

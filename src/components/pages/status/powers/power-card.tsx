@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Power } from "./types";
 import { ACTION_LABELS, RANGE_LABELS, DURATION_LABELS } from "@/lib/powers";
+import { calculatePowerCost } from "@/lib/powers/utils";
 import { Tip } from "@/components/ui/tip";
 import { ChevronDown, ChevronUp, Trash2, Sparkles, Edit3 } from "lucide-react";
 
@@ -13,51 +14,6 @@ interface PowerCardProps {
   isEditMode: boolean;
 }
 
-function calculatePowerCost(power: Power): number {
-  const baseEffect = power.effects.reduce((acc, e) => {
-    const opts = power.effectOptions?.[e.id];
-    const ppCost = typeof opts?.ppCost === "number" ? opts.ppCost : e.baseCost;
-    return acc + ppCost;
-  }, 0);
-
-  const extrasTotal = power.modifiers
-    .filter((m) => m.modifier.type === "extra" && !m.modifier.isFlat)
-    .reduce(
-      (acc, m) =>
-        acc + ((m.options?.costPerRank as number) ?? m.modifier.costPerRank),
-      0,
-    );
-
-  const flawsTotal = power.modifiers
-    .filter((m) => m.modifier.type === "falha" && !m.modifier.isFlat)
-    .reduce(
-      (acc, m) =>
-        acc + ((m.options?.costPerRank as number) ?? m.modifier.costPerRank),
-      0,
-    );
-
-  const flatModifiers = power.modifiers
-    .filter((m) => m.modifier.isFlat)
-    .reduce(
-      (acc, m) =>
-        acc + ((m.options?.costPerRank as number) ?? m.modifier.costPerRank),
-      0,
-    );
-
-  const costPerRank = baseEffect + extrasTotal + flawsTotal;
-
-  // Custo mínimo de 1 PP por 5 graduações
-  let totalCost: number;
-  if (costPerRank <= 0) {
-    const ranksPerPoint = Math.min(5, Math.abs(costPerRank - 1) + 1);
-    totalCost = Math.ceil(power.rank / ranksPerPoint);
-  } else {
-    totalCost = Math.ceil(costPerRank * power.rank);
-  }
-
-  return Math.max(1, totalCost + flatModifiers);
-}
-
 export function PowerCard({
   power,
   onDelete,
@@ -65,10 +21,26 @@ export function PowerCard({
   isEditMode,
 }: PowerCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const cost = calculatePowerCost(power);
 
-  const extras = power.modifiers.filter((m) => m.modifier.type === "extra");
-  const flaws = power.modifiers.filter((m) => m.modifier.type === "falha");
+  const cost = useMemo(() => {
+    return calculatePowerCost(
+      power.effects,
+      power.modifiers,
+      power.effectOptions || {},
+      power.rank,
+    );
+  }, [power]);
+
+  const globalExtras = power.modifiers.filter(
+    (m) =>
+      m.modifier.type === "extra" &&
+      (!m.appliesTo || m.appliesTo.length === 0),
+  );
+  const globalFlaws = power.modifiers.filter(
+    (m) =>
+      m.modifier.type === "falha" &&
+      (!m.appliesTo || m.appliesTo.length === 0),
+  );
 
   const action = power.customAction || power.effects[0]?.action || "padrao";
   const range = power.customRange || power.effects[0]?.range || "perto";
@@ -91,21 +63,25 @@ export function PowerCard({
               {power.name}
             </h4>
             <div className="text-xs text-muted-foreground flex flex-wrap items-center gap-1">
-              {power.effects.map((e, i) => (
-                <span key={i} className="flex items-center">
-                  <Tip
-                    content={
-                      <div className="max-w-xs text-xs">{e.description}</div>
-                    }
-                  >
-                    <span className="hover:text-purple-400 cursor-help underline decoration-dotted underline-offset-2">
-                      {e.name}
-                    </span>
-                  </Tip>
-                  {i < power.effects.length - 1 && <span> + </span>}
-                </span>
-              ))}
-              <span className="ml-1 font-medium">Nível {power.rank}</span>
+              {power.effects.map((e, i) => {
+                const eRank = power.effectOptions?.[e.id]?.rank ?? power.rank;
+                return (
+                  <span key={i} className="flex items-center">
+                    <Tip
+                      content={
+                        <div className="max-w-xs text-xs">{e.description}</div>
+                      }
+                    >
+                      <span className="hover:text-purple-400 cursor-help underline decoration-dotted underline-offset-2">
+                        {e.name} {eRank > 0 && `(${eRank})`}
+                      </span>
+                    </Tip>
+                    {i < power.effects.length - 1 && (
+                      <span className="mx-1 text-purple-500/50">+</span>
+                    )}
+                  </span>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -175,30 +151,83 @@ export function PowerCard({
                 pericia: "Vantagens de Perícia",
                 sorte: "Vantagens de Sorte",
                 gerais: "Vantagens Gerais",
+                // Movimento
+                adaptacao: "Adaptação ao Ambiente",
+                "andar-agua": "Andar na Água",
+                balancar: "Balançar-se",
+                deslizar: "Deslizar",
+                escalar: "Escalar Paredes",
+                estabilidade: "Estabilidade",
+                dimensional: "Movimento Dimensional",
+                permear: "Permear",
+                "queda-segura": "Queda Segura",
+                "sem-rastros": "Sem Rastros",
+                espacial: "Viagem Espacial",
+                temporal: "Viagem Temporal",
               };
 
+              const selections = (opts?.selections as Record<string, number>) || {};
+              const effectModifiers = power.modifiers.filter(
+                (m) => m.appliesTo && m.appliesTo.includes(effect.id),
+              );
+
               return (
-                <div key={idx}>
+                <div key={idx} className="space-y-1">
                   <p className="text-xs text-muted-foreground">
                     <span className="font-medium text-foreground">
                       {effect.name}:
                     </span>{" "}
                     {effect.description}
                   </p>
-                  {opts && (
-                    <div className="mt-1 text-xs text-muted-foreground flex gap-2 items-center">
-                      {opts.sub && (
-                        <span className="px-2 py-0.5 text-[10px] bg-purple-500/10 text-purple-300 rounded border border-purple-500/20">
-                          {subLabelMap[opts.sub] || opts.sub}
+                  <div className="mt-1 flex flex-wrap gap-1.5 items-center">
+                    {opts && (
+                      <div className="text-xs text-muted-foreground flex flex-wrap gap-2 items-center">
+                        <span className="px-1.5 py-0.5 bg-purple-500/20 text-purple-300 rounded font-mono text-[10px]">
+                          Graduação {opts.rank ?? power.rank}
                         </span>
-                      )}
-                      {opts.ppCost && (
-                        <span className="px-2 py-0.5 text-[10px] bg-background/30 rounded">
-                          {opts.ppCost} PP/grad
+                        {Object.entries(selections).map(([key, val]) => (
+                          <span
+                            key={key}
+                            className="px-2 py-0.5 text-[10px] bg-purple-500/10 text-purple-300 rounded border border-purple-500/20"
+                          >
+                            {subLabelMap[key] || key} ({val})
+                          </span>
+                        ))}
+                        {opts.sub && (
+                          <span className="px-2 py-0.5 text-[10px] bg-purple-500/10 text-purple-300 rounded border border-purple-500/20">
+                            {subLabelMap[opts.sub] || opts.sub}
+                          </span>
+                        )}
+                        {opts.ppCost && (
+                          <span className="px-2 py-0.5 text-[10px] bg-background/30 rounded">
+                            {opts.ppCost} PP/grad
+                          </span>
+                        )}
+                      </div>
+                    )}
+
+                    {effectModifiers.map((m) => (
+                      <Tip
+                        key={m.id}
+                        content={
+                          <div className="max-w-xs text-xs">
+                            {m.customDescription || m.modifier.description}
+                          </div>
+                        }
+                      >
+                        <span
+                          className={`px-1.5 py-0.5 text-[10px] rounded border ${
+                            m.modifier.type === "extra"
+                              ? "bg-green-500/5 text-green-300 border-green-500/20"
+                              : "bg-red-500/5 text-red-300 border-red-500/20"
+                          }`}
+                        >
+                          {m.modifier.name}{" "}
+                          {m.modifier.isFlat ? "" : `(${m.modifier.costPerRank > 0 ? "+" : ""}${m.modifier.costPerRank})`}
                         </span>
-                      )}
-                    </div>
-                  )}
+                      </Tip>
+                    ))}
+                  </div>
                 </div>
               );
             })}
@@ -247,15 +276,15 @@ export function PowerCard({
           )}
 
           {/* Modifiers */}
-          {(extras.length > 0 || flaws.length > 0) && (
+          {(globalExtras.length > 0 || globalFlaws.length > 0) && (
             <div className="space-y-2">
-              {extras.length > 0 && (
+              {globalExtras.length > 0 && (
                 <div>
                   <span className="text-[10px] text-green-400 uppercase tracking-wider font-medium">
-                    Extras
+                    Extras Gerais
                   </span>
                   <div className="flex flex-wrap gap-1 mt-1">
-                    {extras.map((instance) => (
+                    {globalExtras.map((instance) => (
                       <Tip
                         key={instance.id}
                         content={
@@ -276,13 +305,13 @@ export function PowerCard({
                   </div>
                 </div>
               )}
-              {flaws.length > 0 && (
+              {globalFlaws.length > 0 && (
                 <div>
                   <span className="text-[10px] text-red-400 uppercase tracking-wider font-medium">
-                    Falhas
+                    Falhas Gerais
                   </span>
                   <div className="flex flex-wrap gap-1 mt-1">
-                    {flaws.map((instance) => (
+                    {globalFlaws.map((instance) => (
                       <Tip
                         key={instance.id}
                         content={

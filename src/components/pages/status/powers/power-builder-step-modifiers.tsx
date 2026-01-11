@@ -36,7 +36,14 @@ const SelectedModifierInstance = memo(
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between gap-3">
               <div className="truncate text-sm font-medium text-foreground">
-                {instance.modifier.name}
+                <Tip
+                  content={<TipContent content={instance.modifier.description} />}
+                  side="top"
+                >
+                  <span className="cursor-help hover:text-purple-300 underline decoration-dotted underline-offset-2">
+                    {instance.modifier.name}
+                  </span>
+                </Tip>
                 {isTipo && typeof instance.options?.subType === "string" && (
                   <span className="ml-2 text-[10px] text-purple-400 uppercase tracking-wider">
                     (
@@ -45,6 +52,21 @@ const SelectedModifierInstance = memo(
                       : "Limitado"}
                     )
                   </span>
+                )}
+                {instance.appliesTo && instance.appliesTo.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-0.5">
+                    {instance.appliesTo.map((id) => {
+                      const effect = EFFECTS.find((e) => e.id === id);
+                      return (
+                        <span
+                          key={id}
+                          className="px-1 py-0.5 text-[9px] bg-purple-500/10 text-purple-300 rounded border border-purple-500/10"
+                        >
+                          {effect?.name || id}
+                        </span>
+                      );
+                    })}
+                  </div>
                 )}
               </div>
               <div className="flex items-center gap-2">

@@ -48,22 +48,18 @@ export function usePowerBuilder(editingPower?: Power) {
     Record<string, EffectOptions>
   >(editingPower?.effectOptions || {});
 
-  // Calcula a graduação mínima baseada na soma de todos os seletores de graduação
-  const minRank = useMemo(() => {
-    return (
-      Object.values(effectOptions || {}).reduce(
-        (sum, opt) => sum + ((opt.rank as number) || 0),
-        0,
-      ) || 1
-    );
-  }, [effectOptions]);
+  // O rank global agora reflete a maior graduação entre os efeitos para compatibilidade
+  const maxRank = useMemo(() => {
+    const ranks = Object.values(effectOptions)
+      .map((opt) => (opt.rank as number) || 0)
+      .filter((r) => r > 0);
+    if (ranks.length === 0) return editingPower?.rank || 1;
+    return Math.max(...ranks);
+  }, [effectOptions, editingPower?.rank]);
 
-  // Garantir que o rank global respeite o minRank
   useEffect(() => {
-    if (rank < minRank) {
-      setRank(minRank);
-    }
-  }, [rank, minRank]);
+    setRank(maxRank);
+  }, [maxRank]);
 
   // Filtered Lists
   const filteredEffects = useMemo(
@@ -125,12 +121,13 @@ export function usePowerBuilder(editingPower?: Power) {
     });
   }, []);
 
-  const addModifierInstance = useCallback((modifier: Modifier) => {
+  const addModifierInstance = useCallback((modifier: Modifier, effectId?: string) => {
     const newInstance: ModifierInstance = {
       id: crypto.randomUUID(),
       modifierId: modifier.id,
       modifier,
       customDescription: undefined,
+      appliesTo: effectId ? [effectId] : undefined,
     };
     setSelectedModifierInstances((prev) => [...prev, newInstance]);
   }, []);
@@ -180,12 +177,12 @@ export function usePowerBuilder(editingPower?: Power) {
 
   const calculateCost = useCallback(() => {
     return calculatePowerCost(
-      rank,
       selectedEffects,
       selectedModifierInstances,
       effectOptions,
+      rank,
     );
-  }, [rank, selectedEffects, selectedModifierInstances, effectOptions]);
+  }, [selectedEffects, selectedModifierInstances, effectOptions, rank]);
 
   const previewPower: Power = useMemo(
     () => ({
@@ -219,8 +216,7 @@ export function usePowerBuilder(editingPower?: Power) {
   const canProceed = useCallback(() => {
     if (step === 1) return selectedEffects.length > 0;
     if (step === 2) return rank >= 1;
-    if (step === 3) return true;
-    if (step === 4) return !!name.trim();
+    if (step === 3) return !!name.trim();
     return false;
   }, [step, selectedEffects.length, rank, name]);
 

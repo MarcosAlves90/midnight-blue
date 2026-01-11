@@ -3,6 +3,7 @@ import { EffectOptions } from "../types";
 import { AmbienteOptions } from "./ambiente-options";
 import { CompreenderOptions } from "./compreender-options";
 import { CaracteristicaOptions } from "./caracteristica-options";
+import { MovimentoOptions } from "./movimento-options";
 
 interface EffectOptionConfig {
   component: FC<{
@@ -16,6 +17,12 @@ interface EffectOptionConfig {
 }
 
 export const EFFECT_OPTIONS_REGISTRY: Record<string, EffectOptionConfig> = {
+  movimento: {
+    component: MovimentoOptions,
+    title: "Opções de Movimento",
+    description: "Cada graduação permite escolher uma opção ou aumentar seu nível.",
+    infoTip: "Algumas opções possuem múltiplos níveis (como Viagem Temporal). Cada nível consome uma graduação do efeito Movimento.",
+  },
   ambiente: {
     component: AmbienteOptions,
     title: "Opções de Ambiente",

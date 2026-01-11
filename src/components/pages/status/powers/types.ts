@@ -33,6 +33,7 @@ export interface ModifierInstance {
   modifier: Modifier;
   customDescription?: string; // descrição personalizada para esta instância
   options?: Record<string, unknown>; // opções específicas para esta instância
+  appliesTo?: string[]; // IDs de efeitos aos quais ESTA INSTÂNCIA se aplica
 }
 
 export type EffectCategory =
@@ -57,6 +58,7 @@ export interface Effect {
 export interface EffectOptions {
   sub?: string;
   ppCost?: number;
+  rank?: number;
   [key: string]: unknown;
 }
 
