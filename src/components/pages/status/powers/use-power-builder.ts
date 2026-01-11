@@ -47,6 +47,9 @@ export function usePowerBuilder(editingPower?: Power) {
   const [effectOptions, setEffectOptions] = useState<
     Record<string, EffectOptions>
   >(editingPower?.effectOptions || {});
+  const [alternatives, setAlternatives] = useState<Power[]>(
+    editingPower?.alternatives || [],
+  );
 
   // O rank global agora reflete a maior graduação entre os efeitos para compatibilidade
   const maxRank = useMemo(() => {
@@ -176,13 +179,14 @@ export function usePowerBuilder(editingPower?: Power) {
   );
 
   const calculateCost = useCallback(() => {
-    return calculatePowerCost(
+    const primaryCost = calculatePowerCost(
       selectedEffects,
       selectedModifierInstances,
       effectOptions,
       rank,
     );
-  }, [selectedEffects, selectedModifierInstances, effectOptions, rank]);
+    return primaryCost + (alternatives?.length || 0);
+  }, [selectedEffects, selectedModifierInstances, effectOptions, rank, alternatives]);
 
   const previewPower: Power = useMemo(
     () => ({
@@ -197,6 +201,7 @@ export function usePowerBuilder(editingPower?: Power) {
       customDuration: customDuration || undefined,
       notes: notes.trim() || undefined,
       effectOptions,
+      alternatives,
     }),
     [
       editingPower?.id,
@@ -210,8 +215,31 @@ export function usePowerBuilder(editingPower?: Power) {
       customDuration,
       notes,
       effectOptions,
+      alternatives,
     ],
   );
+
+  const addAlternative = useCallback(() => {
+    const newAlt: Power = {
+      id: crypto.randomUUID(),
+      name: `Efeito Alternativo ${alternatives.length + 1}`,
+      effects: [],
+      rank: 1,
+      descriptors: [],
+      modifiers: [],
+    };
+    setAlternatives((prev) => [...prev, newAlt]);
+  }, [alternatives.length]);
+
+  const removeAlternative = useCallback((id: string) => {
+    setAlternatives((prev) => prev.filter((a) => a.id !== id));
+  }, []);
+
+  const updateAlternative = useCallback((id: string, updates: Partial<Power>) => {
+    setAlternatives((prev) =>
+      prev.map((a) => (a.id === id ? { ...a, ...updates } : a)),
+    );
+  }, []);
 
   const canProceed = useCallback(() => {
     if (step === 1) return selectedEffects.length > 0;
@@ -248,6 +276,10 @@ export function usePowerBuilder(editingPower?: Power) {
     setNotes,
     effectOptions,
     updateEffectOptions,
+    alternatives,
+    addAlternative,
+    removeAlternative,
+    updateAlternative,
     filteredEffects,
     filteredExtras,
     filteredFlaws,

@@ -50,6 +50,10 @@ function PowerBuilderModalContent({
     setNotes,
     effectOptions,
     updateEffectOptions,
+    alternatives,
+    addAlternative,
+    removeAlternative,
+    updateAlternative,
     filteredEffects,
     filteredExtras,
     filteredFlaws,
@@ -101,6 +105,10 @@ function PowerBuilderModalContent({
                   onUpdateModifierOptions={updateModifierOptions}
                   availableExtras={filteredExtras}
                   availableFlaws={filteredFlaws}
+                  alternatives={alternatives}
+                  onAddAlternative={addAlternative}
+                  onRemoveAlternative={removeAlternative}
+                  onUpdateAlternative={updateAlternative}
                 />
               )}
 

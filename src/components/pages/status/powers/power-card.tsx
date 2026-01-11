@@ -23,12 +23,13 @@ export function PowerCard({
   const [isExpanded, setIsExpanded] = useState(false);
 
   const cost = useMemo(() => {
-    return calculatePowerCost(
+    const primaryCost = calculatePowerCost(
       power.effects,
       power.modifiers,
       power.effectOptions || {},
       power.rank,
     );
+    return primaryCost + (power.alternatives?.length || 0);
   }, [power]);
 
   const globalExtras = power.modifiers.filter(
@@ -343,6 +344,42 @@ export function PowerCard({
                   </div>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Alternative Effects (Arranjos) */}
+          {power.alternatives && power.alternatives.length > 0 && (
+            <div className="space-y-2 border-t border-purple-500/20 pt-2">
+              <span className="text-[10px] text-indigo-400 uppercase tracking-wider font-bold">
+                Poderes Alternativos (Arranjo)
+              </span>
+              <div className="space-y-1.5">
+                {power.alternatives.map((alt) => (
+                  <div
+                    key={alt.id}
+                    className="p-2 bg-indigo-500/5 border border-indigo-500/10 rounded"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-indigo-300">
+                        {alt.name}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground">
+                        +1 PP
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {alt.effects.map((e) => (
+                        <span
+                          key={e.id}
+                          className="text-[9px] text-muted-foreground whitespace-nowrap"
+                        >
+                          {e.name}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 

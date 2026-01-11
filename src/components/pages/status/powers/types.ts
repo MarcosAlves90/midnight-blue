@@ -75,4 +75,6 @@ export interface Power {
   notes?: string;
   // Opções específicas por efeito (ex: ambiente -> { sub: 'luz', ppCost: 2 })
   effectOptions?: Record<string, EffectOptions>;
+  // Poderes Alternativos (Arranjos)
+  alternatives?: Power[];
 }
