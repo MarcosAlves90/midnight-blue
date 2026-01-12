@@ -51,6 +51,10 @@ export const PowerBuilderStepEffects = memo(
   }: PowerBuilderStepEffectsProps) => {
     const [selectorOpen, setSelectorOpen] = useState(false);
     const [targetGroup, setTargetGroup] = useState<"primary" | { alternativeId: string }>("primary");
+    const [expandedAltId, setExpandedAltId] = useState<string | null>(null);
+    const [expandedAltEffectId, setExpandedAltEffectId] = useState<string | null>(null);
+
+    const primaryCost = calculatePowerCost(selectedEffects, selectedModifierInstances, effectOptions || {}, rank);
 
     const handleAddEffect = (effect: Effect) => {
       if (targetGroup === "primary") {
@@ -216,68 +220,174 @@ export const PowerBuilderStepEffects = memo(
           </div>
 
           <div className="space-y-4">
-            {alternatives.map((alt, altIdx) => (
-              <div key={alt.id} className="relative bg-indigo-500/5 border border-indigo-500/20 rounded-xl p-4 transition-all hover:border-indigo-500/40">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2">
+            {alternatives.map((alt, altIdx) => {
+              const altCost = calculatePowerCost(alt.effects, alt.modifiers || [], alt.effectOptions || {}, alt.rank || 1);
+              const isOverCost = altCost > primaryCost;
+
+              return (
+              <div key={alt.id} className={`relative border rounded-xl overflow-hidden transition-all duration-300 ${
+                expandedAltId === alt.id 
+                  ? "bg-indigo-500/10 border-indigo-500/50 shadow-lg shadow-indigo-900/10" 
+                  : "bg-indigo-500/5 border-indigo-500/20 hover:border-indigo-500/40"
+              }`}>
+                {/* Header do Alternativo */}
+                <div 
+                  onClick={() => setExpandedAltId(expandedAltId === alt.id ? null : alt.id)}
+                  className="p-4 flex items-center justify-between cursor-pointer"
+                >
+                  <div className="flex items-center gap-3">
                     <span className="text-[10px] font-bold bg-indigo-500/20 text-indigo-400 px-2 py-0.5 rounded uppercase tracking-wider">Slot {altIdx + 1}</span>
                     <input 
                       type="text"
                       value={alt.name}
+                      onClick={(e) => e.stopPropagation()}
                       onChange={(e) => onUpdateAlternative?.(alt.id, { name: e.target.value })}
                       className="bg-transparent border-none text-sm font-bold text-foreground focus:outline-none focus:ring-1 focus:ring-indigo-500/50 rounded px-1"
                     />
                   </div>
-                  <button 
-                    onClick={() => onRemoveAlternative?.(alt.id)}
-                    className="p-1 text-red-400/40 hover:text-red-400 transition-colors"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </button>
-                </div>
-
-                {alt.effects.length > 0 ? (
-                  <div className="space-y-2">
-                    {alt.effects.map(e => (
-                      <div key={e.id} className="flex items-center justify-between text-xs bg-background/40 p-2 rounded border border-indigo-500/10">
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium">{e.name}</span>
-                          <span className="opacity-50">• {e.baseCost} PP/Grad</span>
-                        </div>
-                        <button 
-                          onClick={() => {
-                             const newEffects = alt.effects.filter(ef => ef.id !== e.id);
-                             onUpdateAlternative?.(alt.id, { effects: newEffects });
-                          }}
-                          className="text-red-400 hover:scale-110 transition-transform"
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </button>
-                      </div>
-                    ))}
+                  <div className="flex items-center gap-4">
+                    <div className="flex flex-col items-end">
+                      <span className={`text-[10px] font-mono font-bold ${isOverCost ? "text-red-400" : "text-indigo-400"}`}>
+                        {altCost} / {primaryCost} PP
+                      </span>
+                      {isOverCost && (
+                         <span className="text-[8px] text-red-400 uppercase font-black animate-pulse">Custo Excedido</span>
+                      )}
+                    </div>
                     <button 
-                      onClick={() => {
-                        setTargetGroup({ alternativeId: alt.id });
-                        setSelectorOpen(true);
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onRemoveAlternative?.(alt.id);
                       }}
-                      className="w-full py-2 border border-dashed border-indigo-500/20 rounded text-[10px] text-indigo-400/60 hover:text-indigo-400 hover:bg-indigo-500/5 transition-all uppercase font-bold"
+                      className="p-1 text-red-400/40 hover:text-red-400 transition-colors"
                     >
-                      + Ligar Efeito ao Slot {altIdx + 1}
+                      <Trash2 className="h-3.5 w-3.5" />
                     </button>
                   </div>
-                ) : (
-                  <button 
-                    onClick={() => {
-                      setTargetGroup({ alternativeId: alt.id });
-                      setSelectorOpen(true);
-                    }}
-                    className="w-full h-16 border border-dashed border-indigo-500/20 rounded-lg flex items-center justify-center gap-2 text-xs text-indigo-400/60 hover:text-indigo-400 hover:bg-indigo-500/5 transition-all"
-                  >
-                    <Plus className="h-4 w-4" /> Definir Efeito do Slot
-                  </button>
+                </div>
+
+                {/* Conteúdo Expansível do Alternativo */}
+                {(expandedAltId === alt.id || alt.effects.length === 0) && (
+                  <div className="px-4 pb-4 space-y-4 animate-in slide-in-from-top-2 duration-300">
+                    {alt.effects.length > 0 ? (
+                      <div className="space-y-3">
+                        {alt.effects.map(eff => {
+                          const isEffectExpanded = expandedAltEffectId === `${alt.id}-${eff.id}`;
+                          
+                          return (
+                          <div key={eff.id} className={`border rounded-lg overflow-hidden transition-all ${
+                            isEffectExpanded ? "border-indigo-500/40 bg-background/40" : "border-indigo-500/10 bg-background/20"
+                          }`}>
+                            <div 
+                              onClick={() => setExpandedAltEffectId(isEffectExpanded ? null : `${alt.id}-${eff.id}`)}
+                              className="flex items-center justify-between p-2.5 cursor-pointer hover:bg-indigo-500/10 transition-colors"
+                            >
+                              <div className="flex items-center gap-2">
+                                <span className={`text-xs font-bold ${isEffectExpanded ? "text-indigo-300" : "text-foreground"}`}>{eff.name}</span>
+                                <span className="text-[10px] opacity-40">• {eff.baseCost} PP/Grad</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-[10px] font-mono text-indigo-400/60 mr-2">
+                                  {alt.effectOptions?.[eff.id]?.rank ?? alt.rank} Ranks
+                                </span>
+                                <button 
+                                  onClick={(ev) => {
+                                    ev.stopPropagation();
+                                    const newEffects = alt.effects.filter(ef => ef.id !== eff.id);
+                                    onUpdateAlternative?.(alt.id, { effects: newEffects });
+                                  }}
+                                  className="text-red-400/30 hover:text-red-400 hover:scale-110 transition-all p-1"
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </button>
+                              </div>
+                            </div>
+
+                            {/* Detalhes do Efeito no Alternativo */}
+                            {isEffectExpanded && (
+                              <div className="p-4 border-t border-indigo-500/10 space-y-4 bg-indigo-500/5 animate-in fade-in duration-300">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  <div className="space-y-1.5">
+                                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Graduação</label>
+                                    <FormInput
+                                      type="number"
+                                      min={0}
+                                      value={alt.effectOptions?.[eff.id]?.rank === 0 ? "" : (alt.effectOptions?.[eff.id]?.rank ?? alt.rank)}
+                                      onChange={(ev) => {
+                                        const val = ev.target.value === "" ? 0 : parseInt(ev.target.value);
+                                        const newOpts = { ...(alt.effectOptions || {}) };
+                                        newOpts[eff.id] = { ...(newOpts[eff.id] || {}), rank: val };
+                                        onUpdateAlternative?.(alt.id, { effectOptions: newOpts });
+                                      }}
+                                      className="h-8 bg-background/50 border-indigo-500/20 text-xs"
+                                    />
+                                  </div>
+                                </div>
+
+                                <EffectSpecificOptions
+                                  effectId={eff.id}
+                                  options={alt.effectOptions?.[eff.id]}
+                                  rank={alt.effectOptions?.[eff.id]?.rank ?? alt.rank}
+                                  onChange={(opts) => {
+                                    const newOpts = { ...(alt.effectOptions || {}) };
+                                    newOpts[eff.id] = opts;
+                                    onUpdateAlternative?.(alt.id, { effectOptions: newOpts });
+                                  }}
+                                />
+
+                                <EffectModifierManager
+                                  effectId={eff.id}
+                                  selectedModifierInstances={alt.modifiers || []}
+                                  onAddModifier={(mod, eid) => {
+                                    const newMod: ModifierInstance = { 
+                                      id: crypto.randomUUID(), 
+                                      modifierId: mod.id, 
+                                      modifier: mod, 
+                                      appliesTo: [eid] 
+                                    };
+                                    onUpdateAlternative?.(alt.id, { modifiers: [...(alt.modifiers || []), newMod] });
+                                  }}
+                                  onRemoveModifier={(mid) => {
+                                    onUpdateAlternative?.(alt.id, { modifiers: (alt.modifiers || []).filter(m => m.id !== mid) });
+                                  }}
+                                  onUpdateModifierOptions={(mid, opts) => {
+                                    const newMods = (alt.modifiers || []).map(m => m.id === mid ? { ...m, options: opts } : m);
+                                    onUpdateAlternative?.(alt.id, { modifiers: newMods });
+                                  }}
+                                  availableExtras={availableExtras}
+                                  availableFlaws={availableFlaws}
+                                />
+                              </div>
+                            )}
+                          </div>
+                          );
+                        })}
+                        <button 
+                          onClick={() => {
+                            setTargetGroup({ alternativeId: alt.id });
+                            setSelectorOpen(true);
+                          }}
+                          className="w-full py-2 border border-dashed border-indigo-500/20 rounded text-[10px] text-indigo-400/60 hover:text-indigo-400 hover:bg-indigo-500/5 transition-all uppercase font-bold"
+                        >
+                          + Ligar Novo Efeito ao Slot {altIdx + 1}
+                        </button>
+                      </div>
+                    ) : (
+                      <button 
+                        onClick={() => {
+                          setTargetGroup({ alternativeId: alt.id });
+                          setSelectorOpen(true);
+                        }}
+                        className="w-full h-16 border border-dashed border-indigo-500/20 rounded-lg flex items-center justify-center gap-2 text-xs text-indigo-400/60 hover:text-indigo-400 hover:bg-indigo-500/5 transition-all font-medium"
+                      >
+                        <Plus className="h-4 w-4" /> Definir Primeiro Efeito do Slot
+                      </button>
+                    )}
+                  </div>
                 )}
               </div>
-            ))}
+              );
+            })}
 
             {alternatives.length === 0 && (
               <p className="text-center text-[10px] text-muted-foreground italic py-4 bg-muted/5 rounded-xl border border-dashed border-border/20">
