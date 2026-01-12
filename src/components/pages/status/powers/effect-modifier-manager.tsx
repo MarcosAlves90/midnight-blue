@@ -1,17 +1,16 @@
 "use client";
 
 import { FC, memo, useState, useMemo } from "react";
-import { Modifier, ModifierInstance, Effect } from "../types";
+import { Modifier, ModifierInstance } from "./types";
 import { Tip } from "@/components/ui/tip";
-import { Plus, Trash2, Search, Settings2, Info } from "lucide-react";
-import { FormInput } from "@/components/ui/form-input";
+import { Plus, Trash2, Search } from "lucide-react";
 
 interface EffectModifierManagerProps {
   effectId: string;
   selectedModifierInstances: ModifierInstance[];
   onAddModifier: (modifier: Modifier, effectId: string) => void;
   onRemoveModifier: (id: string) => void;
-  onUpdateModifierOptions: (id: string, opts: Record<string, any>) => void;
+  onUpdateModifierOptions: (id: string, opts: Record<string, unknown>) => void;
   availableExtras: Modifier[];
   availableFlaws: Modifier[];
 }
@@ -22,7 +21,6 @@ export const EffectModifierManager: FC<EffectModifierManagerProps> = memo(
     selectedModifierInstances,
     onAddModifier,
     onRemoveModifier,
-    onUpdateModifierOptions,
     availableExtras,
     availableFlaws,
   }) => {

@@ -26,14 +26,11 @@ function PowerBuilderModalContent({
   const {
     step,
     setStep,
-    searchTerm,
-    setSearchTerm,
     name,
     setName,
     selectedEffects,
     toggleEffect,
     rank,
-    setRank,
     selectedModifierInstances,
     addModifierInstance,
     removeModifierInstance,
@@ -54,7 +51,6 @@ function PowerBuilderModalContent({
     addAlternative,
     removeAlternative,
     updateAlternative,
-    filteredEffects,
     filteredExtras,
     filteredFlaws,
     calculateCost,
@@ -91,9 +87,6 @@ function PowerBuilderModalContent({
             <div className="flex-1 overflow-y-auto p-6">
               {step === 1 && (
                 <PowerBuilderStepEffects
-                  searchTerm={searchTerm}
-                  onSearchChange={setSearchTerm}
-                  filteredEffects={filteredEffects}
                   selectedEffects={selectedEffects}
                   onToggleEffect={toggleEffect}
                   effectOptions={effectOptions}
@@ -114,8 +107,6 @@ function PowerBuilderModalContent({
 
               {step === 2 && (
                 <PowerBuilderStepParameters
-                  rank={rank}
-                  onRankChange={setRank}
                   customAction={customAction}
                   onActionChange={setCustomAction}
                   customRange={customRange}
@@ -125,7 +116,6 @@ function PowerBuilderModalContent({
                   defaultAction={defaultAction}
                   defaultRange={defaultRange}
                   defaultDuration={defaultDuration}
-                  effectOptions={effectOptions}
                 />
               )}
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { memo } from "react";
-import { ActionType, RangeType, DurationType, EffectOptions } from "./types";
+import { ActionType, RangeType, DurationType } from "./types";
 import {
   ACTION_LABELS,
   RANGE_LABELS,
@@ -12,7 +12,6 @@ import {
   POWER_TIPS,
 } from "@/lib/powers";
 import { Tip } from "@/components/ui/tip";
-import { Plus, Minus } from "lucide-react";
 
 const TipContent = memo(({ content }: { content: string }) => (
   <div className="max-w-xs text-xs">{content}</div>
@@ -50,8 +49,6 @@ const ParameterButton = memo(
 ParameterButton.displayName = "ParameterButton";
 
 interface PowerBuilderStepParametersProps {
-  rank: number;
-  onRankChange: (rank: number) => void;
   customAction: ActionType | null;
   onActionChange: (action: ActionType | null) => void;
   customRange: RangeType | null;
@@ -61,13 +58,10 @@ interface PowerBuilderStepParametersProps {
   defaultAction: ActionType;
   defaultRange: RangeType;
   defaultDuration: DurationType;
-  effectOptions?: Record<string, EffectOptions>;
 }
 
 export const PowerBuilderStepParameters = memo(
   ({
-    rank,
-    onRankChange,
     customAction,
     onActionChange,
     customRange,
@@ -77,15 +71,7 @@ export const PowerBuilderStepParameters = memo(
     defaultAction,
     defaultRange,
     defaultDuration,
-    effectOptions,
   }: PowerBuilderStepParametersProps) => {
-    // Calcula a graduação mínima baseada na soma de todos os seletores de graduação
-    const minRank =
-      Object.values(effectOptions || {}).reduce(
-        (sum, opt) => sum + ((opt.rank as number) || 0),
-        0,
-      ) || 1;
-
     return (
       <div className="space-y-8">
         <div>

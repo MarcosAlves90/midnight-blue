@@ -38,7 +38,7 @@ export const StatusProvider: React.FC<{ children: React.ReactNode }> = ({
   }, [updateSheet]);
 
   const markFieldDirty = useCallback((field: string = "status") => {
-    markSheetDirty(field as any);
+    markSheetDirty(field);
   }, [markSheetDirty]);
 
   const value = useMemo(() => ({

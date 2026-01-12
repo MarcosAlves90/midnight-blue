@@ -23,7 +23,7 @@ const CharacterGallery = React.memo(function CharacterGallery() {
   const gallery = useGallery();
   
   const { 
-    isAdmin, isAdminMode, targetUserId, targetUserLabel, setIsAdminMode, resetAdmin, ownUserId,
+    isAdminMode, targetUserId, targetUserLabel, resetAdmin, ownUserId,
     isLoading, error, searchQuery, setSearchQuery, currentFolderId, setCurrentFolderId,
     folders, characters, users,
     handleSelectUser, handleSelectCharacter, handleDeleteCharacter, 
@@ -33,11 +33,6 @@ const CharacterGallery = React.memo(function CharacterGallery() {
   } = gallery;
 
   // -- Memoized Handlers --
-  const onToggleAdminMode = useCallback(() => {
-    setIsAdminMode(!isAdminMode);
-    resetAdmin();
-  }, [isAdminMode, setIsAdminMode, resetAdmin]);
-
   const onNewFolder = useCallback(() => setFolderDialogOpen(true), [setFolderDialogOpen]);
   const onNewCharacter = useCallback(() => setDialogOpen(true), [setDialogOpen]);
   const onResetFilters = useCallback(() => { 

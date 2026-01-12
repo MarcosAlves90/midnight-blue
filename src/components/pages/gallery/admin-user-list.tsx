@@ -35,7 +35,7 @@ export const AdminUserList = React.memo(function AdminUserList({
     try {
       await updateUserSettings(user.id, { isAdmin: !user.isAdmin });
       toast.success(user.isAdmin ? "Privilégios de admin removidos" : "Usuário agora é admin");
-    } catch (err) {
+    } catch {
       toast.error("Erro ao atualizar privilégios");
     }
   };
@@ -45,7 +45,7 @@ export const AdminUserList = React.memo(function AdminUserList({
     try {
       await updateUserSettings(user.id, { disabled: !user.disabled });
       toast.success(user.disabled ? "Conta descongelada" : "Conta congelada");
-    } catch (err) {
+    } catch {
       toast.error("Erro ao alterar status da conta");
     }
   };
@@ -58,7 +58,7 @@ export const AdminUserList = React.memo(function AdminUserList({
     try {
       await deleteUser(user.id);
       toast.success("Usuário excluído com sucesso");
-    } catch (err) {
+    } catch {
       toast.error("Erro ao excluir usuário");
     }
   };
@@ -232,17 +232,17 @@ export const AdminUserList = React.memo(function AdminUserList({
                   <DropdownMenuContent align="end" className="w-48">
                     <DropdownMenuLabel>Ações Administrativas</DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={(e) => handleToggleAdmin(e as any, u)}>
+                    <DropdownMenuItem onClick={(e) => handleToggleAdmin(e as unknown as React.MouseEvent, u)}>
                       {u.isAdmin ? <ShieldAlert className="w-4 h-4 mr-2" /> : <ShieldCheck className="w-4 h-4 mr-2" />}
                       {u.isAdmin ? "Remover Admin" : "Tornar Admin"}
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={(e) => handleToggleFreeze(e as any, u)}>
+                    <DropdownMenuItem onClick={(e) => handleToggleFreeze(e as unknown as React.MouseEvent, u)}>
                       <Snowflake className="w-4 h-4 mr-2" />
                       {u.disabled ? "Descongelar Conta" : "Congelar Conta"}
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem 
-                      onClick={(e) => handleDelete(e as any, u)}
+                      onClick={(e) => handleDelete(e as unknown as React.MouseEvent, u)}
                       className="text-red-500 focus:text-red-500"
                     >
                       <Trash2 className="w-4 h-4 mr-2" />

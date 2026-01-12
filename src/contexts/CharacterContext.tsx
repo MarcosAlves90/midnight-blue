@@ -25,7 +25,7 @@ export function CharacterProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   const { user } = useAuth();
-  const { isAdminMode, targetUserId, isAdminRestored, activeContextId } = useAdmin();
+  const { isAdminMode, isAdminRestored, activeContextId } = useAdmin();
   const lastResolvedIdRef = React.useRef<string | null>(null);
   
   // Hook de persistência configurado para o usuário ativo no contexto

@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/contexts/AuthContext";
 import { useAdmin } from "@/contexts/AdminContext";
 import { useCharacterPersistence } from "@/hooks/use-character-persistence";
 import { Input } from "@/components/ui/input";
@@ -22,7 +21,6 @@ interface NewCharacterFormProps {
 
 export function NewCharacterForm({ onSuccess, onCancel }: NewCharacterFormProps) {
   const router = useRouter();
-  const { user } = useAuth();
   const { activeContextId } = useAdmin();
   
   // Usamos activeContextId para garantir que a ficha seja criada no contexto correto (Admin ou Próprio)

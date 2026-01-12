@@ -32,7 +32,7 @@ export async function PATCH(
 
   try {
     const { isAdmin, disabled } = await req.json();
-    const updates: Record<string, any> = {};
+    const updates: Record<string, boolean> = {};
 
     // 1. Atualizar Custom Claims e Firestore para Admin
     if (typeof isAdmin === "boolean") {
@@ -51,9 +51,12 @@ export async function PATCH(
     }
 
     return NextResponse.json({ success: true });
-  } catch (error: any) {
+  } catch (error) {
     console.error("[AdminAPI] Error updating user:", error);
-    return NextResponse.json({ message: error.message }, { status: 500 });
+    return NextResponse.json(
+      { message: error instanceof Error ? error.message : "Erro desconhecido" },
+      { status: 500 }
+    );
   }
 }
 
@@ -81,8 +84,11 @@ export async function DELETE(
     await adminDb.collection("users").doc(userId).delete();
 
     return NextResponse.json({ success: true });
-  } catch (error: any) {
+  } catch (error) {
     console.error("[AdminAPI] Error deleting user:", error);
-    return NextResponse.json({ message: error.message }, { status: 500 });
+    return NextResponse.json(
+      { message: error instanceof Error ? error.message : "Erro desconhecido" },
+      { status: 500 }
+    );
   }
 }

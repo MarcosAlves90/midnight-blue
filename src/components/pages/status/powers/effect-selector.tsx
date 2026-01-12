@@ -3,8 +3,7 @@
 import { memo, useState, useMemo } from "react";
 import { Effect, EffectCategory } from "./types";
 import { EFFECTS } from "@/lib/powers";
-import { Search, X, Plus, Info } from "lucide-react";
-import { Tip } from "@/components/ui/tip";
+import { Search, X, Plus } from "lucide-react";
 
 interface EffectSelectorProps {
   onSelect: (effect: Effect) => void;

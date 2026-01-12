@@ -3,7 +3,6 @@
 import * as React from "react";
 import { ChevronsUpDown, Plus, BookOpen, AlertCircle, Eye, RefreshCw } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { Skeleton } from "@/components/ui/skeleton";
 import { CharacterImage } from "@/components/ui/custom/character-image";
 import { cn } from "@/lib/utils";
 
@@ -83,7 +82,6 @@ const CharacterSwitcherComponent = () => {
   );
 
   const [characters, setCharacters] = React.useState<CharacterDocument[]>([]);
-  const [isLoading, setIsLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
   const [mounted, setMounted] = React.useState(false);
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
@@ -97,7 +95,6 @@ const CharacterSwitcherComponent = () => {
     if (authLoading) return;
 
     if (!activeContextId) {
-      setIsLoading(false);
       setCharacters([]);
       return;
     }
@@ -106,18 +103,14 @@ const CharacterSwitcherComponent = () => {
     
     // NÃO limpa estado anterior imediatamente para evitar flashes visíveis
     // Apenas se o ID do usuário de fato mudou drasticamente
-    setIsLoading(true);
-
     try {
       unsubscribe = listenToCharacters((chars) => {
         setCharacters(chars);
         setError(null);
-        setIsLoading(false);
       });
     } catch (err) {
       console.error("Erro ao escutar mudanças em personagens:", err);
       setError("Erro ao carregar personagens");
-      setIsLoading(false);
     }
 
     return () => {

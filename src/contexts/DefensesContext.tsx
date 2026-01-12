@@ -29,7 +29,7 @@ export const DefensesProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   }, [updateDefenses]);
 
   const markFieldDirty = useCallback((field: string = "defenses") => {
-    markSheetDirty(field as any);
+    markSheetDirty(field);
   }, [markSheetDirty]);
 
   return (

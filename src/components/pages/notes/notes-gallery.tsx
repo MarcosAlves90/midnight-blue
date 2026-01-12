@@ -100,7 +100,7 @@ export default function NotesGallery() {
       if (unsubscribeNotes) unsubscribeNotes();
       if (unsubscribeFolders) unsubscribeFolders();
     };
-  }, [user?.uid, character, isCharLoading, listenToNotes, listenToFolders, setNotes, setFolders, setError, setIsLoading]);
+  }, [effectiveUserId, character, isCharLoading, listenToNotes, listenToFolders, setNotes, setFolders, setError, setIsLoading]);
 
   // Breadcrumb logic
   const getFolderPath = (folderId: string | null) => {

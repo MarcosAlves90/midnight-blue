@@ -110,7 +110,7 @@ export function useCharacterPersistence(
           }
 
           // Ensure UI syncing state is cleared even on error (we didn't save, but sync attempt finished)
-          try { onSaveSuccessRef.current?.([]); } catch (e) { /* ignore */ }
+          try { onSaveSuccessRef.current?.([]); } catch { /* ignore */ }
         },
       });
     } else {

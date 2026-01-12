@@ -1,8 +1,8 @@
 "use client";
 
 import { memo, useState } from "react";
-import { ActionType, DurationType, Effect, EffectOptions, Modifier, ModifierInstance, Power, RangeType } from "./types";
-import { Plus, Search, Sparkles, Trash2, Zap, Info } from "lucide-react";
+import { Effect, EffectOptions, Modifier, ModifierInstance, Power } from "./types";
+import { Plus, Sparkles, Trash2, Zap, Info } from "lucide-react";
 import { FormInput } from "@/components/ui/form-input";
 import { Tip } from "@/components/ui/tip";
 import EffectSpecificOptions from "./effect-specific-options";
@@ -11,9 +11,6 @@ import { EffectSelector } from "./effect-selector";
 import { calculatePowerCost } from "@/lib/powers/utils";
 
 interface PowerBuilderStepEffectsProps {
-  searchTerm: string;
-  onSearchChange: (term: string) => void;
-  filteredEffects: Effect[];
   selectedEffects: Effect[];
   onToggleEffect: (effect: Effect) => void;
   // effect-specific options (parte do estado do modal)
@@ -24,7 +21,7 @@ interface PowerBuilderStepEffectsProps {
   selectedModifierInstances: ModifierInstance[];
   onAddModifier: (modifier: Modifier, effectId: string) => void;
   onRemoveModifier: (id: string) => void;
-  onUpdateModifierOptions: (id: string, opts: Record<string, any>) => void;
+  onUpdateModifierOptions: (id: string, opts: Record<string, unknown>) => void;
   availableExtras: Modifier[];
   availableFlaws: Modifier[];
   // Arranjos
@@ -36,8 +33,6 @@ interface PowerBuilderStepEffectsProps {
 
 export const PowerBuilderStepEffects = memo(
   ({
-    searchTerm,
-    onSearchChange,
     selectedEffects,
     onToggleEffect,
     effectOptions,
@@ -208,7 +203,7 @@ export const PowerBuilderStepEffects = memo(
            <div className="flex items-center justify-between px-1">
             <div className="flex items-center gap-2">
               <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-indigo-400">Poderes Alternativos (Arranjo)</h4>
-              <Tip content={<div className="max-w-xs text-xs">Poderes Alternativos compartilham a mesma "fonte" de energia. Você só pode usar um por vez, mas cada um custa apenas 1 PP extra.</div>}>
+              <Tip content={<div className="max-w-xs text-xs">Poderes Alternativos compartilham a mesma &quot;fonte&quot; de energia. Você só pode usar um por vez, mas cada um custa apenas 1 PP extra.</div>}>
                 <Info className="h-3 w-3 text-muted-foreground cursor-help" />
               </Tip>
             </div>
@@ -302,7 +297,7 @@ export const PowerBuilderStepEffects = memo(
                 excludeIds={
                   targetGroup === "primary" 
                     ? selectedEffects.map(e => e.id) 
-                    : (alternatives.find(a => a.id === (targetGroup as any).alternativeId)?.effects.map(e => e.id) || [])
+                    : (alternatives.find(a => a.id === (targetGroup as { alternativeId: string }).alternativeId)?.effects.map(e => e.id) || [])
                 }
               />
             </div>

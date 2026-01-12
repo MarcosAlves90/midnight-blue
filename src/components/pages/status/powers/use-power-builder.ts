@@ -10,7 +10,6 @@ import {
   EffectOptions,
 } from "./types";
 import {
-  EFFECTS,
   COMMON_EXTRAS,
   COMMON_FLAWS,
   EFFECT_SPECIFIC_EXTRAS,
@@ -20,7 +19,6 @@ import { calculatePowerCost, filterModifiers } from "@/lib/powers/utils";
 
 export function usePowerBuilder(editingPower?: Power) {
   const [step, setStep] = useState(1);
-  const [searchTerm, setSearchTerm] = useState("");
 
   // Form State
   const [name, setName] = useState(editingPower?.name || "");
@@ -65,41 +63,31 @@ export function usePowerBuilder(editingPower?: Power) {
   }, [maxRank]);
 
   // Filtered Lists
-  const filteredEffects = useMemo(
-    () =>
-      EFFECTS.filter(
-        (e) =>
-          e.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          e.description.toLowerCase().includes(searchTerm.toLowerCase()),
-      ),
-    [searchTerm],
-  );
-
   const filteredExtras = useMemo(() => {
-    const common = filterModifiers(COMMON_EXTRAS, searchTerm, selectedEffects);
+    const common = filterModifiers(COMMON_EXTRAS, "", selectedEffects);
     const specific = filterModifiers(
       EFFECT_SPECIFIC_EXTRAS || [],
-      searchTerm,
+      "",
       selectedEffects,
     );
 
     const map = new Map<string, Modifier>();
     [...common, ...specific].forEach((m) => map.set(m.id, m));
     return Array.from(map.values());
-  }, [searchTerm, selectedEffects]);
+  }, [selectedEffects]);
 
   const filteredFlaws = useMemo(() => {
-    const common = filterModifiers(COMMON_FLAWS, searchTerm, selectedEffects);
+    const common = filterModifiers(COMMON_FLAWS, "", selectedEffects);
     const specific = filterModifiers(
       EFFECT_SPECIFIC_FLAWS || [],
-      searchTerm,
+      "",
       selectedEffects,
     );
 
     const map = new Map<string, Modifier>();
     [...common, ...specific].forEach((m) => map.set(m.id, m));
     return Array.from(map.values());
-  }, [searchTerm, selectedEffects]);
+  }, [selectedEffects]);
 
   // Handlers
   const toggleEffect = useCallback((effect: Effect) => {
@@ -251,14 +239,11 @@ export function usePowerBuilder(editingPower?: Power) {
   return {
     step,
     setStep,
-    searchTerm,
-    setSearchTerm,
     name,
     setName,
     selectedEffects,
     toggleEffect,
     rank,
-    setRank,
     selectedModifierInstances,
     addModifierInstance,
     removeModifierInstance,
@@ -280,7 +265,6 @@ export function usePowerBuilder(editingPower?: Power) {
     addAlternative,
     removeAlternative,
     updateAlternative,
-    filteredEffects,
     filteredExtras,
     filteredFlaws,
     calculateCost,

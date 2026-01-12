@@ -279,7 +279,7 @@ export function CharacterSheetProvider({ children }: { children: React.ReactNode
       Object.keys(nextIdentityUpdates).forEach(k => {
         const key = k as keyof IdentityData;
         if (nextIdentityUpdates[key] !== prev.identity[key]) {
-          realChanges[key] = nextIdentityUpdates[key] as any;
+          (realChanges as Record<string, unknown>)[key] = nextIdentityUpdates[key];
           hasChanges = true;
         }
       });
@@ -315,7 +315,7 @@ export function CharacterSheetProvider({ children }: { children: React.ReactNode
       Object.keys(nextStatusUpdates).forEach(k => {
         const key = k as keyof CharacterSheetState["status"];
         if (nextStatusUpdates[key] !== prev.status[key]) {
-          realChanges[key] = nextStatusUpdates[key] as any;
+          (realChanges as Record<string, unknown>)[key] = nextStatusUpdates[key];
           hasChanges = true;
         }
       });

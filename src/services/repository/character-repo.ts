@@ -255,7 +255,7 @@ export class FirebaseCharacterRepository implements CharacterRepository {
     }
     if (updatesRecord.skills) {
       payload.skills = serializeSkills(updates.skills as Skill[]);
-      console.debug("[CharacterRepo] Skills serializadas:", (payload.skills as any[]).length);
+      console.debug("[CharacterRepo] Skills serializadas:", (payload.skills as unknown[]).length);
     }
     if (updatesRecord.defenses) payload.defenses = updates.defenses;
 
