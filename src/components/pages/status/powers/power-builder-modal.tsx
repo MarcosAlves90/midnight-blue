@@ -132,7 +132,7 @@ function PowerBuilderModalContent({
             <div className="p-4 bg-black/60 border-t border-white/5 flex items-center justify-between">
               <button
                 onClick={onClose}
-                className="px-6 py-2.5 text-xs font-bold text-zinc-500 hover:text-white transition-colors"
+                className="px-6 py-2.5 text-xs font-bold cursor-pointer text-zinc-500 hover:text-white transition-colors"
               >
                 DESCARTAR ALTERAÇÕES
               </button>
@@ -140,7 +140,7 @@ function PowerBuilderModalContent({
               <button
                 onClick={handleSave}
                 disabled={!canProceed()}
-                className="px-8 py-2.5 bg-purple-600 hover:bg-purple-500 disabled:opacity-30 disabled:grayscale text-white text-xs font-black uppercase tracking-widest rounded-lg transition-all shadow-lg shadow-purple-500/20 active:scale-95"
+                className="px-8 py-2.5 bg-purple-600 cursor-pointer hover:bg-purple-500 disabled:opacity-30 disabled:grayscale text-white text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-purple-500/20 active:scale-95"
               >
                 {isEditing ? "Atualizar Poder" : "Finalizar Construção"}
               </button>
