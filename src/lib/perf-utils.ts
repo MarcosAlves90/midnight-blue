@@ -22,7 +22,8 @@ export function measureAndWarn(key: string, thresholdMs = 100) {
     const duration = entries.length ? entries[0].duration : 0;
     if (duration > thresholdMs) {
       // friendly warning with relevant context — only in development to avoid noisy logs in prod
-      if (process.env.NODE_ENV === "development") console.warn(`[perf] ${key} took ${Math.round(duration)}ms`);
+      if (process.env.NODE_ENV === "development")
+        console.warn(`[perf] ${key} took ${Math.round(duration)}ms`);
     }
     // cleanup marks/measures to avoid memory growth in long-running sessions
     try {
@@ -40,7 +41,15 @@ export function measureAndWarn(key: string, thresholdMs = 100) {
 
 export function runInIdle(fn: () => void, timeout = 500) {
   try {
-    const win = typeof window !== "undefined" ? (window as unknown as { requestIdleCallback?: (cb: () => void, opts?: { timeout?: number }) => number }) : undefined;
+    const win =
+      typeof window !== "undefined"
+        ? (window as unknown as {
+            requestIdleCallback?: (
+              cb: () => void,
+              opts?: { timeout?: number },
+            ) => number;
+          })
+        : undefined;
     if (win && typeof win.requestIdleCallback === "function") {
       win.requestIdleCallback(fn, { timeout });
       return;

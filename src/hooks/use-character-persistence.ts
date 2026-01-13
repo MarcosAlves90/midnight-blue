@@ -1,6 +1,10 @@
 import { useCallback, useRef, useEffect } from "react";
 import { FirebaseCharacterRepository } from "@/services/repository/character-repo";
-import type { CharacterDocument, CharacterData, Folder } from "@/lib/types/character";
+import type {
+  CharacterDocument,
+  CharacterData,
+  Folder,
+} from "@/lib/types/character";
 import { AutoSaveService } from "@/services/auto-save";
 import { PersistenceManager } from "@/services/persistence-manager";
 import { setItemAsync } from "@/lib/local-storage-async";
@@ -15,20 +19,32 @@ export function useCharacterPersistence(
   // Store last saved fingerprint to avoid repeated stringify costs
   const lastSavedDataRef = useRef<string | null>(null);
   const pendingObjRef = useRef<Partial<CharacterData> | null>(null);
-  
+
   // Track all fields that have been scheduled for saving (accumulated across multiple rapid edits)
   // This ensures we clear all dirtyFields even when AutoSaveService coalesces multiple saves
   const pendingFieldsRef = useRef<Set<string>>(new Set());
 
   // PersistenceManager + AutoSaveService instances (per hook instance)
   const persistenceManagerRef = useRef<PersistenceManager | null>(null);
-  const autoSaveServiceRef = useRef<AutoSaveService<Partial<CharacterData>> | null>(null);
+  const autoSaveServiceRef = useRef<AutoSaveService<
+    Partial<CharacterData>
+  > | null>(null);
   const repoRef = useRef<FirebaseCharacterRepository | null>(null);
-  
+
   // Callback ref for notifying when save succeeds (used by IdentityContext to clear dirtyFields)
-  const onSaveSuccessRef = useRef<((savedFields: string[]) => void) | null>(null);
+  const onSaveSuccessRef = useRef<((savedFields: string[]) => void) | null>(
+    null,
+  );
   // Callback ref for notifying errors or conflicts from autosave
-  const onSaveErrorRef = useRef<((payload: { type: "conflict" | "error"; server?: CharacterDocument; attempted?: Partial<CharacterData>; error?: unknown }) => void) | null>(null);
+  const onSaveErrorRef = useRef<
+    | ((payload: {
+        type: "conflict" | "error";
+        server?: CharacterDocument;
+        attempted?: Partial<CharacterData>;
+        error?: unknown;
+      }) => void)
+    | null
+  >(null);
 
   // Initialize repo immediately when userId is available, and recreate if userId changes
   if (userId && (!repoRef.current || repoRef.current.userId !== userId)) {
@@ -44,75 +60,109 @@ export function useCharacterPersistence(
       pendingObjRef.current = null;
       pendingFieldsRef.current = new Set();
 
-      autoSaveServiceRef.current = new AutoSaveService(async (data) => {
-        if (!persistenceManagerRef.current) throw new Error("PersistenceManager not initialized");
+      autoSaveServiceRef.current = new AutoSaveService(
+        async (data) => {
+          if (!persistenceManagerRef.current)
+            throw new Error("PersistenceManager not initialized");
 
-        // Capturamos os campos que estão sendo salvos NESTE lote para limpar apenas eles no sucesso.
-        // Isso evita limpar campos que foram modificados enquanto o salvamento estava em voo.
-        const currentBatchFields = new Set(pendingFieldsRef.current);
+          // Capturamos os campos que estão sendo salvos NESTE lote para limpar apenas eles no sucesso.
+          // Isso evita limpar campos que foram modificados enquanto o salvamento estava em voo.
+          const currentBatchFields = new Set(pendingFieldsRef.current);
 
-        // Delegate complex save logic to PersistenceManager
-        const result = await persistenceManagerRef.current.save(characterId, data, currentBatchFields);
-        return { ...result, batchFields: Array.from(currentBatchFields) };
-      }, {
-        debounceMs: 3000,
-        onSuccess: (result?: unknown) => {
-          let batchFields: string[] = [];
-          let fingerprint: string | null = null;
-          
-          if (result && typeof result === "object") {
-            const res = result as { fingerprint?: string; batchFields?: string[] };
-            fingerprint = res.fingerprint ?? null;
-            batchFields = res.batchFields ?? [];
-          }
-          
-          if (fingerprint) {
-            lastSavedDataRef.current = fingerprint;
-            pendingObjRef.current = null;
-          }
-          
-          // Removemos do pendingFieldsRef APENAS os campos que acabamos de salvar com sucesso.
-          // Se o usuário digitou algo novo no mesmo campo enquanto salvava, o campo continuará no set.
-          batchFields.forEach(f => pendingFieldsRef.current.delete(f));
-          
-          console.debug("[auto-save] success (service)", { userId, characterId, savedFields: batchFields, fingerprint });
-          
-          // Always notify the UI that an autosave attempt finished so UI syncing state can be cleared.
-          if (onSaveSuccessRef.current) {
-            try {
-              onSaveSuccessRef.current(batchFields);
-            } catch (err) {
-              console.error("[auto-save] Error in onSaveSuccess callback:", err);
-            }
-          }
+          // Delegate complex save logic to PersistenceManager
+          const result = await persistenceManagerRef.current.save(
+            characterId,
+            data,
+            currentBatchFields,
+          );
+          return { ...result, batchFields: Array.from(currentBatchFields) };
         },
-        onError: (err: unknown) => {
-          // On error, reset fingerprint to allow retry
-          // BUT keep pendingFieldsRef so fields can be retried
-          lastSavedDataRef.current = null;
-          
-          const maybeConflict = (err as Error & { conflict?: CharacterDocument }).conflict;
-          if (maybeConflict) {
-            console.warn("[auto-save] conflict (service)", maybeConflict);
-            // Notify context about conflict with server payload and our attempted pending object
-            try {
-              onSaveErrorRef.current?.({ type: "conflict", server: maybeConflict, attempted: pendingObjRef.current ?? undefined });
-            } catch (e) {
-              console.error("[auto-save] error notifying conflict handler:", e);
-            }
-          } else {
-            console.error("[auto-save] error (service)", err, { pendingFields: Array.from(pendingFieldsRef.current) });
-            try {
-              onSaveErrorRef.current?.({ type: "error", error: err });
-            } catch (e) {
-              console.error("[auto-save] error notifying error handler:", e);
-            }
-          }
+        {
+          debounceMs: 3000,
+          onSuccess: (result?: unknown) => {
+            let batchFields: string[] = [];
+            let fingerprint: string | null = null;
 
-          // Ensure UI syncing state is cleared even on error (we didn't save, but sync attempt finished)
-          try { onSaveSuccessRef.current?.([]); } catch { /* ignore */ }
+            if (result && typeof result === "object") {
+              const res = result as {
+                fingerprint?: string;
+                batchFields?: string[];
+              };
+              fingerprint = res.fingerprint ?? null;
+              batchFields = res.batchFields ?? [];
+            }
+
+            if (fingerprint) {
+              lastSavedDataRef.current = fingerprint;
+              pendingObjRef.current = null;
+            }
+
+            // Removemos do pendingFieldsRef APENAS os campos que acabamos de salvar com sucesso.
+            // Se o usuário digitou algo novo no mesmo campo enquanto salvava, o campo continuará no set.
+            batchFields.forEach((f) => pendingFieldsRef.current.delete(f));
+
+            console.debug("[auto-save] success (service)", {
+              userId,
+              characterId,
+              savedFields: batchFields,
+              fingerprint,
+            });
+
+            // Always notify the UI that an autosave attempt finished so UI syncing state can be cleared.
+            if (onSaveSuccessRef.current) {
+              try {
+                onSaveSuccessRef.current(batchFields);
+              } catch (err) {
+                console.error(
+                  "[auto-save] Error in onSaveSuccess callback:",
+                  err,
+                );
+              }
+            }
+          },
+          onError: (err: unknown) => {
+            // On error, reset fingerprint to allow retry
+            // BUT keep pendingFieldsRef so fields can be retried
+            lastSavedDataRef.current = null;
+
+            const maybeConflict = (
+              err as Error & { conflict?: CharacterDocument }
+            ).conflict;
+            if (maybeConflict) {
+              console.warn("[auto-save] conflict (service)", maybeConflict);
+              // Notify context about conflict with server payload and our attempted pending object
+              try {
+                onSaveErrorRef.current?.({
+                  type: "conflict",
+                  server: maybeConflict,
+                  attempted: pendingObjRef.current ?? undefined,
+                });
+              } catch (e) {
+                console.error(
+                  "[auto-save] error notifying conflict handler:",
+                  e,
+                );
+              }
+            } else {
+              console.error("[auto-save] error (service)", err, {
+                pendingFields: Array.from(pendingFieldsRef.current),
+              });
+              try {
+                onSaveErrorRef.current?.({ type: "error", error: err });
+              } catch (e) {
+                console.error("[auto-save] error notifying error handler:", e);
+              }
+            }
+
+            // Ensure UI syncing state is cleared even on error (we didn't save, but sync attempt finished)
+            try {
+              onSaveSuccessRef.current?.([]);
+            } catch {
+              /* ignore */
+            }
+          },
         },
-      });
+      );
     } else {
       autoSaveServiceRef.current = null;
       // Reset fingerprint when no character is selected
@@ -124,7 +174,7 @@ export function useCharacterPersistence(
     return () => {
       // Flush any pending changes when the character context changes
       if (autoSaveServiceRef.current) {
-        autoSaveServiceRef.current.flush().catch(err => {
+        autoSaveServiceRef.current.flush().catch((err) => {
           console.debug("[auto-save] suppress flush error on unmount", err);
         });
       }
@@ -138,21 +188,26 @@ export function useCharacterPersistence(
   const scheduleAutoSave = useCallback(
     (data: Partial<CharacterData>) => {
       if (!userId || !characterId) {
-        console.debug("[scheduleAutoSave] Skipping - no userId or characterId", { userId, characterId });
+        console.debug(
+          "[scheduleAutoSave] Skipping - no userId or characterId",
+          { userId, characterId },
+        );
         return;
       }
 
-      console.debug("[scheduleAutoSave] Agendando salvamento", { 
+      console.debug("[scheduleAutoSave] Agendando salvamento", {
         fields: Object.keys(data),
-        hasSkills: !!data.skills
+        hasSkills: !!data.skills,
       });
 
       const fingerprint = getCheapFingerprint(data);
 
       // Skip if identical to last saved (only if save was successful)
       if (lastSavedDataRef.current === fingerprint) {
-        console.debug("[scheduleAutoSave] Skipping - identical fingerprint", { fingerprint });
-        // Importante: Notificar sucesso para limpar o estado isSyncing da UI, 
+        console.debug("[scheduleAutoSave] Skipping - identical fingerprint", {
+          fingerprint,
+        });
+        // Importante: Notificar sucesso para limpar o estado isSyncing da UI,
         // mesmo que tenhamos pulado o save real.
         if (onSaveSuccessRef.current) {
           onSaveSuccessRef.current([]);
@@ -167,45 +222,58 @@ export function useCharacterPersistence(
         pendingObjRef.current = { ...pendingObjRef.current, ...data };
         // Deep merge for identity and status if needed
         if (data.identity && pendingObjRef.current.identity) {
-          pendingObjRef.current.identity = { ...pendingObjRef.current.identity, ...data.identity };
+          pendingObjRef.current.identity = {
+            ...pendingObjRef.current.identity,
+            ...data.identity,
+          };
         }
         if (data.status && pendingObjRef.current.status) {
-          pendingObjRef.current.status = { ...pendingObjRef.current.status, ...data.status };
+          pendingObjRef.current.status = {
+            ...pendingObjRef.current.status,
+            ...data.status,
+          };
         }
       }
 
       // Accumulate fields that are being scheduled for saving
       if (data.identity && typeof data.identity === "object") {
-        const identityFields = data.identity as unknown as Record<string, unknown>;
+        const identityFields = data.identity as unknown as Record<
+          string,
+          unknown
+        >;
         Object.keys(identityFields).forEach((key) => {
           pendingFieldsRef.current.add(`identity.${key}`);
         });
       }
-      
+
       if (data.status && typeof data.status === "object") {
         const statusFields = data.status as unknown as Record<string, unknown>;
         Object.keys(statusFields).forEach((key) => {
           pendingFieldsRef.current.add(`status.${key}`);
         });
       }
-      
+
       if (data.attributes) pendingFieldsRef.current.add("attributes");
       if (data.skills) pendingFieldsRef.current.add("skills");
       if (data.powers) pendingFieldsRef.current.add("powers");
-      if (data.customDescriptors) pendingFieldsRef.current.add("customDescriptors");
+      if (data.customDescriptors)
+        pendingFieldsRef.current.add("customDescriptors");
       if (data.defenses) pendingFieldsRef.current.add("defenses");
 
       // Delegate to AutoSaveService
       if (autoSaveServiceRef.current) {
         autoSaveServiceRef.current.schedule(data);
-        console.debug("[scheduleAutoSave] Scheduled", { 
-          fingerprint, 
+        console.debug("[scheduleAutoSave] Scheduled", {
+          fingerprint,
           hasPending: !!pendingObjRef.current,
           pendingFields: Array.from(pendingFieldsRef.current),
-          pendingObj: pendingObjRef.current
+          pendingObj: pendingObjRef.current,
         });
       } else {
-        console.warn("[scheduleAutoSave] AutoSaveService not initialized", { userId, characterId });
+        console.warn("[scheduleAutoSave] AutoSaveService not initialized", {
+          userId,
+          characterId,
+        });
       }
     },
     [userId, characterId],
@@ -227,7 +295,7 @@ export function useCharacterPersistence(
 
   /**
    * Carrega um personagem específico
-   * 
+   *
    * Estratégia de carregamento:
    * 1. Tenta carregar do localStorage para resposta instantânea
    * 2. Se encontrar dados stale (>5s), busca dados frescos do Firebase
@@ -235,9 +303,16 @@ export function useCharacterPersistence(
    * 4. Sempre garante que dados frescos sejam buscados e o estado seja atualizado
    */
   const loadCharacter = useCallback(
-    async (charId: string, options?: { forceFresh?: boolean }): Promise<CharacterDocument | null> => {
+    async (
+      charId: string,
+      options?: { forceFresh?: boolean },
+    ): Promise<CharacterDocument | null> => {
       if (!userId) return null;
-      console.debug("[loadCharacter] fetching", { userId, charId, forceFresh: options?.forceFresh });
+      console.debug("[loadCharacter] fetching", {
+        userId,
+        charId,
+        forceFresh: options?.forceFresh,
+      });
 
       if (!repoRef.current) {
         repoRef.current = new FirebaseCharacterRepository(userId);
@@ -258,15 +333,17 @@ export function useCharacterPersistence(
         try {
           const fresh = await repoRef.current.getCharacter(charId);
           if (fresh) {
-            try { setItemAsync(localStorageKey, fresh); } catch {}
+            try {
+              setItemAsync(localStorageKey, fresh);
+            } catch {}
           }
-          
+
           try {
             measureAndWarn(perfKey, 100);
           } catch {
             // ignore
           }
-          
+
           return fresh;
         } catch (err) {
           console.error("[loadCharacter] Failed to load fresh data:", err);
@@ -287,48 +364,67 @@ export function useCharacterPersistence(
 
         if (storedRaw) {
           // Re-map raw stored data to ensure Date objects and consistent structure
-          const stored = mapFirestoreToCharacter(storedRaw.id as string, storedRaw);
-          
+          const stored = mapFirestoreToCharacter(
+            storedRaw.id as string,
+            storedRaw,
+          );
+
           // Check if stored data is stale by checking updatedAt timestamp
           // Consider stale if updatedAt is more than STALE_THRESHOLD_MS ago
           const storedUpdatedAt = stored.updatedAt.getTime();
-          const isStale = (Date.now() - storedUpdatedAt) > STALE_THRESHOLD_MS;
+          const isStale = Date.now() - storedUpdatedAt > STALE_THRESHOLD_MS;
 
           if (isStale) {
             // Data is stale, fetch fresh data but don't block UI
             // Start fresh fetch immediately but return stored data
-            console.debug("[loadCharacter] Stale data detected, fetching fresh in background", { charId });
-            
+            console.debug(
+              "[loadCharacter] Stale data detected, fetching fresh in background",
+              { charId },
+            );
+
             // Fetch fresh data (non-blocking but we'll wait a bit for it)
-            const freshPromise = repoRef.current.getCharacter(charId).catch(() => null);
-            
+            const freshPromise = repoRef.current
+              .getCharacter(charId)
+              .catch(() => null);
+
             // Wait up to 500ms for fresh data, then return stored if not ready
             const fresh = await Promise.race([
               freshPromise,
-              new Promise<CharacterDocument | null>((resolve) => setTimeout(() => resolve(null), 500))
+              new Promise<CharacterDocument | null>((resolve) =>
+                setTimeout(() => resolve(null), 500),
+              ),
             ]);
 
             if (fresh) {
               // Fresh data arrived quickly, use it
-              try { setItemAsync(localStorageKey, fresh); } catch {}
+              try {
+                setItemAsync(localStorageKey, fresh);
+              } catch {}
               console.debug("[loadCharacter] Fresh data loaded", { charId });
-              
+
               try {
                 measureAndWarn(perfKey, 100);
               } catch {
                 // ignore
               }
-              
+
               return fresh;
             } else {
               // Fresh data didn't arrive in time, return stored but continue fetching
-              freshPromise.then((fresh) => {
-                if (fresh) {
-                  try { setItemAsync(localStorageKey, fresh); } catch {}
-                  console.debug("[loadCharacter] Fresh data arrived after initial load", { charId });
-                  // Note: We can't update React state here, but cache is updated for next load
-                }
-              }).catch(() => {});
+              freshPromise
+                .then((fresh) => {
+                  if (fresh) {
+                    try {
+                      setItemAsync(localStorageKey, fresh);
+                    } catch {}
+                    console.debug(
+                      "[loadCharacter] Fresh data arrived after initial load",
+                      { charId },
+                    );
+                    // Note: We can't update React state here, but cache is updated for next load
+                  }
+                })
+                .catch(() => {});
             }
           } else {
             // Data is fresh, return immediately and update in background
@@ -336,7 +432,9 @@ export function useCharacterPersistence(
               try {
                 const fresh = await repoRef.current?.getCharacter(charId);
                 if (fresh) {
-                  try { setItemAsync(localStorageKey, fresh); } catch {}
+                  try {
+                    setItemAsync(localStorageKey, fresh);
+                  } catch {}
                 }
               } catch {
                 // ignore background error
@@ -344,7 +442,11 @@ export function useCharacterPersistence(
             })();
           }
 
-          try { console.debug("[loadCharacter] restored from localStorage", { isStale }); } catch {}
+          try {
+            console.debug("[loadCharacter] restored from localStorage", {
+              isStale,
+            });
+          } catch {}
           return stored;
         }
       } catch {
@@ -354,7 +456,8 @@ export function useCharacterPersistence(
       // No localStorage data, fetch from cache/network
       let res: CharacterDocument | null = null;
       try {
-        if (!repoRef.current) repoRef.current = new FirebaseCharacterRepository(userId);
+        if (!repoRef.current)
+          repoRef.current = new FirebaseCharacterRepository(userId);
         res = await repoRef.current.getCharacter(charId);
       } catch {
         // ignore
@@ -363,7 +466,9 @@ export function useCharacterPersistence(
       // Persist a fresh copy to localStorage for faster future restores
       try {
         if (res) {
-          try { setItemAsync(localStorageKey, res); } catch {}
+          try {
+            setItemAsync(localStorageKey, res);
+          } catch {}
         }
       } catch {
         // ignore
@@ -383,9 +488,12 @@ export function useCharacterPersistence(
   /**
    * Lista todos os personagens do usuário
    */
-  const loadCharactersList = useCallback(async (): Promise<CharacterDocument[]> => {
+  const loadCharactersList = useCallback(async (): Promise<
+    CharacterDocument[]
+  > => {
     if (!userId) throw new Error("Usuário não autenticado");
-    if (!repoRef.current) repoRef.current = new FirebaseCharacterRepository(userId);
+    if (!repoRef.current)
+      repoRef.current = new FirebaseCharacterRepository(userId);
     return repoRef.current.listCharacters();
   }, [userId]);
 
@@ -393,13 +501,19 @@ export function useCharacterPersistence(
    * Atualiza um personagem imediatamente
    */
   const saveImmediately = useCallback(
-    async (updates: Partial<CharacterData>, options?: { baseVersion?: number }) => {
+    async (
+      updates: Partial<CharacterData>,
+      options?: { baseVersion?: number },
+    ) => {
       if (!userId || !characterId) throw new Error("Dados incompletos");
 
       console.debug("[saveImmediately] start", { userId, characterId });
-      if (!repoRef.current) repoRef.current = new FirebaseCharacterRepository(userId);
-      
-      const res = await repoRef.current.updateCharacter(characterId, updates, { baseVersion: options?.baseVersion });
+      if (!repoRef.current)
+        repoRef.current = new FirebaseCharacterRepository(userId);
+
+      const res = await repoRef.current.updateCharacter(characterId, updates, {
+        baseVersion: options?.baseVersion,
+      });
 
       if (res && res.success === false) {
         // Conflict returned - surface to caller
@@ -424,7 +538,8 @@ export function useCharacterPersistence(
   const removeCharacter = useCallback(
     async (charId: string) => {
       if (!userId) throw new Error("Usuário não autenticado");
-      if (!repoRef.current) repoRef.current = new FirebaseCharacterRepository(userId);
+      if (!repoRef.current)
+        repoRef.current = new FirebaseCharacterRepository(userId);
       return repoRef.current.deleteCharacter(charId);
     },
     [userId],
@@ -436,7 +551,8 @@ export function useCharacterPersistence(
   const selectCharacter = useCallback(
     async (charId: string) => {
       if (!userId) throw new Error("Usuário não autenticado");
-      if (!repoRef.current) repoRef.current = new FirebaseCharacterRepository(userId);
+      if (!repoRef.current)
+        repoRef.current = new FirebaseCharacterRepository(userId);
       return repoRef.current.setLastSelectedCharacter(charId);
     },
     [userId],
@@ -447,7 +563,8 @@ export function useCharacterPersistence(
    */
   const getLastSelectedId = useCallback(async () => {
     if (!userId) throw new Error("Usuário não autenticado");
-    if (!repoRef.current) repoRef.current = new FirebaseCharacterRepository(userId);
+    if (!repoRef.current)
+      repoRef.current = new FirebaseCharacterRepository(userId);
     return repoRef.current.getLastSelectedCharacterId();
   }, [userId]);
 
@@ -456,7 +573,8 @@ export function useCharacterPersistence(
    */
   const loadLastSelected = useCallback(async () => {
     if (!userId) return null;
-    if (!repoRef.current) repoRef.current = new FirebaseCharacterRepository(userId);
+    if (!repoRef.current)
+      repoRef.current = new FirebaseCharacterRepository(userId);
     const id = await repoRef.current.getLastSelectedCharacterId();
     if (!id) return null;
     return repoRef.current.getCharacter(id);
@@ -466,9 +584,13 @@ export function useCharacterPersistence(
    * Escuta mudanças em tempo real na lista de personagens
    */
   const listenToCharacters = useCallback(
-    (callback: (characters: CharacterDocument[]) => void, onError?: (error: Error) => void) => {
+    (
+      callback: (characters: CharacterDocument[]) => void,
+      onError?: (error: Error) => void,
+    ) => {
       if (!userId) throw new Error("Usuário não autenticado");
-      if (!repoRef.current) repoRef.current = new FirebaseCharacterRepository(userId);
+      if (!repoRef.current)
+        repoRef.current = new FirebaseCharacterRepository(userId);
       return repoRef.current.onCharactersChange(callback, onError);
     },
     [userId],
@@ -477,46 +599,66 @@ export function useCharacterPersistence(
   /**
    * Cria uma nova pasta
    */
-  const createFolder = useCallback(async (name: string, parentId: string | null = null) => {
-    if (!userId) throw new Error("Usuário não autenticado");
-    if (!repoRef.current) repoRef.current = new FirebaseCharacterRepository(userId);
-    return repoRef.current.createFolder(name, parentId);
-  }, [userId]);
+  const createFolder = useCallback(
+    async (name: string, parentId: string | null = null) => {
+      if (!userId) throw new Error("Usuário não autenticado");
+      if (!repoRef.current)
+        repoRef.current = new FirebaseCharacterRepository(userId);
+      return repoRef.current.createFolder(name, parentId);
+    },
+    [userId],
+  );
 
   /**
    * Deleta uma pasta
    */
-  const deleteFolder = useCallback(async (folderId: string) => {
-    if (!userId) throw new Error("Usuário não autenticado");
-    if (!repoRef.current) repoRef.current = new FirebaseCharacterRepository(userId);
-    return repoRef.current.deleteFolder(folderId);
-  }, [userId]);
+  const deleteFolder = useCallback(
+    async (folderId: string) => {
+      if (!userId) throw new Error("Usuário não autenticado");
+      if (!repoRef.current)
+        repoRef.current = new FirebaseCharacterRepository(userId);
+      return repoRef.current.deleteFolder(folderId);
+    },
+    [userId],
+  );
 
   /**
    * Atualiza o nome de uma pasta
    */
-  const updateFolder = useCallback(async (folderId: string, name: string) => {
-    if (!userId) throw new Error("Usuário não autenticado");
-    if (!repoRef.current) repoRef.current = new FirebaseCharacterRepository(userId);
-    return repoRef.current.updateFolder(folderId, name);
-  }, [userId]);
+  const updateFolder = useCallback(
+    async (folderId: string, name: string) => {
+      if (!userId) throw new Error("Usuário não autenticado");
+      if (!repoRef.current)
+        repoRef.current = new FirebaseCharacterRepository(userId);
+      return repoRef.current.updateFolder(folderId, name);
+    },
+    [userId],
+  );
 
   /**
    * Move um personagem para uma pasta
    */
-  const moveCharacterToFolder = useCallback(async (characterId: string, folderId: string | null) => {
-    if (!userId) throw new Error("Usuário não autenticado");
-    if (!repoRef.current) repoRef.current = new FirebaseCharacterRepository(userId);
-    return repoRef.current.moveCharacterToFolder(characterId, folderId);
-  }, [userId]);
+  const moveCharacterToFolder = useCallback(
+    async (characterId: string, folderId: string | null) => {
+      if (!userId) throw new Error("Usuário não autenticado");
+      if (!repoRef.current)
+        repoRef.current = new FirebaseCharacterRepository(userId);
+      return repoRef.current.moveCharacterToFolder(characterId, folderId);
+    },
+    [userId],
+  );
 
   /**
    * Escuta mudanças em tempo real nas pastas
    */
   const listenToFolders = useCallback(
-    (callback: (folders: Folder[]) => void, onError?: (error: Error) => void) => {
+    (
+      callback: (folders: Folder[]) => void,
+      onError?: (error: Error) => void,
+    ) => {
       if (!userId) return () => {};
-      if (!repoRef.current) repoRef.current = new FirebaseCharacterRepository(userId);
+      if (!repoRef.current)
+        repoRef.current = new FirebaseCharacterRepository(userId);
       return repoRef.current.onFoldersChange(callback, onError);
     },
     [userId],
@@ -554,13 +696,28 @@ export function useCharacterPersistence(
    * Sets a callback to be called when auto-save succeeds
    * Used by IdentityContext to clear dirtyFields when fields are saved
    */
-  const setOnSaveSuccess = useCallback((callback: ((savedFields: string[]) => void) | null) => {
-    onSaveSuccessRef.current = callback;
-  }, []);
+  const setOnSaveSuccess = useCallback(
+    (callback: ((savedFields: string[]) => void) | null) => {
+      onSaveSuccessRef.current = callback;
+    },
+    [],
+  );
 
-  const setOnSaveError = useCallback((callback: ((payload: { type: "conflict" | "error"; server?: CharacterDocument; attempted?: Partial<CharacterData>; error?: unknown }) => void) | null) => {
-    onSaveErrorRef.current = callback;
-  }, []);
+  const setOnSaveError = useCallback(
+    (
+      callback:
+        | ((payload: {
+            type: "conflict" | "error";
+            server?: CharacterDocument;
+            attempted?: Partial<CharacterData>;
+            error?: unknown;
+          }) => void)
+        | null,
+    ) => {
+      onSaveErrorRef.current = callback;
+    },
+    [],
+  );
 
   return {
     createCharacter,

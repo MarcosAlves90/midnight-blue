@@ -45,8 +45,12 @@ export const EffectModifierManager: FC<EffectModifierManagerProps> = memo(
       );
 
       return {
-        specific: filtered.filter((m) => m.appliesTo && m.appliesTo.includes(effectId)),
-        normal: filtered.filter((m) => !m.appliesTo || !m.appliesTo.includes(effectId)),
+        specific: filtered.filter(
+          (m) => m.appliesTo && m.appliesTo.includes(effectId),
+        ),
+        normal: filtered.filter(
+          (m) => !m.appliesTo || !m.appliesTo.includes(effectId),
+        ),
       };
     }, [activeTab, availableExtras, availableFlaws, search, effectId]);
 
@@ -112,7 +116,11 @@ export const EffectModifierManager: FC<EffectModifierManagerProps> = memo(
                     {specific.map((m) => (
                       <Tip
                         key={m.id}
-                        content={<div className="max-w-xs text-[10px]">{m.description}</div>}
+                        content={
+                          <div className="max-w-xs text-[10px]">
+                            {m.description}
+                          </div>
+                        }
                         side="right"
                       >
                         <button
@@ -149,7 +157,11 @@ export const EffectModifierManager: FC<EffectModifierManagerProps> = memo(
                     {normal.map((m) => (
                       <Tip
                         key={m.id}
-                        content={<div className="max-w-xs text-[10px]">{m.description}</div>}
+                        content={
+                          <div className="max-w-xs text-[10px]">
+                            {m.description}
+                          </div>
+                        }
                         side="right"
                       >
                         <button
@@ -187,51 +199,57 @@ export const EffectModifierManager: FC<EffectModifierManagerProps> = memo(
         )}
 
         {/* List of active modifiers */}
-        <div className="space-y-1.5">
+        <div className="grid grid-cols-1 gap-1.5">
           {effectModifiers.map((inst) => {
             const isExtra = inst.modifier.type === "extra";
             return (
               <div
                 key={inst.id}
-                className={`flex items-center justify-between gap-2 p-1.5 rounded border ${
-                    isExtra ? "border-green-500/20 bg-green-500/5" : "border-red-500/20 bg-red-500/5"
+                className={`flex items-center justify-between gap-3 p-2 rounded-lg border transition-all hover:bg-white/[0.02] ${
+                  isExtra
+                    ? "border-emerald-500/20 bg-emerald-500/[0.03]"
+                    : "border-rose-500/20 bg-rose-500/[0.03]"
                 }`}
               >
-                <div className="flex items-center gap-2 min-w-0">
+                <div className="flex items-center gap-2.5 min-w-0">
                   <div
-                    className={`w-1 h-3 rounded-full ${isExtra ? "bg-green-500" : "bg-red-500"}`}
+                    className={`w-1 h-4 rounded-full shadow-[0_0_8px] ${isExtra ? "bg-emerald-500 shadow-emerald-500/50" : "bg-rose-500 shadow-rose-500/50"}`}
                   />
-                  <Tip
-                    content={
-                      <div className="max-w-xs text-[10px]">
-                        {inst.modifier.description}
-                      </div>
-                    }
-                  >
-                    <span className="text-[11px] font-medium truncate cursor-help hover:text-purple-300 underline decoration-dotted underline-offset-2">
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-[10px] font-black uppercase tracking-tight truncate text-zinc-200">
                       {inst.modifier.name}
                     </span>
-                  </Tip>
+                    <span className="text-[8px] text-zinc-500 font-medium truncate uppercase">
+                      {inst.modifier.isFlat ? "Custo Fixo" : "Custo/Rank"}
+                    </span>
+                  </div>
                 </div>
-                
-                <div className="flex items-center gap-1.5">
-                  <span className={`text-[10px] font-mono font-bold ${isExtra ? 'text-green-400' : 'text-red-400'}`}>
-                    {inst.modifier.costPerRank > 0 ? "+" : ""}{inst.modifier.costPerRank}
+
+                <div className="flex items-center gap-3">
+                  <span
+                    className={`text-[10px] font-mono font-black ${isExtra ? "text-emerald-400" : "text-rose-400"}`}
+                  >
+                    {inst.modifier.costPerRank > 0 ? "+" : ""}
+                    {inst.modifier.costPerRank}
                   </span>
+                  <div className="w-px h-4 bg-white/5" />
                   <button
                     onClick={() => onRemoveModifier(inst.id)}
-                    className="p-1 hover:bg-red-500/20 rounded text-red-400/50 hover:text-red-400 transition-colors"
+                    className="p-1 text-zinc-600 hover:text-rose-400 hover:bg-rose-500/10 rounded transition-all"
                   >
-                    <Trash2 className="h-3 w-3" />
+                    <Trash2 className="h-3.5 w-3.5" />
                   </button>
                 </div>
               </div>
             );
           })}
           {effectModifiers.length === 0 && !isAdding && (
-            <p className="text-[10px] text-muted-foreground italic text-center py-2 px-4 bg-muted/5 rounded border border-dashed border-border/20">
-              Nenhum modificador específico
-            </p>
+            <div className="flex flex-col items-center justify-center py-6 px-4 bg-white/[0.02] rounded-xl border border-dashed border-white/5 opacity-40">
+              <Plus className="h-4 w-4 mb-2 text-zinc-500" />
+              <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest">
+                Ajuste o efeito com modificadores
+              </p>
+            </div>
           )}
         </div>
       </div>

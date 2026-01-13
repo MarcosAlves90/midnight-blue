@@ -23,8 +23,14 @@ import DefenseWarning from "@/components/ui/custom/warning-icon";
 import { rollDice } from "@/lib/dice-system";
 import { DiceIcon } from "@/components/ui/icons/dice-icon";
 
-interface SingleLimitWarning { pair: string; exceed: number }
-interface SingleDisparityWarning { pair: string; percent: number }
+interface SingleLimitWarning {
+  pair: string;
+  exceed: number;
+}
+interface SingleDisparityWarning {
+  pair: string;
+  percent: number;
+}
 
 interface DefenseCardProps {
   title: string;
@@ -81,8 +87,6 @@ function DefenseCard({
     });
   };
 
-
-
   return (
     <div className="bg-background/30 p-2 border border-muted/20 flex items-center justify-between">
       <div className="flex items-center gap-2">
@@ -96,16 +100,36 @@ function DefenseCard({
 
         {/* aggregate limit warnings */}
         {limitWarnings && limitWarnings.length > 0 ? (
-          <DefenseWarning type="defense-limit" items={limitWarnings.map(w => ({ label: w.pair, exceed: w.exceed }))} />
+          <DefenseWarning
+            type="defense-limit"
+            items={limitWarnings.map((w) => ({
+              label: w.pair,
+              exceed: w.exceed,
+            }))}
+          />
         ) : isLimitExceeded ? (
-          <DefenseWarning type="defense-limit" label={defensePair} excess={exceedValue} />
+          <DefenseWarning
+            type="defense-limit"
+            label={defensePair}
+            excess={exceedValue}
+          />
         ) : null}
 
         {/* aggregate disparity warnings */}
         {disparityWarnings && disparityWarnings.length > 0 ? (
-          <DefenseWarning type="defense-disparity" items={disparityWarnings.map(w => ({ label: w.pair, percent: w.percent }))} />
+          <DefenseWarning
+            type="defense-disparity"
+            items={disparityWarnings.map((w) => ({
+              label: w.pair,
+              percent: w.percent,
+            }))}
+          />
         ) : hasDisparity ? (
-          <DefenseWarning type="defense-disparity" label={defensePair} percent={disparityPercent} />
+          <DefenseWarning
+            type="defense-disparity"
+            label={defensePair}
+            percent={disparityPercent}
+          />
         ) : null}
 
         {description ? (
@@ -159,7 +183,13 @@ export default function AdvancedStatus() {
   const [isEditMode, setIsEditMode] = useState(false);
 
   // Editable values
-  const nivelState = useEditableValue(powerLevel, (v) => updatePowerLevel(v), !isEditMode, { MIN_VALUE: 1 }, () => markFieldDirty('status'));
+  const nivelState = useEditableValue(
+    powerLevel,
+    (v) => updatePowerLevel(v),
+    !isEditMode,
+    { MIN_VALUE: 1 },
+    () => markFieldDirty("status"),
+  );
   const deslocamentoState = useEditableValue(8, () => {}, !isEditMode); // Keeping it local for now as it's not in context
 
   const handleAddPoint = () => {
@@ -191,12 +221,42 @@ export default function AdvancedStatus() {
   // Defense points (persisted via DefensesContext)
   const { markFieldDirty } = useCharacterSheet();
   const { defenses, updateDefense } = useDefenses();
-  
-  const apararState = useEditableValue(defenses.aparar, (v) => updateDefense('aparar', v), !isEditMode, undefined, () => markFieldDirty('defenses'));
-  const esquivaState = useEditableValue(defenses.esquiva, (v) => updateDefense('esquiva', v), !isEditMode, undefined, () => markFieldDirty('defenses'));
-  const fortitudeState = useEditableValue(defenses.fortitude, (v) => updateDefense('fortitude', v), !isEditMode, undefined, () => markFieldDirty('defenses'));
-  const resistenciaState = useEditableValue(defenses.resistencia, (v) => updateDefense('resistencia', v), !isEditMode, undefined, () => markFieldDirty('defenses'));
-  const vontadeState = useEditableValue(defenses.vontade, (v) => updateDefense('vontade', v), !isEditMode, undefined, () => markFieldDirty('defenses'));
+
+  const apararState = useEditableValue(
+    defenses.aparar,
+    (v) => updateDefense("aparar", v),
+    !isEditMode,
+    undefined,
+    () => markFieldDirty("defenses"),
+  );
+  const esquivaState = useEditableValue(
+    defenses.esquiva,
+    (v) => updateDefense("esquiva", v),
+    !isEditMode,
+    undefined,
+    () => markFieldDirty("defenses"),
+  );
+  const fortitudeState = useEditableValue(
+    defenses.fortitude,
+    (v) => updateDefense("fortitude", v),
+    !isEditMode,
+    undefined,
+    () => markFieldDirty("defenses"),
+  );
+  const resistenciaState = useEditableValue(
+    defenses.resistencia,
+    (v) => updateDefense("resistencia", v),
+    !isEditMode,
+    undefined,
+    () => markFieldDirty("defenses"),
+  );
+  const vontadeState = useEditableValue(
+    defenses.vontade,
+    (v) => updateDefense("vontade", v),
+    !isEditMode,
+    undefined,
+    () => markFieldDirty("defenses"),
+  );
 
   const toggleEditMode = useCallback(() => {
     setIsEditMode((prev) => !prev);
@@ -269,7 +329,10 @@ export default function AdvancedStatus() {
     esquivaTotal,
     resistenciaTotal,
   );
-  const apararResistenciaDisparity = getDisparity(apararTotal, resistenciaTotal);
+  const apararResistenciaDisparity = getDisparity(
+    apararTotal,
+    resistenciaTotal,
+  );
   const fortitudeVontadeDisparity = getDisparity(fortitudeTotal, vontadeTotal);
 
   const hasEsquivaResistenciaDisparity = esquivaResistenciaDisparity > 50;
@@ -324,7 +387,10 @@ export default function AdvancedStatus() {
               side="top"
               align="start"
             >
-              <label htmlFor="powerLevel" className="text-xs font-medium text-muted-foreground cursor-help decoration-dotted underline underline-offset-2">
+              <label
+                htmlFor="powerLevel"
+                className="text-xs font-medium text-muted-foreground cursor-help decoration-dotted underline underline-offset-2"
+              >
                 Nível de Poder
               </label>
             </Tip>
@@ -346,7 +412,10 @@ export default function AdvancedStatus() {
         <div className="space-y-1.5">
           <div className="flex items-center gap-2">
             <Move className="h-3.5 w-3.5 text-muted-foreground" />
-            <label htmlFor="displacement" className="text-xs font-medium text-muted-foreground">
+            <label
+              htmlFor="displacement"
+              className="text-xs font-medium text-muted-foreground"
+            >
               Deslocamento
             </label>
           </div>
@@ -520,14 +589,46 @@ export default function AdvancedStatus() {
             onKeyDown={resistenciaState.handleKeyDown}
             // pass arrays so both pairs show if needed
             limitWarnings={[
-              ...(isEsquivaResistenciaExceeded ? [{ pair: "Esquiva + Resistência", exceed: esquivaResistenciaTotal - defenseLimit }] : []),
-              ...(isApararResistenciaExceeded ? [{ pair: "Aparar + Resistência", exceed: apararResistenciaTotal - defenseLimit }] : []),
+              ...(isEsquivaResistenciaExceeded
+                ? [
+                    {
+                      pair: "Esquiva + Resistência",
+                      exceed: esquivaResistenciaTotal - defenseLimit,
+                    },
+                  ]
+                : []),
+              ...(isApararResistenciaExceeded
+                ? [
+                    {
+                      pair: "Aparar + Resistência",
+                      exceed: apararResistenciaTotal - defenseLimit,
+                    },
+                  ]
+                : []),
             ]}
             disparityWarnings={[
-              ...(hasEsquivaResistenciaDisparity ? [{ pair: "Esquiva + Resistência", percent: esquivaResistenciaDisparity }] : []),
-              ...(hasApararResistenciaDisparity ? [{ pair: "Aparar + Resistência", percent: apararResistenciaDisparity }] : []),
+              ...(hasEsquivaResistenciaDisparity
+                ? [
+                    {
+                      pair: "Esquiva + Resistência",
+                      percent: esquivaResistenciaDisparity,
+                    },
+                  ]
+                : []),
+              ...(hasApararResistenciaDisparity
+                ? [
+                    {
+                      pair: "Aparar + Resistência",
+                      percent: apararResistenciaDisparity,
+                    },
+                  ]
+                : []),
             ]}
-            defensePair={isEsquivaResistenciaExceeded || hasEsquivaResistenciaDisparity ? "Esquiva + Resistência" : "Aparar + Resistência"}
+            defensePair={
+              isEsquivaResistenciaExceeded || hasEsquivaResistenciaDisparity
+                ? "Esquiva + Resistência"
+                : "Aparar + Resistência"
+            }
           />
           <DefenseCard
             title="Vontade"

@@ -19,14 +19,16 @@ interface NewCharacterFormProps {
   onCancel?: () => void;
 }
 
-export function NewCharacterForm({ onSuccess, onCancel }: NewCharacterFormProps) {
+export function NewCharacterForm({
+  onSuccess,
+  onCancel,
+}: NewCharacterFormProps) {
   const router = useRouter();
   const { activeContextId } = useAdmin();
-  
+
   // Usamos activeContextId para garantir que a ficha seja criada no contexto correto (Admin ou Próprio)
-  const { createCharacter, selectCharacter } = useCharacterPersistence(
-    activeContextId,
-  );
+  const { createCharacter, selectCharacter } =
+    useCharacterPersistence(activeContextId);
 
   const [formData, setFormData] = useState({
     name: INITIAL_CHARACTER_NAME,
@@ -90,8 +92,15 @@ export function NewCharacterForm({ onSuccess, onCancel }: NewCharacterFormProps)
           history: "",
           complications: [],
         },
-        attributes: INITIAL_ATTRIBUTES.map((attr) => ({ ...attr, value: attr.value })),
-        skills: INITIAL_SKILLS.map((skill) => ({ ...skill, value: skill.value ?? 0, others: skill.others ?? 0 })),
+        attributes: INITIAL_ATTRIBUTES.map((attr) => ({
+          ...attr,
+          value: attr.value,
+        })),
+        skills: INITIAL_SKILLS.map((skill) => ({
+          ...skill,
+          value: skill.value ?? 0,
+          others: skill.others ?? 0,
+        })),
         powers: [],
         status: {
           powerLevel: 10,
@@ -115,7 +124,7 @@ export function NewCharacterForm({ onSuccess, onCancel }: NewCharacterFormProps)
       await selectCharacter(characterId);
 
       onSuccess?.(characterId);
-      
+
       // Se não houver callback, redireciona para a visão individual
       if (!onSuccess) {
         router.push(`/dashboard/personagem/individual/${characterId}`);
@@ -135,17 +144,24 @@ export function NewCharacterForm({ onSuccess, onCancel }: NewCharacterFormProps)
         {/* Height Scale Visual Effect */}
         <div className="absolute inset-0 opacity-20 pointer-events-none flex flex-col justify-between py-2 px-1 font-mono">
           {[...Array(8)].map((_, i) => (
-            <div key={i} className="w-full border-t border-foreground/50 flex justify-end">
-              <span className="text-[6px] leading-none pr-0.5">{180 - i * 10}</span>
+            <div
+              key={i}
+              className="w-full border-t border-foreground/50 flex justify-end"
+            >
+              <span className="text-[6px] leading-none pr-0.5">
+                {180 - i * 10}
+              </span>
             </div>
           ))}
         </div>
-        
+
         <div className="flex flex-col items-center gap-2 text-muted-foreground group-hover:text-primary transition-colors">
           <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center border border-border">
             <User className="w-8 h-8 opacity-20" />
           </div>
-          <span className="text-[10px] font-mono uppercase tracking-widest">Aguardando Imagem</span>
+          <span className="text-[10px] font-mono uppercase tracking-widest">
+            Aguardando Imagem
+          </span>
         </div>
 
         {/* Corner accents */}
@@ -168,7 +184,7 @@ export function NewCharacterForm({ onSuccess, onCancel }: NewCharacterFormProps)
               onChange={(e) => handleInputChange("name", e.target.value)}
               className={cn(
                 "bg-muted/20 border-primary/10 font-mono uppercase placeholder:opacity-30 focus-visible:ring-primary/30",
-                error && !formData.name && "border-destructive/50"
+                error && !formData.name && "border-destructive/50",
               )}
               autoFocus
             />
@@ -185,7 +201,7 @@ export function NewCharacterForm({ onSuccess, onCancel }: NewCharacterFormProps)
               onChange={(e) => handleInputChange("heroName", e.target.value)}
               className={cn(
                 "bg-muted/20 border-primary/10 font-mono uppercase placeholder:opacity-30 focus-visible:ring-primary/30",
-                error && !formData.heroName && "border-destructive/50"
+                error && !formData.heroName && "border-destructive/50",
               )}
             />
           </div>
@@ -227,8 +243,12 @@ export function NewCharacterForm({ onSuccess, onCancel }: NewCharacterFormProps)
 
       {/* Decorative footer */}
       <div className="pt-4 border-t border-primary/5 flex justify-between items-center opacity-30">
-        <span className="text-[8px] font-mono uppercase tracking-tighter">Status: Pendente de Aprovação</span>
-        <span className="text-[8px] font-mono uppercase tracking-tighter">Ref: {Math.random().toString(36).substring(2, 10).toUpperCase()}</span>
+        <span className="text-[8px] font-mono uppercase tracking-tighter">
+          Status: Pendente de Aprovação
+        </span>
+        <span className="text-[8px] font-mono uppercase tracking-tighter">
+          Ref: {Math.random().toString(36).substring(2, 10).toUpperCase()}
+        </span>
       </div>
     </form>
   );

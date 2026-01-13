@@ -88,7 +88,9 @@ export default function AccountSettingsForm() {
       if (!current) return authError("Usuário não autenticado");
 
       await sendEmailVerification(current);
-      authSuccess("E-mail de verificação enviado. Verifique sua caixa de entrada.");
+      authSuccess(
+        "E-mail de verificação enviado. Verifique sua caixa de entrada.",
+      );
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       authError("Erro ao enviar e-mail de verificação: " + message);
@@ -112,7 +114,9 @@ export default function AccountSettingsForm() {
       if (auth.currentUser?.emailVerified) {
         authSuccess("E-mail verificado com sucesso!");
       } else {
-        authInfo("E-mail ainda não verificado. Verifique sua caixa de entrada e confirme o link.");
+        authInfo(
+          "E-mail ainda não verificado. Verifique sua caixa de entrada e confirme o link.",
+        );
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
@@ -147,7 +151,10 @@ export default function AccountSettingsForm() {
       authSuccess("Perfil atualizado com sucesso!");
       refreshUser?.();
     } catch (err) {
-      authError("Erro ao atualizar perfil: " + (err instanceof Error ? err.message : String(err)));
+      authError(
+        "Erro ao atualizar perfil: " +
+          (err instanceof Error ? err.message : String(err)),
+      );
     }
   }
 
@@ -216,7 +223,9 @@ export default function AccountSettingsForm() {
           document.body.appendChild(a);
           a.click();
           a.remove();
-          authInfo("Abrindo imagem em nova aba para download (CORS pode impedir download automático)");
+          authInfo(
+            "Abrindo imagem em nova aba para download (CORS pode impedir download automático)",
+          );
           return;
         }
       }
@@ -497,8 +506,12 @@ export default function AccountSettingsForm() {
 
               <div className="grid gap-2">
                 <div className="flex justify-between items-end">
-                  <Label className="text-xs text-muted-foreground">Força da Senha</Label>
-                  <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded ${passwordAnalysis.color.replace("bg-", "text-")} bg-muted`}>
+                  <Label className="text-xs text-muted-foreground">
+                    Força da Senha
+                  </Label>
+                  <span
+                    className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded ${passwordAnalysis.color.replace("bg-", "text-")} bg-muted`}
+                  >
                     {passwordAnalysis.label}
                   </span>
                 </div>
@@ -507,7 +520,9 @@ export default function AccountSettingsForm() {
                     <div
                       key={i}
                       className={`h-full flex-1 transition-all duration-500 ${
-                        i < passwordAnalysis.score ? passwordAnalysis.color : "bg-border/30"
+                        i < passwordAnalysis.score
+                          ? passwordAnalysis.color
+                          : "bg-border/30"
                       }`}
                     />
                   ))}
@@ -515,7 +530,10 @@ export default function AccountSettingsForm() {
                 {newPassword && passwordAnalysis.feedback.length > 0 && (
                   <ul className="space-y-1 mt-1">
                     {passwordAnalysis.feedback.map((f, i) => (
-                      <li key={i} className="text-[10px] text-muted-foreground flex items-center gap-1">
+                      <li
+                        key={i}
+                        className="text-[10px] text-muted-foreground flex items-center gap-1"
+                      >
                         <div className="w-1 h-1 rounded-full bg-primary/50" />
                         {f}
                       </li>

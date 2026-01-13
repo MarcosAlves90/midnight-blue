@@ -1,7 +1,15 @@
 "use client";
 
 import { Note } from "@/lib/note-service";
-import { StickyNote, MoreVertical, Trash2, ExternalLink, Clock, FileText, ChevronRight } from "lucide-react";
+import {
+  StickyNote,
+  MoreVertical,
+  Trash2,
+  ExternalLink,
+  Clock,
+  FileText,
+  ChevronRight,
+} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,19 +26,21 @@ interface NoteCardProps {
 }
 
 export function NoteCard({ note, onClick, onDelete }: NoteCardProps) {
-  const formattedDate = new Intl.DateTimeFormat('pt-BR', { 
-    day: '2-digit', 
-    month: '2-digit', 
-    year: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit'
-  }).format(note.updatedAt instanceof Date ? note.updatedAt : new Date(note.updatedAt));
+  const formattedDate = new Intl.DateTimeFormat("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(
+    note.updatedAt instanceof Date ? note.updatedAt : new Date(note.updatedAt),
+  );
 
   return (
     <div
       onClick={onClick}
       className={cn(
-        "group relative rounded-lg border border-border/40 bg-card/40 backdrop-blur-sm p-4 hover:border-primary/50 transition-all duration-300 flex flex-col gap-3 shadow-md hover:shadow-[0_0_20px_rgba(var(--primary),0.05)] cursor-pointer overflow-hidden h-48"
+        "group relative rounded-lg border border-border/40 bg-card/40 backdrop-blur-sm p-4 hover:border-primary/50 transition-all duration-300 flex flex-col gap-3 shadow-md hover:shadow-[0_0_20px_rgba(var(--primary),0.05)] cursor-pointer overflow-hidden h-48",
       )}
     >
       {/* Decorative background icon */}
@@ -40,25 +50,33 @@ export function NoteCard({ note, onClick, onDelete }: NoteCardProps) {
         <div className="p-2 rounded-md bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
           <FileText className="w-5 h-5" />
         </div>
-        
+
         <DropdownMenu modal={false}>
           <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-            <Button 
-              variant="ghost" 
-              size="icon" 
+            <Button
+              variant="ghost"
+              size="icon"
               className="h-8 w-8 rounded-full opacity-0 group-hover:opacity-100 data-[state=open]:opacity-100 transition-all"
             >
               <MoreVertical className="w-4 h-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onClick(); }}>
+            <DropdownMenuItem
+              onClick={(e) => {
+                e.stopPropagation();
+                onClick();
+              }}
+            >
               <ExternalLink className="w-4 h-4 mr-2" />
               Abrir Registro
             </DropdownMenuItem>
-            <DropdownMenuItem 
+            <DropdownMenuItem
               className="text-destructive focus:text-destructive"
-              onClick={(e) => { e.stopPropagation(); onDelete(); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete();
+              }}
             >
               <Trash2 className="w-4 h-4 mr-2" />
               Excluir
@@ -69,7 +87,9 @@ export function NoteCard({ note, onClick, onDelete }: NoteCardProps) {
 
       <div className="space-y-1 relative z-10">
         <div className="flex items-center gap-2">
-          <p className="text-[8px] text-primary font-bold uppercase tracking-tight opacity-80">Memorando / Registro</p>
+          <p className="text-[8px] text-primary font-bold uppercase tracking-tight opacity-80">
+            Memorando / Registro
+          </p>
           <div className="flex gap-1">
             <div className="w-1 h-1 rounded-full bg-primary/30 animate-pulse" />
             <div className="w-1 h-1 rounded-full bg-primary/20" />

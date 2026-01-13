@@ -18,7 +18,12 @@ interface DeleteFolderDialogProps {
   onConfirm: () => Promise<void>;
 }
 
-export function DeleteFolderDialog({ open, folderName, onOpenChange, onConfirm }: DeleteFolderDialogProps) {
+export function DeleteFolderDialog({
+  open,
+  folderName,
+  onOpenChange,
+  onConfirm,
+}: DeleteFolderDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -45,12 +50,12 @@ export function DeleteFolderDialog({ open, folderName, onOpenChange, onConfirm }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent 
+      <DialogContent
         className="sm:max-w-[400px] p-0 overflow-hidden border-destructive/20 bg-card"
         onCloseAutoFocus={(e) => e.preventDefault()}
       >
         <div className="absolute top-0 left-0 w-full h-1 bg-destructive/50" />
-        
+
         <DialogHeader className="p-6 pb-0">
           <div className="flex items-center gap-2 mb-2">
             <div className="p-1.5 rounded bg-destructive/10 text-destructive">
@@ -73,7 +78,9 @@ export function DeleteFolderDialog({ open, folderName, onOpenChange, onConfirm }
             <div className="flex items-start gap-3">
               <Folder className="w-5 h-5 text-muted-foreground mt-0.5 flex-shrink-0" />
               <div className="space-y-1">
-                <p className="text-sm font-mono font-bold uppercase text-foreground">{folderName}</p>
+                <p className="text-sm font-mono font-bold uppercase text-foreground">
+                  {folderName}
+                </p>
                 <p className="text-xs text-muted-foreground font-mono">
                   Os personagens nesta pasta não serão excluídos.
                 </p>
@@ -123,8 +130,12 @@ export function DeleteFolderDialog({ open, folderName, onOpenChange, onConfirm }
 
         {/* Decorative footer */}
         <div className="px-6 py-3 border-t border-destructive/5 flex justify-between items-center opacity-30 bg-muted/10">
-          <span className="text-[8px] font-mono uppercase tracking-tighter">Status: Aguardando Confirmação</span>
-          <span className="text-[8px] font-mono uppercase tracking-tighter">Ref: DEL-{Math.random().toString(36).substring(2, 6).toUpperCase()}</span>
+          <span className="text-[8px] font-mono uppercase tracking-tighter">
+            Status: Aguardando Confirmação
+          </span>
+          <span className="text-[8px] font-mono uppercase tracking-tighter">
+            Ref: DEL-{Math.random().toString(36).substring(2, 6).toUpperCase()}
+          </span>
         </div>
       </DialogContent>
     </Dialog>

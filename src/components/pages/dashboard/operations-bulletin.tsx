@@ -8,29 +8,35 @@ import { NewsItem, generateNewsItem } from "@/lib/news-service";
 
 const INITIAL_NEWS_1: NewsItem = {
   title: "SISTEMA INICIALIZADO",
-  content: "Terminal de monitoramento Sevastopol ativo. Aguardando feed de dados globais...",
+  content:
+    "Terminal de monitoramento Sevastopol ativo. Aguardando feed de dados globais...",
   type: "info",
   timestamp: "AGORA",
   status: "ESTÁVEL",
-  source: "SYS_CORE"
+  source: "SYS_CORE",
 };
 
 const INITIAL_NEWS_2: NewsItem = {
   title: "CONEXÃO ESTABELECIDA",
-  content: "Link com a rede Infinity Corp estável. Criptografia de nível militar ativa.",
+  content:
+    "Link com a rede Infinity Corp estável. Criptografia de nível militar ativa.",
   type: "info",
   timestamp: "AGORA",
   status: "ATIVO",
-  source: "INF_LINK"
+  source: "INF_LINK",
 };
 
-export function OperationsBulletin({ embedded = false }: { embedded?: boolean }) {
+export function OperationsBulletin({
+  embedded = false,
+}: {
+  embedded?: boolean;
+}) {
   const [news1, setNews1] = useState<NewsItem>(INITIAL_NEWS_1);
   const [news2, setNews2] = useState<NewsItem>(INITIAL_NEWS_2);
   const [fade1, setFade1] = useState(true);
   const [fade2, setFade2] = useState(true);
   const [terminalId, setTerminalId] = useState("SEV-000-INF");
-  
+
   const news1Ref = useRef<NewsItem>(INITIAL_NEWS_1);
   const news2Ref = useRef<NewsItem>(INITIAL_NEWS_2);
 
@@ -71,17 +77,29 @@ export function OperationsBulletin({ embedded = false }: { embedded?: boolean })
 
   const renderNews = (item: NewsItem, isVisible: boolean) => {
     return (
-      <div className={cn(
-        "space-y-1 border-l-2 pl-3 transition-all duration-500 relative group",
-        item.type === 'alert' ? "border-red-500/50" : item.type === 'warning' ? "border-amber-500/50" : "border-blue-500/50",
-        isVisible ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-2"
-      )}>
+      <div
+        className={cn(
+          "space-y-1 border-l-2 pl-3 transition-all duration-500 relative group",
+          item.type === "alert"
+            ? "border-red-500/50"
+            : item.type === "warning"
+              ? "border-amber-500/50"
+              : "border-blue-500/50",
+          isVisible ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-2",
+        )}
+      >
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
-            <p className={cn(
-              "text-[10px] font-bold uppercase tracking-tight",
-              item.type === 'alert' ? "text-red-400" : item.type === 'warning' ? "text-amber-400" : "text-blue-300"
-            )}>
+            <p
+              className={cn(
+                "text-[10px] font-bold uppercase tracking-tight",
+                item.type === "alert"
+                  ? "text-red-400"
+                  : item.type === "warning"
+                    ? "text-amber-400"
+                    : "text-blue-300",
+              )}
+            >
               {item.title}
             </p>
             {item.status && (
@@ -90,7 +108,9 @@ export function OperationsBulletin({ embedded = false }: { embedded?: boolean })
               </span>
             )}
           </div>
-          <span className="text-[8px] font-mono text-muted-foreground/50">{item.timestamp}</span>
+          <span className="text-[8px] font-mono text-muted-foreground/50">
+            {item.timestamp}
+          </span>
         </div>
         <p className="text-[11px] text-muted-foreground leading-relaxed pr-2">
           {item.content}
@@ -117,9 +137,13 @@ export function OperationsBulletin({ embedded = false }: { embedded?: boolean })
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
             <AlertTriangle className="h-3.5 w-3.5 text-primary animate-pulse" />
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary/90 italic">Boletim de Operações</span>
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary/90 italic">
+              Boletim de Operações
+            </span>
           </div>
-          <span className="text-[8px] font-mono text-muted-foreground/40">{terminalId}</span>
+          <span className="text-[8px] font-mono text-muted-foreground/40">
+            {terminalId}
+          </span>
         </div>
         {content}
         <div className="pt-3 mt-4 border-t border-primary/10">
@@ -145,7 +169,7 @@ export function OperationsBulletin({ embedded = false }: { embedded?: boolean })
       </CardHeader>
       <CardContent className="min-h-[150px] flex flex-col px-4 pb-4">
         {content}
-        
+
         <div className="pt-3 mt-4 border-t border-primary/10">
           <div className="flex items-center justify-between text-[8px] font-mono text-primary/40 uppercase tracking-[0.2em]">
             <span className="flex items-center gap-1.5">

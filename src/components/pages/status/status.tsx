@@ -14,10 +14,20 @@ import { StatusSkeleton } from "./status-skeleton";
 export default function Status() {
   const { selectedCharacter } = useCharacter();
   const { isReady } = useCharacterSheet();
-  const { attributes, setAttributes, dirtyFields: attributesDirty } = useAttributesContext();
+  const {
+    attributes,
+    setAttributes,
+    dirtyFields: attributesDirty,
+  } = useAttributesContext();
   const { skills, setSkills, dirtyFields: skillsDirty } = useSkillsContext();
   const { powers, setPowers, dirtyFields: powersDirty } = usePowersContext();
-  const { powerLevel, setPowerLevel, extraPoints, setExtraPoints, dirtyFields: statusDirty } = useStatusContext();
+  const {
+    powerLevel,
+    setPowerLevel,
+    extraPoints,
+    setExtraPoints,
+    dirtyFields: statusDirty,
+  } = useStatusContext();
 
   const lastSyncedVersionRef = useRef<number>(0);
   const lastCharacterIdRef = useRef<string | null>(null);
@@ -34,9 +44,9 @@ export default function Status() {
     // Only sync if the server version is newer
     if (selectedCharacter.version <= lastSyncedVersionRef.current) return;
 
-    console.debug("[Status] Syncing from character", { 
+    console.debug("[Status] Syncing from character", {
       version: selectedCharacter.version,
-      prevVersion: lastSyncedVersionRef.current
+      prevVersion: lastSyncedVersionRef.current,
     });
 
     // Sync Attributes
@@ -62,12 +72,18 @@ export default function Status() {
 
     // Sync Status
     if (selectedCharacter.status) {
-      if (!statusDirty.has("powerLevel") && typeof selectedCharacter.status.powerLevel === "number") {
+      if (
+        !statusDirty.has("powerLevel") &&
+        typeof selectedCharacter.status.powerLevel === "number"
+      ) {
         if (selectedCharacter.status.powerLevel !== powerLevel) {
           setPowerLevel(selectedCharacter.status.powerLevel);
         }
       }
-      if (!statusDirty.has("extraPoints") && typeof selectedCharacter.status.extraPoints === "number") {
+      if (
+        !statusDirty.has("extraPoints") &&
+        typeof selectedCharacter.status.extraPoints === "number"
+      ) {
         if (selectedCharacter.status.extraPoints !== extraPoints) {
           setExtraPoints(selectedCharacter.status.extraPoints);
         }
@@ -77,10 +93,20 @@ export default function Status() {
     lastSyncedVersionRef.current = selectedCharacter.version;
   }, [
     selectedCharacter,
-    attributes, setAttributes, attributesDirty,
-    skills, setSkills, skillsDirty,
-    powers, setPowers, powersDirty,
-    powerLevel, setPowerLevel, extraPoints, setExtraPoints, statusDirty
+    attributes,
+    setAttributes,
+    attributesDirty,
+    skills,
+    setSkills,
+    skillsDirty,
+    powers,
+    setPowers,
+    powersDirty,
+    powerLevel,
+    setPowerLevel,
+    extraPoints,
+    setExtraPoints,
+    statusDirty,
   ]);
 
   if (!isReady) {

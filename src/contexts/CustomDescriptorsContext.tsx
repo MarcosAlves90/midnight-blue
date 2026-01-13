@@ -25,15 +25,24 @@ export function CustomDescriptorsProvider({
 }: {
   children: ReactNode;
 }) {
-  const { state, updateCustomDescriptors: updateSheet, isSyncing } = useCharacterSheet();
+  const {
+    state,
+    updateCustomDescriptors: updateSheet,
+    isSyncing,
+  } = useCharacterSheet();
 
-  const customDescriptors = useMemo(() => state?.customDescriptors ?? [], [state?.customDescriptors]);
+  const customDescriptors = useMemo(
+    () => state?.customDescriptors ?? [],
+    [state?.customDescriptors],
+  );
 
   const addCustomDescriptor = useCallback(
     (descriptor: string) => {
       const trimmed = descriptor.trim().toLowerCase();
       if (trimmed) {
-        updateSheet((prev) => (prev.includes(trimmed) ? prev : [...prev, trimmed]));
+        updateSheet((prev) =>
+          prev.includes(trimmed) ? prev : [...prev, trimmed],
+        );
       }
     },
     [updateSheet],
@@ -46,12 +55,15 @@ export function CustomDescriptorsProvider({
     [updateSheet],
   );
 
-  const value = useMemo(() => ({
-    customDescriptors,
-    addCustomDescriptor,
-    removeCustomDescriptor,
-    isSyncing
-  }), [customDescriptors, addCustomDescriptor, removeCustomDescriptor, isSyncing]);
+  const value = useMemo(
+    () => ({
+      customDescriptors,
+      addCustomDescriptor,
+      removeCustomDescriptor,
+      isSyncing,
+    }),
+    [customDescriptors, addCustomDescriptor, removeCustomDescriptor, isSyncing],
+  );
 
   return (
     <CustomDescriptorsContext.Provider value={value}>

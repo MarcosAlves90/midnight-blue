@@ -21,8 +21,8 @@ export const UserService = {
   async syncUserProfile(user: User): Promise<void> {
     try {
       const userRef = doc(db, "users", user.uid);
-      
-      // Forçamos o refresh do token para garantir que as custom claims mais recentes (como admin) 
+
+      // Forçamos o refresh do token para garantir que as custom claims mais recentes (como admin)
       // sejam detectadas e sincronizadas com o Firestore.
       const tokenResult = await user.getIdTokenResult(true);
       const isAdminClaim = !!tokenResult.claims.admin;
@@ -37,7 +37,10 @@ export const UserService = {
       };
 
       await setDoc(userRef, profile, { merge: true });
-      console.debug("[UserService] Profile synced", { uid: user.uid, isAdmin: isAdminClaim });
+      console.debug("[UserService] Profile synced", {
+        uid: user.uid,
+        isAdmin: isAdminClaim,
+      });
     } catch (err) {
       console.error("[UserService] Error syncing user profile:", err);
     }
@@ -51,7 +54,7 @@ export const UserService = {
       const userRef = doc(db, "users", userId);
       const snap = await getDoc(userRef);
       if (!snap.exists()) return null;
-      
+
       const data = snap.data();
       return {
         id: snap.id,
@@ -76,9 +79,9 @@ export const UserService = {
       const usersCol = collection(db, "users");
       // Não usamos orderBy na query para não omitir documentos sem o campo updatedAt
       const snapshot = await getDocs(usersCol);
-      
+
       return snapshot.docs
-        .map(d => {
+        .map((d) => {
           const data = d.data();
           return {
             id: d.id,
@@ -100,15 +103,18 @@ export const UserService = {
   /**
    * Atualiza o perfil de um usuário (Admin only API)
    */
-  async updateAdminSettings(userId: string, data: { isAdmin?: boolean, disabled?: boolean }): Promise<void> {
+  async updateAdminSettings(
+    userId: string,
+    data: { isAdmin?: boolean; disabled?: boolean },
+  ): Promise<void> {
     const auth = getAuth();
     const token = await auth.currentUser?.getIdToken();
 
     const response = await fetch(`/api/admin/users/${userId}`, {
       method: "PATCH",
-      headers: { 
+      headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(data),
     });
@@ -128,8 +134,8 @@ export const UserService = {
 
     const response = await fetch(`/api/admin/users/${userId}`, {
       method: "DELETE",
-      headers: { 
-        "Authorization": `Bearer ${token}`
+      headers: {
+        Authorization: `Bearer ${token}`,
       },
     });
 
@@ -137,5 +143,5 @@ export const UserService = {
       const error = await response.json();
       throw new Error(error.message || "Falha ao excluir usuário");
     }
-  }
+  },
 };

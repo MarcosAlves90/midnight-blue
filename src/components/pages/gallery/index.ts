@@ -1,1 +1,1 @@
-export {default as CharacterGallery} from "./character-gallery"
+export { default as CharacterGallery } from "./character-gallery";

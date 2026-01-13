@@ -1,4 +1,8 @@
-type Pending = { id: string; resolve: (s: string) => void; reject: (e: unknown) => void };
+type Pending = {
+  id: string;
+  resolve: (s: string) => void;
+  reject: (e: unknown) => void;
+};
 
 // Browser worker based serializer with fallback to requestIdleCallback + JSON.stringify
 export const serializer = (function () {
@@ -20,14 +24,21 @@ export const serializer = (function () {
       }
 
       w.onmessage = (ev) => {
-        const { id, result, error } = ev.data as { id: string; result?: string; error?: string };
+        const { id, result, error } = ev.data as {
+          id: string;
+          result?: string;
+          error?: string;
+        };
         const p = pending.get(id);
         if (!p) return;
         pending.delete(id);
         if (typeof result === "string") {
           if (process.env.NODE_ENV === "development") {
             try {
-              console.debug("[dev-perf] serializer worker response", { id, length: result.length });
+              console.debug("[dev-perf] serializer worker response", {
+                id,
+                length: result.length,
+              });
             } catch {}
           }
           p.resolve(result);

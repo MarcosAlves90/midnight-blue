@@ -2,10 +2,10 @@
 
 import { useState, useMemo } from "react";
 import { Power } from "./types";
-import { ACTION_LABELS, RANGE_LABELS, DURATION_LABELS } from "@/lib/powers";
 import { calculatePowerCost } from "@/lib/powers/utils";
 import { Tip } from "@/components/ui/tip";
 import { ChevronDown, ChevronUp, Trash2, Sparkles, Edit3 } from "lucide-react";
+import { ParameterGrid } from "./components/parameter-grid";
 
 interface PowerCardProps {
   power: Power;
@@ -34,13 +34,11 @@ export function PowerCard({
 
   const globalExtras = power.modifiers.filter(
     (m) =>
-      m.modifier.type === "extra" &&
-      (!m.appliesTo || m.appliesTo.length === 0),
+      m.modifier.type === "extra" && (!m.appliesTo || m.appliesTo.length === 0),
   );
   const globalFlaws = power.modifiers.filter(
     (m) =>
-      m.modifier.type === "falha" &&
-      (!m.appliesTo || m.appliesTo.length === 0),
+      m.modifier.type === "falha" && (!m.appliesTo || m.appliesTo.length === 0),
   );
 
   const action = power.customAction || power.effects[0]?.action || "padrao";
@@ -49,14 +47,14 @@ export function PowerCard({
     power.customDuration || power.effects[0]?.duration || "instantaneo";
 
   return (
-    <div className="bg-background/30 border border-purple-500/20 rounded-lg overflow-hidden transition-all">
+    <div className="bg-background/30 border border-blue-500/20 overflow-hidden transition-all">
       {/* Header */}
       <div
         className="p-3 flex items-center justify-between cursor-pointer hover:bg-background/50 transition-colors"
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <div className="flex items-center gap-3">
-          <div className="p-1.5 rounded-md bg-purple-500/10 text-purple-400">
+          <div className="p-1.5 bg-blue-500/10 text-blue-400">
             <Sparkles className="h-4 w-4" />
           </div>
           <div>
@@ -73,12 +71,12 @@ export function PowerCard({
                         <div className="max-w-xs text-xs">{e.description}</div>
                       }
                     >
-                      <span className="hover:text-purple-400 cursor-help underline decoration-dotted underline-offset-2">
+                      <span className="hover:text-blue-400 cursor-help underline decoration-dotted underline-offset-2">
                         {e.name} {eRank > 0 && `(${eRank})`}
                       </span>
                     </Tip>
                     {i < power.effects.length - 1 && (
-                      <span className="mx-1 text-purple-500/50">+</span>
+                      <span className="mx-1 text-blue-500/50">+</span>
                     )}
                   </span>
                 );
@@ -88,9 +86,9 @@ export function PowerCard({
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5 px-2 py-1 bg-purple-500/10 rounded">
+          <div className="flex items-center gap-1.5 px-2 py-1 bg-blue-500/10">
             <span className="text-xs text-muted-foreground">PP:</span>
-            <span className="text-sm font-bold text-purple-400">{cost}</span>
+            <span className="text-sm font-bold text-blue-400">{cost}</span>
           </div>
           {isExpanded ? (
             <ChevronUp className="h-4 w-4 text-muted-foreground" />
@@ -102,7 +100,7 @@ export function PowerCard({
 
       {/* Expanded Content */}
       {isExpanded && (
-        <div className="px-3 pb-3 space-y-3 border-t border-purple-500/10">
+        <div className="px-3 pb-3 space-y-3 border-t border-blue-500/10">
           {/* Effect Description */}
           <div className="pt-3 space-y-1">
             {power.effects.map((effect, idx) => {
@@ -167,7 +165,8 @@ export function PowerCard({
                 temporal: "Viagem Temporal",
               };
 
-              const selections = (opts?.selections as Record<string, number>) || {};
+              const selections =
+                (opts?.selections as Record<string, number>) || {};
               const effectModifiers = power.modifiers.filter(
                 (m) => m.appliesTo && m.appliesTo.includes(effect.id),
               );
@@ -183,24 +182,24 @@ export function PowerCard({
                   <div className="mt-1 flex flex-wrap gap-1.5 items-center">
                     {opts && (
                       <div className="text-xs text-muted-foreground flex flex-wrap gap-2 items-center">
-                        <span className="px-1.5 py-0.5 bg-purple-500/20 text-purple-300 rounded font-mono text-[10px]">
+                        <span className="px-1.5 py-0.5 bg-blue-500/20 text-blue-300 font-mono text-[10px]">
                           Graduação {opts.rank ?? power.rank}
                         </span>
                         {Object.entries(selections).map(([key, val]) => (
                           <span
                             key={key}
-                            className="px-2 py-0.5 text-[10px] bg-purple-500/10 text-purple-300 rounded border border-purple-500/20"
+                            className="px-2 py-0.5 text-[10px] bg-blue-500/10 text-blue-300 border border-blue-500/20"
                           >
                             {subLabelMap[key] || key} ({val})
                           </span>
                         ))}
                         {opts.sub && (
-                          <span className="px-2 py-0.5 text-[10px] bg-purple-500/10 text-purple-300 rounded border border-purple-500/20">
+                          <span className="px-2 py-0.5 text-[10px] bg-blue-500/10 text-blue-300 border border-blue-500/20">
                             {subLabelMap[opts.sub] || opts.sub}
                           </span>
                         )}
                         {opts.ppCost && (
-                          <span className="px-2 py-0.5 text-[10px] bg-background/30 rounded">
+                          <span className="px-2 py-0.5 text-[10px] bg-background/30">
                             {opts.ppCost} PP/grad
                           </span>
                         )}
@@ -217,14 +216,16 @@ export function PowerCard({
                         }
                       >
                         <span
-                          className={`px-1.5 py-0.5 text-[10px] rounded border ${
+                          className={`px-1.5 py-0.5 text-[10px] border ${
                             m.modifier.type === "extra"
                               ? "bg-green-500/5 text-green-300 border-green-500/20"
                               : "bg-red-500/5 text-red-300 border-red-500/20"
                           }`}
                         >
                           {m.modifier.name}{" "}
-                          {m.modifier.isFlat ? "" : `(${m.modifier.costPerRank > 0 ? "+" : ""}${m.modifier.costPerRank})`}
+                          {m.modifier.isFlat
+                            ? ""
+                            : `(${m.modifier.costPerRank > 0 ? "+" : ""}${m.modifier.costPerRank})`}
                         </span>
                       </Tip>
                     ))}
@@ -235,32 +236,12 @@ export function PowerCard({
           </div>
 
           {/* Parameters Grid */}
-          <div className="grid grid-cols-3 gap-2">
-            <div className="bg-background/40 p-2 rounded">
-              <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
-                Ação
-              </span>
-              <p className="text-xs font-medium text-foreground">
-                {ACTION_LABELS[action]}
-              </p>
-            </div>
-            <div className="bg-background/40 p-2 rounded">
-              <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
-                Alcance
-              </span>
-              <p className="text-xs font-medium text-foreground">
-                {RANGE_LABELS[range]}
-              </p>
-            </div>
-            <div className="bg-background/40 p-2 rounded">
-              <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
-                Duração
-              </span>
-              <p className="text-xs font-medium text-foreground">
-                {DURATION_LABELS[duration]}
-              </p>
-            </div>
-          </div>
+          <ParameterGrid 
+            action={action} 
+            range={range} 
+            duration={duration}
+            className="grid grid-cols-1 gap-1.5" 
+          />
 
           {/* Descriptors */}
           {power.descriptors.length > 0 && (
@@ -268,7 +249,7 @@ export function PowerCard({
               {power.descriptors.map((descriptor, idx) => (
                 <span
                   key={idx}
-                  className="px-2 py-0.5 text-[10px] font-medium bg-purple-500/10 text-purple-300 rounded-full"
+                  className="px-2 py-0.5 text-[10px] font-medium bg-blue-500/10 text-blue-300"
                 >
                   {descriptor}
                 </span>
@@ -295,7 +276,7 @@ export function PowerCard({
                           </div>
                         }
                       >
-                        <span className="px-2 py-0.5 text-[10px] bg-green-500/10 text-green-300 rounded cursor-help">
+                        <span className="px-2 py-0.5 text-[10px] bg-green-500/10 text-green-300 cursor-help">
                           {instance.modifier.name} (+
                           {(instance.options?.costPerRank as number) ??
                             instance.modifier.costPerRank}
@@ -322,7 +303,7 @@ export function PowerCard({
                           </div>
                         }
                       >
-                        <span className="px-2 py-0.5 text-[10px] bg-red-500/10 text-red-300 rounded cursor-help">
+                        <span className="px-2 py-0.5 text-[10px] bg-red-500/10 text-red-300 cursor-help">
                           {instance.modifier.name}
                           {instance.modifierId === "tipo" &&
                             typeof instance.options?.subType === "string" && (
@@ -349,7 +330,7 @@ export function PowerCard({
 
           {/* Alternative Effects (Arranjos) */}
           {power.alternatives && power.alternatives.length > 0 && (
-            <div className="space-y-2 border-t border-purple-500/20 pt-2">
+            <div className="space-y-2 border-t border-blue-500/20 pt-2">
               <span className="text-[10px] text-indigo-400 uppercase tracking-wider font-bold">
                 Poderes Alternativos (Arranjo)
               </span>
@@ -357,7 +338,7 @@ export function PowerCard({
                 {power.alternatives.map((alt) => (
                   <div
                     key={alt.id}
-                    className="p-2 bg-indigo-500/5 border border-indigo-500/10 rounded"
+                    className="p-2 bg-indigo-500/5 border border-indigo-500/10"
                   >
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-bold text-indigo-300">
@@ -385,7 +366,7 @@ export function PowerCard({
 
           {/* Notes */}
           {power.notes && (
-            <p className="text-xs text-muted-foreground italic border-l-2 border-purple-500/30 pl-2">
+            <p className="text-xs text-muted-foreground italic border-l-2 border-blue-500/30 pl-2">
               {power.notes}
             </p>
           )}
@@ -399,7 +380,7 @@ export function PowerCard({
                     e.stopPropagation();
                     onEdit(power);
                   }}
-                  className="flex-1 p-2 flex items-center justify-center gap-2 text-xs text-purple-400 hover:text-purple-300 hover:bg-purple-500/10 rounded transition-colors"
+                  className="flex-1 p-2 flex items-center justify-center gap-2 text-xs text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 transition-colors"
                 >
                   <Edit3 className="h-3 w-3" />
                   Editar
@@ -410,7 +391,7 @@ export function PowerCard({
                   e.stopPropagation();
                   onDelete(power.id);
                 }}
-                className="flex-1 p-2 flex items-center justify-center gap-2 text-xs text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded transition-colors"
+                className="flex-1 p-2 flex items-center justify-center gap-2 text-xs text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors"
               >
                 <Trash2 className="h-3 w-3" />
                 Remover

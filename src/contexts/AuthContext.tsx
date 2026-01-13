@@ -27,7 +27,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const auth = getClientAuth();
     const unsub = onAuthStateChanged(auth, async (u) => {
       setUser(u);
-      
+
       if (u) {
         // Sincroniza perfil em background
         UserService.syncUserProfile(u).catch(console.error);
@@ -43,7 +43,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } else {
         setIsAdmin(false);
       }
-      
+
       setLoading(false);
     });
     return () => unsub();
@@ -61,11 +61,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         "midnight-skills",
         "midnight-status",
         "midnight-powers",
-        "customDescriptors"
+        "customDescriptors",
       ];
-      
-      keysToClear.forEach(key => {
-        try { localStorage.removeItem(key); } catch {}
+
+      keysToClear.forEach((key) => {
+        try {
+          localStorage.removeItem(key);
+        } catch {}
       });
 
       // Clear character document cache from localStorage
@@ -77,7 +79,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         }
       } catch {}
-
     } catch (err) {
       console.error("Error clearing localStorage on signOut:", err);
     }
@@ -93,7 +94,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, isAdmin, loading, signOut, refreshUser }}>
+    <AuthContext.Provider
+      value={{ user, isAdmin, loading, signOut, refreshUser }}
+    >
       {children}
     </AuthContext.Provider>
   );

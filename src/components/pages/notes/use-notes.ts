@@ -8,7 +8,7 @@ export function useNotesState() {
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
-  
+
   const [noteDialogOpen, setNoteDialogOpen] = useState(false);
   const [folderDialogOpen, setFolderDialogOpen] = useState(false);
   const [deleteFolderDialogOpen, setDeleteFolderDialogOpen] = useState(false);
@@ -18,49 +18,76 @@ export function useNotesState() {
   const [editorOpen, setEditorOpen] = useState(false);
 
   return {
-    notes, setNotes,
-    folders, setFolders,
-    isLoading, setIsLoading,
-    error, setError,
-    searchQuery, setSearchQuery,
-    currentFolderId, setCurrentFolderId,
-    noteDialogOpen, setNoteDialogOpen,
-    folderDialogOpen, setFolderDialogOpen,
-    deleteFolderDialogOpen, setDeleteFolderDialogOpen,
-    folderToDelete, setFolderToDelete,
-    folderToEdit, setFolderToEdit,
-    selectedNote, setSelectedNote,
-    editorOpen, setEditorOpen
+    notes,
+    setNotes,
+    folders,
+    setFolders,
+    isLoading,
+    setIsLoading,
+    error,
+    setError,
+    searchQuery,
+    setSearchQuery,
+    currentFolderId,
+    setCurrentFolderId,
+    noteDialogOpen,
+    setNoteDialogOpen,
+    folderDialogOpen,
+    setFolderDialogOpen,
+    deleteFolderDialogOpen,
+    setDeleteFolderDialogOpen,
+    folderToDelete,
+    setFolderToDelete,
+    folderToEdit,
+    setFolderToEdit,
+    selectedNote,
+    setSelectedNote,
+    editorOpen,
+    setEditorOpen,
   };
 }
 
 export function useNotesActions(
   userId: string | null,
   characterId: string | null,
-  state: ReturnType<typeof useNotesState>
+  state: ReturnType<typeof useNotesState>,
 ) {
-  const { 
-    setError, 
+  const {
+    setError,
     setNoteDialogOpen,
     setFolderDialogOpen,
     setEditorOpen,
-    setSelectedNote
+    setSelectedNote,
   } = state;
 
-  const listenToNotes = useCallback((callback: (notes: Note[]) => void) => {
-    if (!userId || !characterId) return () => {};
-    return noteService.listenToNotes(userId, characterId, callback);
-  }, [userId, characterId]);
+  const listenToNotes = useCallback(
+    (callback: (notes: Note[]) => void) => {
+      if (!userId || !characterId) return () => {};
+      return noteService.listenToNotes(userId, characterId, callback);
+    },
+    [userId, characterId],
+  );
 
-  const listenToFolders = useCallback((callback: (folders: NoteFolder[]) => void) => {
-    if (!userId || !characterId) return () => {};
-    return noteService.listenToFolders(userId, characterId, callback);
-  }, [userId, characterId]);
+  const listenToFolders = useCallback(
+    (callback: (folders: NoteFolder[]) => void) => {
+      if (!userId || !characterId) return () => {};
+      return noteService.listenToFolders(userId, characterId, callback);
+    },
+    [userId, characterId],
+  );
 
-  const handleCreateNote = async (title: string, content: string, folderId: string | null) => {
+  const handleCreateNote = async (
+    title: string,
+    content: string,
+    folderId: string | null,
+  ) => {
     if (!userId || !characterId) return;
     try {
-      await noteService.createNote(userId, characterId, { title, content, folderId });
+      await noteService.createNote(userId, characterId, {
+        title,
+        content,
+        folderId,
+      });
       setNoteDialogOpen(false);
     } catch (err) {
       console.error("Erro ao criar nota:", err);
@@ -146,6 +173,6 @@ export function useNotesActions(
     handleUpdateFolder,
     handleDeleteFolder,
     handleMoveNote,
-    openEditor
+    openEditor,
   };
 }

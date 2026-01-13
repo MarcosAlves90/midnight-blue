@@ -2,11 +2,11 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { 
-  Users, 
-  PlusCircle, 
-  Store, 
-  BookOpen, 
+import {
+  Users,
+  PlusCircle,
+  Store,
+  BookOpen,
   ChevronRight,
   Activity,
   Shield,
@@ -31,8 +31,20 @@ import { QuickActionLink } from "@/components/pages/dashboard/dashboard-cards";
 
 // --- Constants & Configuration ---
 
-const BACKGROUND_ROTATION_TEXTS = ["Sevastopol", "Infinity Corp", "USC Terminal", "Nexus", "Black TMW"];
-const ENCRYPTION_PROTOCOLS = ["AES-256", "RSA-4096", "SHA-512", "ECC-384", "CHACHA20"];
+const BACKGROUND_ROTATION_TEXTS = [
+  "Sevastopol",
+  "Infinity Corp",
+  "USC Terminal",
+  "Nexus",
+  "Black TMW",
+];
+const ENCRYPTION_PROTOCOLS = [
+  "AES-256",
+  "RSA-4096",
+  "SHA-512",
+  "ECC-384",
+  "CHACHA20",
+];
 const RECENT_DOSSIERS_LIMIT = 3;
 
 // --- Custom Hooks ---
@@ -60,20 +72,24 @@ function useTerminalStatus() {
   const [status, setStatus] = useState({
     latency: 14,
     encryption: "AES-256",
-    terminalId: ""
+    terminalId: "",
   });
 
   useEffect(() => {
-    const generateId = () => Math.random().toString(36).substring(7).toUpperCase();
-    setStatus(prev => ({ ...prev, terminalId: generateId() }));
+    const generateId = () =>
+      Math.random().toString(36).substring(7).toUpperCase();
+    setStatus((prev) => ({ ...prev, terminalId: generateId() }));
 
     const interval = setInterval(() => {
-      setStatus(prev => ({
+      setStatus((prev) => ({
         latency: Math.floor(Math.random() * 40) + 10,
-        encryption: Math.random() > 0.8 
-          ? ENCRYPTION_PROTOCOLS[Math.floor(Math.random() * ENCRYPTION_PROTOCOLS.length)] 
-          : prev.encryption,
-        terminalId: Math.random() > 0.95 ? generateId() : prev.terminalId
+        encryption:
+          Math.random() > 0.8
+            ? ENCRYPTION_PROTOCOLS[
+                Math.floor(Math.random() * ENCRYPTION_PROTOCOLS.length)
+              ]
+            : prev.encryption,
+        terminalId: Math.random() > 0.95 ? generateId() : prev.terminalId,
       }));
     }, 3000);
 
@@ -97,14 +113,24 @@ function DashboardBackground({ display }: { display: string }) {
 }
 
 function ScanlineOverlay() {
-  return <div className="pointer-events-none fixed inset-0 z-50 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.05)_50%),linear-gradient(90deg,rgba(255,0,0,0.01),rgba(0,255,0,0.005),rgba(0,0,255,0.01))] bg-[size:100%_4px,3px_100%] opacity-20" />;
+  return (
+    <div className="pointer-events-none fixed inset-0 z-50 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.05)_50%),linear-gradient(90deg,rgba(255,0,0,0.01),rgba(0,255,0,0.005),rgba(0,0,255,0.01))] bg-[size:100%_4px,3px_100%] opacity-20" />
+  );
 }
 
 function HeroBadges() {
   return (
     <div className="flex flex-wrap gap-2">
-      <Badge icon={<Shield className="h-3 w-3" />} label="Sevastopol Intelligence" color="blue" />
-      <Badge icon={<Cpu className="h-3 w-3" />} label="Infinity Corp Uplink" color="indigo" />
+      <Badge
+        icon={<Shield className="h-3 w-3" />}
+        label="Sevastopol Intelligence"
+        color="blue"
+      />
+      <Badge
+        icon={<Cpu className="h-3 w-3" />}
+        label="Infinity Corp Uplink"
+        color="indigo"
+      />
       <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-500/10 border border-green-500/20 text-green-400 text-[10px] font-bold tracking-wider uppercase animate-pulse">
         <Activity className="h-3 w-3" /> Sincronizado
       </div>
@@ -112,7 +138,15 @@ function HeroBadges() {
   );
 }
 
-function TerminalStatusBar({ latency, encryption, terminalId }: { latency: number, encryption: string, terminalId: string }) {
+function TerminalStatusBar({
+  latency,
+  encryption,
+  terminalId,
+}: {
+  latency: number;
+  encryption: string;
+  terminalId: string;
+}) {
   return (
     <div className="absolute bottom-4 left-12 right-12 hidden md:flex items-center justify-between opacity-30 font-mono text-[8px] uppercase tracking-widest">
       <div className="flex gap-4">
@@ -127,27 +161,36 @@ function TerminalStatusBar({ latency, encryption, terminalId }: { latency: numbe
   );
 }
 
-function HeroSection({ 
-  agentName, onNewCharacter, onViewGallery, bulletin
-}: { 
-  agentName: string, onNewCharacter: () => void, onViewGallery: () => void, bulletin?: React.ReactNode
+function HeroSection({
+  agentName,
+  onNewCharacter,
+  onViewGallery,
+  bulletin,
+}: {
+  agentName: string;
+  onNewCharacter: () => void;
+  onViewGallery: () => void;
+  bulletin?: React.ReactNode;
 }) {
   const status = useTerminalStatus();
 
   return (
     <div className="relative h-full overflow-hidden bg-muted/10 backdrop-blur-md border border-primary/10 p-6 md:p-10 shadow-2xl shadow-primary/5 group">
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:32px_32px] opacity-50 pointer-events-none" />
-      
+
       {/* Decorative corner elements */}
       <div className="absolute top-0 left-0 w-16 h-16 border-t-2 border-l-2 border-primary/20 group-hover:border-primary/40 transition-colors" />
       <div className="absolute bottom-0 right-0 w-16 h-16 border-b-2 border-r-2 border-primary/20 group-hover:border-primary/40 transition-colors" />
-      
+
       <div className="relative z-10 grid gap-8 lg:grid-cols-12 items-center h-full">
         <div className="lg:col-span-7 space-y-6">
           <HeroBadges />
-          
+
           <div className="space-y-1">
-            <GlitchText className="text-3xl md:text-5xl font-black tracking-tighter italic uppercase leading-none text-primary" glitchChance={0.03}>
+            <GlitchText
+              className="text-3xl md:text-5xl font-black tracking-tighter italic uppercase leading-none text-primary"
+              glitchChance={0.03}
+            >
               Terminal de Comando
             </GlitchText>
             <div className="flex items-center gap-3">
@@ -159,14 +202,24 @@ function HeroSection({
           </div>
 
           <p className="text-sm md:text-base text-muted-foreground max-w-md leading-relaxed font-medium">
-            Bem-vindo ao nexo operacional. Gerencie dossiês de indivíduos ultra-humanos e monitore atividades em tempo real.
+            Bem-vindo ao nexo operacional. Gerencie dossiês de indivíduos
+            ultra-humanos e monitore atividades em tempo real.
           </p>
-          
+
           <div className="flex flex-wrap gap-3">
-            <Button size="lg" onClick={onNewCharacter} className="h-12 px-6 gap-2 font-bold uppercase tracking-tight bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]">
+            <Button
+              size="lg"
+              onClick={onNewCharacter}
+              className="h-12 px-6 gap-2 font-bold uppercase tracking-tight bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+            >
               <PlusCircle className="h-5 w-5" /> Registrar Indivíduo
             </Button>
-            <Button size="lg" variant="outline" onClick={onViewGallery} className="h-12 px-6 gap-2 font-bold uppercase tracking-tight border-primary/20 bg-primary/5 hover:bg-primary/10 hover:border-primary/40 transition-all">
+            <Button
+              size="lg"
+              variant="outline"
+              onClick={onViewGallery}
+              className="h-12 px-6 gap-2 font-bold uppercase tracking-tight border-primary/20 bg-primary/5 hover:bg-primary/10 hover:border-primary/40 transition-all"
+            >
               <FileText className="h-5 w-5" /> Arquivos de Caso
             </Button>
           </div>
@@ -182,11 +235,11 @@ function HeroSection({
           </div>
         )}
       </div>
-      
+
       {/* Background elements for Hero */}
       <div className="absolute top-0 right-0 -mt-20 -mr-20 h-80 w-80 rounded-full bg-primary/10 blur-[100px] animate-pulse" />
       <div className="absolute bottom-0 right-0 -mb-20 -mr-20 h-96 w-96 rounded-full bg-primary/5 blur-[120px]" />
-      
+
       <div className="absolute top-1/2 right-12 -translate-y-1/2 hidden lg:block opacity-[0.03] group-hover:opacity-[0.07] transition-opacity duration-700">
         <Terminal className="h-80 w-80 text-primary" strokeWidth={0.5} />
       </div>
@@ -199,18 +252,20 @@ function HeroSection({
 function ProtocolSection() {
   return (
     <div className="space-y-3">
-      <h2 className="text-xl font-black tracking-tighter uppercase italic opacity-80">Protocolos</h2>
+      <h2 className="text-xl font-black tracking-tighter uppercase italic opacity-80">
+        Protocolos
+      </h2>
       <div className="grid gap-2">
-        <QuickActionLink 
-          href="/dashboard/loja" 
-          icon={<Store className="h-5 w-5" />} 
-          title="Arsenal & Tecnologia" 
+        <QuickActionLink
+          href="/dashboard/loja"
+          icon={<Store className="h-5 w-5" />}
+          title="Arsenal & Tecnologia"
           description="Equipamentos fornecidos pela Infinity Corp."
         />
-        <QuickActionLink 
-          href="/dashboard/wiki" 
-          icon={<BookOpen className="h-5 w-5" />} 
-          title="Base de Dados USC" 
+        <QuickActionLink
+          href="/dashboard/wiki"
+          icon={<BookOpen className="h-5 w-5" />}
+          title="Base de Dados USC"
           description="Arquivos históricos e diretrizes da Sevastopol."
         />
       </div>
@@ -222,26 +277,27 @@ export default function DashboardPage() {
   const router = useRouter();
   const { user } = useAuth();
   const bgText = useBackgroundRotation(BACKGROUND_ROTATION_TEXTS);
-  
-  const { 
-    characters, 
-    isLoading, 
+
+  const {
+    characters,
+    isLoading,
     dialogOpen,
-    setDialogOpen, 
+    setDialogOpen,
     deletingId,
-    handleSelectCharacter, 
+    handleSelectCharacter,
     handleDeleteCharacter,
   } = useGallery();
 
   // Derived State (Memoized for performance)
-  const recentCharacters = useMemo(() => 
-    [...characters]
-      .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())
-      .slice(0, RECENT_DOSSIERS_LIMIT),
-    [characters]
+  const recentCharacters = useMemo(
+    () =>
+      [...characters]
+        .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())
+        .slice(0, RECENT_DOSSIERS_LIMIT),
+    [characters],
   );
 
-  const agentName = user?.displayName?.split(' ')[0] || 'OPERACIONAL';
+  const agentName = user?.displayName?.split(" ")[0] || "OPERACIONAL";
 
   return (
     <div className="relative min-h-screen space-y-6 pb-10 animate-in fade-in duration-700 overflow-hidden">
@@ -249,23 +305,23 @@ export default function DashboardPage() {
       <ScanlineOverlay />
 
       <div className="grid gap-6 items-stretch">
-        <HeroSection 
-          agentName={agentName} 
-          onNewCharacter={() => setDialogOpen(true)} 
-          onViewGallery={() => router.push('/dashboard/galeria')}
+        <HeroSection
+          agentName={agentName}
+          onNewCharacter={() => setDialogOpen(true)}
+          onViewGallery={() => router.push("/dashboard/galeria")}
           bulletin={<OperationsBulletin embedded />}
         />
       </div>
 
       <div className="grid gap-6 md:grid-cols-7">
         <section className="md:col-span-4 space-y-4">
-          <SectionHeader 
-            title="Dossiês Recentes" 
-            actionLabel="Ver todos" 
-            onAction={() => router.push('/dashboard/galeria')} 
+          <SectionHeader
+            title="Dossiês Recentes"
+            actionLabel="Ver todos"
+            onAction={() => router.push("/dashboard/galeria")}
           />
-          
-          <RecentDossiersList 
+
+          <RecentDossiersList
             isLoading={isLoading}
             characters={recentCharacters}
             onSelect={handleSelectCharacter}
@@ -289,20 +345,39 @@ export default function DashboardPage() {
   );
 }
 
-function Badge({ icon, label, color }: { icon: React.ReactNode, label: string, color: 'blue' | 'indigo' }) {
-  const colorClasses = color === 'blue' 
-    ? "bg-primary/10 border-primary/20 text-primary/80" 
-    : "bg-indigo-500/10 border-indigo-500/20 text-indigo-400";
-    
+function Badge({
+  icon,
+  label,
+  color,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  color: "blue" | "indigo";
+}) {
+  const colorClasses =
+    color === "blue"
+      ? "bg-primary/10 border-primary/20 text-primary/80"
+      : "bg-indigo-500/10 border-indigo-500/20 text-indigo-400";
+
   return (
-    <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full border text-[10px] font-bold tracking-wider uppercase ${colorClasses}`}>
+    <div
+      className={`inline-flex items-center gap-2 px-3 py-1 rounded-full border text-[10px] font-bold tracking-wider uppercase ${colorClasses}`}
+    >
       {icon}
       {label}
     </div>
   );
 }
 
-function SectionHeader({ title, actionLabel, onAction }: { title: string, actionLabel: string, onAction: () => void }) {
+function SectionHeader({
+  title,
+  actionLabel,
+  onAction,
+}: {
+  title: string;
+  actionLabel: string;
+  onAction: () => void;
+}) {
   return (
     <div className="flex items-center justify-between mb-2">
       <div className="flex items-center gap-3">
@@ -310,9 +385,15 @@ function SectionHeader({ title, actionLabel, onAction }: { title: string, action
           <div className="h-8 w-1 bg-primary rounded-full" />
           <div className="absolute top-0 left-0 h-8 w-1 bg-primary blur-sm opacity-50" />
         </div>
-        <h2 className="text-2xl font-black tracking-tighter uppercase italic text-foreground/90">{title}</h2>
+        <h2 className="text-2xl font-black tracking-tighter uppercase italic text-foreground/90">
+          {title}
+        </h2>
       </div>
-      <Button variant="ghost" onClick={onAction} className="gap-1 text-[10px] font-bold uppercase tracking-[0.2em] hover:text-primary hover:bg-primary/5 transition-all">
+      <Button
+        variant="ghost"
+        onClick={onAction}
+        className="gap-1 text-[10px] font-bold uppercase tracking-[0.2em] hover:text-primary hover:bg-primary/5 transition-all"
+      >
         {actionLabel} <ChevronRight className="h-3 w-3" />
       </Button>
     </div>
@@ -328,13 +409,13 @@ interface RecentDossiersListProps {
   onStartFirstRecord: () => void;
 }
 
-function RecentDossiersList({ 
-  isLoading, 
-  characters, 
-  onSelect, 
-  onDelete, 
-  deletingId, 
-  onStartFirstRecord 
+function RecentDossiersList({
+  isLoading,
+  characters,
+  onSelect,
+  onDelete,
+  deletingId,
+  onStartFirstRecord,
 }: RecentDossiersListProps) {
   if (isLoading) {
     return (
@@ -352,9 +433,17 @@ function RecentDossiersList({
         <div className="rounded-full bg-primary/5 p-6 mb-6 border border-primary/10 animate-pulse">
           <Users className="h-10 w-10 text-primary/60" />
         </div>
-        <h3 className="text-xl font-black uppercase tracking-tighter italic mb-2">Sem registros no banco</h3>
-        <p className="text-muted-foreground mb-8 text-sm max-w-xs font-medium">Nenhum indivíduo ultra-humano foi registrado sob sua jurisdição até o momento.</p>
-        <Button onClick={onStartFirstRecord} className="font-bold uppercase tracking-tight h-12 px-8 bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20">
+        <h3 className="text-xl font-black uppercase tracking-tighter italic mb-2">
+          Sem registros no banco
+        </h3>
+        <p className="text-muted-foreground mb-8 text-sm max-w-xs font-medium">
+          Nenhum indivíduo ultra-humano foi registrado sob sua jurisdição até o
+          momento.
+        </p>
+        <Button
+          onClick={onStartFirstRecord}
+          className="font-bold uppercase tracking-tight h-12 px-8 bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20"
+        >
           <PlusCircle className="mr-2 h-5 w-5" />
           Iniciar Primeiro Registro
         </Button>
@@ -376,4 +465,3 @@ function RecentDossiersList({
     </div>
   );
 }
-

@@ -18,38 +18,40 @@ interface CharacterImageProps extends Omit<ImageProps, "src" | "alt"> {
 
 /**
  * CharacterImage Component
- * 
+ *
  * Centralizes the logic for rendering character profile images with consistent
  * vertical positioning (object-position) across the application.
  */
-export const CharacterImage = React.memo(({ 
-  src, 
-  alt, 
-  imagePosition, 
-  className, 
-  style,
-  fallback,
-  ...props 
-}: CharacterImageProps) => {
-  // Use nullish coalescing to ensure 0 is treated as a valid position
-  const position = imagePosition ?? 50;
+export const CharacterImage = React.memo(
+  ({
+    src,
+    alt,
+    imagePosition,
+    className,
+    style,
+    fallback,
+    ...props
+  }: CharacterImageProps) => {
+    // Use nullish coalescing to ensure 0 is treated as a valid position
+    const position = imagePosition ?? 50;
 
-  if (!src) {
-    return fallback ? <>{fallback}</> : null;
-  }
+    if (!src) {
+      return fallback ? <>{fallback}</> : null;
+    }
 
-  return (
-    <Image
-      src={src}
-      alt={alt}
-      className={cn("object-cover", className)}
-      style={{
-        objectPosition: `center ${position}%`,
-        ...style,
-      }}
-      {...props}
-    />
-  );
-});
+    return (
+      <Image
+        src={src}
+        alt={alt}
+        className={cn("object-cover", className)}
+        style={{
+          objectPosition: `center ${position}%`,
+          ...style,
+        }}
+        {...props}
+      />
+    );
+  },
+);
 
 CharacterImage.displayName = "CharacterImage";

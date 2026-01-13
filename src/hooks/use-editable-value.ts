@@ -13,7 +13,7 @@ export function useEditableValue(
   const [value, setValue] = useState(initialValue);
   const [inputValue, setInputValue] = useState(initialValue.toString());
   const limits = getInputLimits(customLimits);
-  
+
   const isDirtyRef = useRef(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastEmittedValueRef = useRef(initialValue);
@@ -48,7 +48,7 @@ export function useEditableValue(
           limits.MIN_VALUE,
           Math.min(limits.MAX_VALUE, newValue),
         );
-        
+
         setValue(clampedValue);
         setInputValue(inputVal); // Mantém o que o usuário digitou (ex: "05") até o blur
 
@@ -56,7 +56,7 @@ export function useEditableValue(
           lastEmittedValueRef.current = clampedValue;
           onChange?.(clampedValue);
         }
-        
+
         if (isForce) {
           setInputValue(clampedValue.toString());
           isDirtyRef.current = false;
@@ -69,7 +69,7 @@ export function useEditableValue(
   const handleChange = useCallback(
     (inputVal: string) => {
       if (disabled) return;
-      
+
       // Permitir apenas números ou vazio
       if (inputVal === "" || /^\d+$/.test(inputVal)) {
         setInputValue(inputVal);

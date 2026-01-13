@@ -39,25 +39,39 @@ export const MovimentoOptions: FC<MovimentoOptionsProps> = ({
       {/* Header de Distribuição Otimizado */}
       <div className="relative overflow-hidden bg-background/40 border border-border/40 rounded-lg p-3 group/header">
         {/* Progresso de Fundo (Simbolismo Visual) */}
-        <div 
+        <div
           className="absolute inset-y-0 left-0 bg-purple-500/5 transition-all duration-500 ease-out"
-          style={{ width: `${Math.min(100, (totalSelectedRanks / rank) * 100)}%` }}
+          style={{
+            width: `${Math.min(100, (totalSelectedRanks / rank) * 100)}%`,
+          }}
         />
-        
+
         <div className="relative flex items-center justify-between gap-4">
           <div className="flex flex-col gap-0.5">
             <h4 className="text-[10px] font-black uppercase tracking-[0.15em] text-muted-foreground/80">
               Distribuição
             </h4>
             <div className="flex items-baseline gap-1.5">
-              <span className={`text-xl font-mono font-bold leading-none ${
-                remainingRanks < 0 ? "text-red-400" : remainingRanks === 0 ? "text-green-400" : "text-purple-400"
-              }`}>
+              <span
+                className={`text-xl font-mono font-bold leading-none ${
+                  remainingRanks < 0
+                    ? "text-red-400"
+                    : remainingRanks === 0
+                      ? "text-green-400"
+                      : "text-purple-400"
+                }`}
+              >
                 {totalSelectedRanks}
               </span>
-              <span className="text-xs text-muted-foreground/60 font-medium">/</span>
-              <span className="text-sm font-mono text-muted-foreground font-bold">{rank}</span>
-              <span className="text-[10px] text-muted-foreground font-medium ml-1">Graduações</span>
+              <span className="text-xs text-muted-foreground/60 font-medium">
+                /
+              </span>
+              <span className="text-sm font-mono text-muted-foreground font-bold">
+                {rank}
+              </span>
+              <span className="text-[10px] text-muted-foreground font-medium ml-1">
+                Graduações
+              </span>
             </div>
           </div>
 
@@ -66,7 +80,7 @@ export const MovimentoOptions: FC<MovimentoOptionsProps> = ({
               <div className="px-2 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 whitespace-nowrap backdrop-blur-sm">
                 <span className="text-[9px] text-amber-400 font-bold flex items-center gap-1">
                   <span className="h-1 w-1 rounded-full bg-amber-400 animate-pulse" />
-                  {remainingRanks} {remainingRanks === 1 ? 'LIVRE' : 'LIVRES'}
+                  {remainingRanks} {remainingRanks === 1 ? "LIVRE" : "LIVRES"}
                 </span>
               </div>
             ) : remainingRanks < 0 ? (
@@ -110,7 +124,11 @@ export const MovimentoOptions: FC<MovimentoOptionsProps> = ({
                   {s.label}
                 </span>
                 <Tip
-                  content={<div className="max-w-xs text-[10px] leading-relaxed">{s.tip}</div>}
+                  content={
+                    <div className="max-w-xs text-[10px] leading-relaxed">
+                      {s.tip}
+                    </div>
+                  }
                   side="top"
                 >
                   <Info className="h-3 w-3 text-muted-foreground/50 hover:text-purple-400 cursor-help" />
@@ -122,19 +140,25 @@ export const MovimentoOptions: FC<MovimentoOptionsProps> = ({
                   {[...Array(s.maxRank)].map((_, i) => {
                     const level = i + 1;
                     const isSelected = currentVal >= level;
-                    const canSelect = remainingRanks >= (level - currentVal) || isSelected;
+                    const canSelect =
+                      remainingRanks >= level - currentVal || isSelected;
 
                     return (
                       <button
                         key={level}
                         disabled={!canSelect && !isSelected}
-                        onClick={() => updateSelection(s.id, currentVal === level ? level - 1 : level)}
+                        onClick={() =>
+                          updateSelection(
+                            s.id,
+                            currentVal === level ? level - 1 : level,
+                          )
+                        }
                         className={`flex-1 h-5 text-[10px] font-bold rounded transition-colors ${
                           isSelected
                             ? "bg-purple-500 text-white"
                             : level <= currentVal + remainingRanks
-                            ? "bg-purple-500/10 text-purple-400 hover:bg-purple-500/20"
-                            : "bg-muted/30 text-muted-foreground/30 cursor-not-allowed"
+                              ? "bg-purple-500/10 text-purple-400 hover:bg-purple-500/20"
+                              : "bg-muted/30 text-muted-foreground/30 cursor-not-allowed"
                         }`}
                       >
                         {level}
@@ -150,8 +174,8 @@ export const MovimentoOptions: FC<MovimentoOptionsProps> = ({
                     isActive
                       ? "bg-purple-500 text-white"
                       : remainingRanks > 0
-                      ? "bg-purple-500/10 text-purple-400 hover:bg-purple-500/20"
-                      : "bg-muted/30 text-muted-foreground/30 cursor-not-allowed"
+                        ? "bg-purple-500/10 text-purple-400 hover:bg-purple-500/20"
+                        : "bg-muted/30 text-muted-foreground/30 cursor-not-allowed"
                   }`}
                 >
                   {isActive ? "Ativo" : "Selecionar"}

@@ -1,5 +1,10 @@
 import { useEffect } from "react";
-import { hexToRgb, getOptimalCardBackground, getContrastColor, adjustBrightness } from "@/lib/colors";
+import {
+  hexToRgb,
+  getOptimalCardBackground,
+  getContrastColor,
+  adjustBrightness,
+} from "@/lib/colors";
 
 /**
  * Hook para gerenciar as variáveis de CSS do tema de identidade do personagem.
@@ -18,7 +23,10 @@ export function useIdentityTheme(color: string) {
 
     root.style.setProperty("--identity-theme-color", newColor);
     root.style.setProperty("--identity-theme-rgb", hexToRgb(newColor));
-    root.style.setProperty("--identity-card-bg", getOptimalCardBackground(newColor));
+    root.style.setProperty(
+      "--identity-card-bg",
+      getOptimalCardBackground(newColor),
+    );
     root.style.setProperty("--identity-contrast-text", contrastText);
     root.style.setProperty("--identity-accent-color", accentColor);
   };

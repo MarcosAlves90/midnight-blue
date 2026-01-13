@@ -3,12 +3,7 @@
 import { useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { 
-  Search, 
-  FolderPlus, 
-  Plus,
-  StickyNote
-} from "lucide-react";
+import { Search, FolderPlus, Plus, StickyNote } from "lucide-react";
 import { useNotesState, useNotesActions } from "./use-notes";
 import { useSelectedCharacter } from "@/hooks/use-selected-character";
 import { NoteCard } from "./note-card";
@@ -24,15 +19,15 @@ export default function NotesGallery() {
   const { user } = useAuth();
   const { character, isLoading: isCharLoading } = useSelectedCharacter();
   const state = useNotesState();
-  
+
   // Determinamos o dono dos dados (dono da ficha ou usuário logado como fallback)
   const effectiveUserId = character?.userId || user?.uid || null;
 
-  const { 
-    setNotes, 
+  const {
+    setNotes,
     setFolders,
-    setIsLoading, 
-    setError, 
+    setIsLoading,
+    setError,
     searchQuery,
     setSearchQuery,
     currentFolderId,
@@ -47,10 +42,10 @@ export default function NotesGallery() {
     setFolderToDelete,
     selectedNote,
     editorOpen,
-    setEditorOpen
+    setEditorOpen,
   } = state;
 
-  const { 
+  const {
     listenToNotes,
     listenToFolders,
     handleCreateNote,
@@ -59,13 +54,10 @@ export default function NotesGallery() {
     handleCreateFolder,
     handleUpdateFolder,
     handleDeleteFolder,
-    openEditor
+    openEditor,
   } = useNotesActions(effectiveUserId, character?.id || null, state);
 
-  const { 
-    folderToEdit,
-    setFolderToEdit
-  } = state;
+  const { folderToEdit, setFolderToEdit } = state;
 
   // Escuta mudanças em tempo real
   useEffect(() => {
@@ -100,14 +92,24 @@ export default function NotesGallery() {
       if (unsubscribeNotes) unsubscribeNotes();
       if (unsubscribeFolders) unsubscribeFolders();
     };
-  }, [effectiveUserId, character, isCharLoading, listenToNotes, listenToFolders, setNotes, setFolders, setError, setIsLoading]);
+  }, [
+    effectiveUserId,
+    character,
+    isCharLoading,
+    listenToNotes,
+    listenToFolders,
+    setNotes,
+    setFolders,
+    setError,
+    setIsLoading,
+  ]);
 
   // Breadcrumb logic
   const getFolderPath = (folderId: string | null) => {
     const path = [];
     let currentId = folderId;
     while (currentId) {
-      const folder = state.folders.find(f => f.id === currentId);
+      const folder = state.folders.find((f) => f.id === currentId);
       if (folder) {
         path.unshift(folder);
         currentId = folder.parentId || null;
@@ -120,19 +122,21 @@ export default function NotesGallery() {
 
   const folderPath = getFolderPath(currentFolderId);
 
-  const filteredFolders = state.folders.filter(f => {
-    const matchesSearch = f.name.toLowerCase().includes(searchQuery.toLowerCase());
+  const filteredFolders = state.folders.filter((f) => {
+    const matchesSearch = f.name
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase());
     const matchesParent = (f.parentId || null) === currentFolderId;
     return matchesSearch && matchesParent;
   });
 
   const filteredNotes = state.notes.filter((note) => {
-    const matchesSearch = 
+    const matchesSearch =
       note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       note.content.toLowerCase().includes(searchQuery.toLowerCase());
-    
+
     const matchesFolder = (note.folderId || null) === currentFolderId;
-    
+
     return matchesSearch && matchesFolder;
   });
 
@@ -148,9 +152,12 @@ export default function NotesGallery() {
     return (
       <div className="flex flex-col items-center justify-center min-h-96 text-center space-y-4">
         <StickyNote className="w-12 h-12 text-muted-foreground opacity-20" />
-        <h2 className="text-xl font-bold uppercase tracking-tighter">Nenhum Personagem Selecionado</h2>
+        <h2 className="text-xl font-bold uppercase tracking-tighter">
+          Nenhum Personagem Selecionado
+        </h2>
         <p className="text-muted-foreground max-w-xs">
-          Selecione um personagem no menu lateral para visualizar ou criar anotações específicas para ele.
+          Selecione um personagem no menu lateral para visualizar ou criar
+          anotações específicas para ele.
         </p>
       </div>
     );
@@ -161,7 +168,10 @@ export default function NotesGallery() {
       title="Anotações"
       description={
         <p>
-          Notas de <span className="text-primary font-bold">{character.identity.name}</span>
+          Notas de{" "}
+          <span className="text-primary font-bold">
+            {character.identity.name}
+          </span>
         </p>
       }
       searchPlaceholder="Pesquisar em notas..."
@@ -172,11 +182,20 @@ export default function NotesGallery() {
       onFolderClick={setCurrentFolderId}
       actions={
         <>
-          <Button variant="outline" size="sm" onClick={() => setFolderDialogOpen(true)} className="h-9">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setFolderDialogOpen(true)}
+            className="h-9"
+          >
             <FolderPlus className="w-4 h-4 mr-2" />
             Nova Pasta
           </Button>
-          <Button size="sm" onClick={() => setNoteDialogOpen(true)} className="h-9">
+          <Button
+            size="sm"
+            onClick={() => setNoteDialogOpen(true)}
+            className="h-9"
+          >
             <Plus className="w-4 h-4 mr-2" />
             Nova Nota
           </Button>
@@ -233,8 +252,12 @@ export default function NotesGallery() {
       {state.notes.length === 0 && state.folders.length === 0 ? (
         <div className="text-center py-20 border-2 border-dashed rounded-lg bg-muted/10">
           <StickyNote className="w-12 h-12 mx-auto text-muted-foreground opacity-20 mb-4" />
-          <h3 className="text-lg font-medium uppercase tracking-tighter">Nenhuma anotação ainda</h3>
-          <p className="text-muted-foreground mb-6">Comece a organizar suas ideias agora mesmo.</p>
+          <h3 className="text-lg font-medium uppercase tracking-tighter">
+            Nenhuma anotação ainda
+          </h3>
+          <p className="text-muted-foreground mb-6">
+            Comece a organizar suas ideias agora mesmo.
+          </p>
           <Button onClick={() => setNoteDialogOpen(true)}>
             Criar minha primeira nota
           </Button>
@@ -243,8 +266,16 @@ export default function NotesGallery() {
         <div className="text-center py-12 border-2 border-dashed rounded-lg">
           <Search className="w-12 h-12 mx-auto text-muted-foreground opacity-20 mb-4" />
           <h3 className="text-lg font-medium">Nenhum item encontrado</h3>
-          <p className="text-muted-foreground">Tente ajustar sua pesquisa ou filtro.</p>
-          <Button variant="link" onClick={() => { setSearchQuery(""); setCurrentFolderId(null); }}>
+          <p className="text-muted-foreground">
+            Tente ajustar sua pesquisa ou filtro.
+          </p>
+          <Button
+            variant="link"
+            onClick={() => {
+              setSearchQuery("");
+              setCurrentFolderId(null);
+            }}
+          >
             Limpar filtros
           </Button>
         </div>

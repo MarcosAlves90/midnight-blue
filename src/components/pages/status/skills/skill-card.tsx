@@ -42,14 +42,14 @@ function SkillCard({
     (v) => onChange?.(id, "value", v),
     disabled,
     undefined,
-    () => markFieldDirty("skills")
+    () => markFieldDirty("skills"),
   );
   const othersState = useEditableValue(
     others ?? 0,
     (v) => onChange?.(id, "others", v),
     disabled,
     undefined,
-    () => markFieldDirty("skills")
+    () => markFieldDirty("skills"),
   );
 
   const { attributes } = useAttributesContext();
@@ -70,8 +70,7 @@ function SkillCard({
     id === "COMBATE_CORPO_A_CORPO" || id === "COMBATE_DISTANCIA";
 
   const exceedsLimit = totalBonus > skillLimit;
-  const combatLimitExceeded =
-    isCombatSkill && totalBonus > 2 * powerLevel;
+  const combatLimitExceeded = isCombatSkill && totalBonus > 2 * powerLevel;
 
   const handleRollSkill = () => {
     const modifiers = [attrValue, valueState.value];
@@ -139,11 +138,18 @@ function SkillCard({
                       <p>{description}</p>
                       <div className="pt-1 border-t border-muted/20 flex flex-col gap-0.5">
                         <span className="text-[10px] opacity-80">
-                          <strong className="text-primary">Ação:</strong> {action || "—"}
+                          <strong className="text-primary">Ação:</strong>{" "}
+                          {action || "—"}
                         </span>
                         <span className="text-[10px] opacity-80">
-                          <strong className="text-primary">Apenas Treinado:</strong>{" "}
-                          {onlyTrained ? (id === "ESPECIALIDADE" ? "Sim*" : "Sim") : "Não"}
+                          <strong className="text-primary">
+                            Apenas Treinado:
+                          </strong>{" "}
+                          {onlyTrained
+                            ? id === "ESPECIALIDADE"
+                              ? "Sim*"
+                              : "Sim"
+                            : "Não"}
                         </span>
                       </div>
                     </div>

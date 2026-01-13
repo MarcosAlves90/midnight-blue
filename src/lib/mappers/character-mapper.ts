@@ -4,14 +4,19 @@ import type { Skill } from "@/components/pages/status/skills/types";
 import type { Power } from "@/components/pages/status/powers/types";
 import { INITIAL_ATTRIBUTES } from "@/components/pages/status/attributes-grid/constants";
 import { INITIAL_SKILLS } from "@/components/pages/status/skills/constants";
-import type { CharacterDocument, SavedAttribute, SavedSkill } from "@/lib/types/character";
+import type {
+  CharacterDocument,
+  SavedAttribute,
+  SavedSkill,
+} from "@/lib/types/character";
 
 /**
  * Converte valores do Firestore (que podem ser Timestamps) para objetos Date.
  */
 export function toDateSafe(value: unknown): Date {
   const candidate = value as { toDate?: () => Date } | undefined;
-  if (candidate && typeof candidate.toDate === "function") return candidate.toDate();
+  if (candidate && typeof candidate.toDate === "function")
+    return candidate.toDate();
   if (value instanceof Date) return value;
   return new Date();
 }
@@ -19,7 +24,9 @@ export function toDateSafe(value: unknown): Date {
 /**
  * Normaliza os dados de identidade, garantindo que campos obrigatórios existam.
  */
-export function normalizeIdentity(raw: Partial<IdentityData> | Record<string, unknown> = {}): IdentityData {
+export function normalizeIdentity(
+  raw: Partial<IdentityData> | Record<string, unknown> = {},
+): IdentityData {
   const r = raw as Record<string, unknown>;
   const name = (r.name as string) || (r.displayName as string) || "";
   const heroName = (r.heroName as string) || (r.hero as string) || "";
@@ -29,14 +36,18 @@ export function normalizeIdentity(raw: Partial<IdentityData> | Record<string, un
 /**
  * Serializa atributos para salvamento no Firestore.
  */
-export function serializeAttributes(attributes: Attribute[] = INITIAL_ATTRIBUTES): SavedAttribute[] {
+export function serializeAttributes(
+  attributes: Attribute[] = INITIAL_ATTRIBUTES,
+): SavedAttribute[] {
   return attributes.map((a) => ({ id: a.id, value: a.value }));
 }
 
 /**
  * Serializa perícias para salvamento no Firestore.
  */
-export function serializeSkills(skills: Skill[] = INITIAL_SKILLS): SavedSkill[] {
+export function serializeSkills(
+  skills: Skill[] = INITIAL_SKILLS,
+): SavedSkill[] {
   return skills.map((s) => {
     const saved: SavedSkill = {
       id: s.id,
@@ -53,7 +64,10 @@ export function serializeSkills(skills: Skill[] = INITIAL_SKILLS): SavedSkill[] 
  * Hidrata atributos salvos com as definições iniciais.
  */
 function hydrateAttributes(saved: SavedAttribute[] = []): Attribute[] {
-  return INITIAL_ATTRIBUTES.map((base) => ({ ...base, value: saved.find((s) => s.id === base.id)?.value ?? 0 }));
+  return INITIAL_ATTRIBUTES.map((base) => ({
+    ...base,
+    value: saved.find((s) => s.id === base.id)?.value ?? 0,
+  }));
 }
 
 /**
@@ -95,7 +109,9 @@ function hydrateSkills(saved: SavedSkill[] = []): Skill[] {
 /**
  * Hidrata objeto de defesas com valores padrão (zeros) para evitar undefined
  */
-function hydrateDefenses(saved: Record<string, unknown> | undefined): Required<CharacterDocument["defenses"]> {
+function hydrateDefenses(
+  saved: Record<string, unknown> | undefined,
+): Required<CharacterDocument["defenses"]> {
   const base: Required<CharacterDocument["defenses"]> = {
     aparar: 0,
     esquiva: 0,
@@ -116,7 +132,10 @@ function hydrateDefenses(saved: Record<string, unknown> | undefined): Required<C
 /**
  * Mapeia um documento bruto do Firestore para o modelo CharacterDocument do domínio.
  */
-export function mapFirestoreToCharacter(id: string, data: Record<string, unknown>): CharacterDocument {
+export function mapFirestoreToCharacter(
+  id: string,
+  data: Record<string, unknown>,
+): CharacterDocument {
   const perfKey = `mapFirestoreToCharacter:${id}`;
   try {
     performance.mark(`${perfKey}-start`);
@@ -124,7 +143,9 @@ export function mapFirestoreToCharacter(id: string, data: Record<string, unknown
     // ignore
   }
 
-  const identity = normalizeIdentity((data.identity as Record<string, unknown>) || data);
+  const identity = normalizeIdentity(
+    (data.identity as Record<string, unknown>) || data,
+  );
 
   const result: CharacterDocument = {
     id,
@@ -133,8 +154,10 @@ export function mapFirestoreToCharacter(id: string, data: Record<string, unknown
     updatedAt: toDateSafe(data.updatedAt),
     version: Number((data.version as number) ?? 0),
     identity,
-    attributes: hydrateAttributes((data.attributes as unknown) as SavedAttribute[] || []),
-    skills: hydrateSkills((data.skills as unknown) as SavedSkill[] || []),
+    attributes: hydrateAttributes(
+      (data.attributes as unknown as SavedAttribute[]) || [],
+    ),
+    skills: hydrateSkills((data.skills as unknown as SavedSkill[]) || []),
     powers: (data.powers as Power[]) || [],
     status: {
       powerLevel: 10,
@@ -142,7 +165,9 @@ export function mapFirestoreToCharacter(id: string, data: Record<string, unknown
       ...((data.status as Record<string, unknown>) || {}),
     },
     customDescriptors: (data.customDescriptors as string[]) || [],
-    defenses: hydrateDefenses(data.defenses as Record<string, unknown> | undefined),
+    defenses: hydrateDefenses(
+      data.defenses as Record<string, unknown> | undefined,
+    ),
     folderId: data.folderId ? String(data.folderId) : undefined,
   };
 

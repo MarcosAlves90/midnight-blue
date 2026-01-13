@@ -81,7 +81,10 @@ interface IdentityContextType {
   isReady: boolean;
 
   /** Conflict resolution APIs */
-  conflict: null | { server: CharacterDocument; attempted: Partial<CharacterData> };
+  conflict: null | {
+    server: CharacterDocument;
+    attempted: Partial<CharacterData>;
+  };
   resolveKeepLocal: () => Promise<void>;
   resolveUseServer: () => void;
   openConflictModal: () => void;
@@ -110,28 +113,31 @@ type IdentityActions = Pick<
   | "getField"
 >;
 
-const IdentityActionsContext = createContext<IdentityActions | undefined>(undefined);
+const IdentityActionsContext = createContext<IdentityActions | undefined>(
+  undefined,
+);
 
 export const useIdentityActions = () => {
   const ctx = useContext(IdentityActionsContext);
-  if (!ctx) throw new Error("useIdentityActions must be used within IdentityProvider");
+  if (!ctx)
+    throw new Error("useIdentityActions must be used within IdentityProvider");
   return ctx;
 };
 
 export const IdentityProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const { 
-    state, 
-    updateIdentity: updateIdentitySheet, 
-    dirtyFields, 
-    isSyncing, 
+  const {
+    state,
+    updateIdentity: updateIdentitySheet,
+    dirtyFields,
+    isSyncing,
     isReady,
-    conflict, 
-    resolveKeepLocal, 
+    conflict,
+    resolveKeepLocal,
     resolveUseServer,
     saveNow,
-    markFieldDirty
+    markFieldDirty,
   } = useCharacterSheet();
 
   const identity = state?.identity ?? INITIAL_IDENTITY;
@@ -147,7 +153,7 @@ export const IdentityProvider: React.FC<{ children: React.ReactNode }> = ({
     const changedFields: string[] = [];
     const prevRec = prev as unknown as Record<string, unknown>;
     const nextRec = identity as unknown as Record<string, unknown>;
-    
+
     Object.keys(identity).forEach((key) => {
       if (prevRec[key] !== nextRec[key]) {
         changedFields.push(key);
@@ -179,9 +185,12 @@ export const IdentityProvider: React.FC<{ children: React.ReactNode }> = ({
     return identityRef.current[field];
   }, []);
 
-  const updateIdentity = useCallback(<K extends keyof IdentityData>(field: K, value: IdentityData[K]) => {
-    updateIdentitySheet({ [field]: value });
-  }, [updateIdentitySheet]);
+  const updateIdentity = useCallback(
+    <K extends keyof IdentityData>(field: K, value: IdentityData[K]) => {
+      updateIdentitySheet({ [field]: value });
+    },
+    [updateIdentitySheet],
+  );
 
   const markFieldsSaved = useCallback(() => {}, []);
 

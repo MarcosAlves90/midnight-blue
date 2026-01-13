@@ -22,13 +22,13 @@ interface NewFolderDialogProps {
   folderToEdit?: NoteFolder | null;
 }
 
-export function NewFolderDialog({ 
-  open, 
-  onOpenChange, 
-  onCreate, 
+export function NewFolderDialog({
+  open,
+  onOpenChange,
+  onCreate,
   onUpdate,
   parentId,
-  folderToEdit 
+  folderToEdit,
 }: NewFolderDialogProps) {
   const [name, setName] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -79,11 +79,19 @@ export function NewFolderDialog({
             />
           </div>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+            >
               Cancelar
             </Button>
             <Button type="submit" disabled={!name.trim() || isSubmitting}>
-              {isSubmitting ? "Salvando..." : folderToEdit ? "Salvar Alterações" : "Criar Pasta"}
+              {isSubmitting
+                ? "Salvando..."
+                : folderToEdit
+                  ? "Salvar Alterações"
+                  : "Criar Pasta"}
             </Button>
           </DialogFooter>
         </form>

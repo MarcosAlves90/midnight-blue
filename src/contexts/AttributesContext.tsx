@@ -21,27 +21,46 @@ const AttributesContext = createContext<AttributesContextType | undefined>(
 export const AttributesProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const { state, updateAttributes: updateSheet, isSyncing, dirtyFields, markFieldDirty } = useCharacterSheet();
+  const {
+    state,
+    updateAttributes: updateSheet,
+    isSyncing,
+    dirtyFields,
+    markFieldDirty,
+  } = useCharacterSheet();
 
   const attributes = state?.attributes ?? INITIAL_ATTRIBUTES;
 
-  const updateAttributes = useCallback((action: React.SetStateAction<Attribute[]>) => {
-    updateSheet(action);
-  }, [updateSheet]);
+  const updateAttributes = useCallback(
+    (action: React.SetStateAction<Attribute[]>) => {
+      updateSheet(action);
+    },
+    [updateSheet],
+  );
 
   const resetAttributes = useCallback(() => {
     updateSheet(INITIAL_ATTRIBUTES);
   }, [updateSheet]);
 
-  const value = useMemo(() => ({
-    attributes,
-    setAttributes: () => {}, // No longer used directly
-    updateAttributes,
-    resetAttributes,
-    isSyncing,
-    dirtyFields,
-    markFieldDirty
-  }), [attributes, updateAttributes, resetAttributes, isSyncing, dirtyFields, markFieldDirty]);
+  const value = useMemo(
+    () => ({
+      attributes,
+      setAttributes: () => {}, // No longer used directly
+      updateAttributes,
+      resetAttributes,
+      isSyncing,
+      dirtyFields,
+      markFieldDirty,
+    }),
+    [
+      attributes,
+      updateAttributes,
+      resetAttributes,
+      isSyncing,
+      dirtyFields,
+      markFieldDirty,
+    ],
+  );
 
   return (
     <AttributesContext.Provider value={value}>

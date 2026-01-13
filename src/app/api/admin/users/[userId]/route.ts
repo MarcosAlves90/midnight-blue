@@ -7,7 +7,7 @@ import { adminAuth, adminDb, verifyIdToken } from "@/lib/firebaseAdmin";
 async function checkAdmin(req: Request) {
   const authHeader = req.headers.get("Authorization");
   if (!authHeader?.startsWith("Bearer ")) return false;
-  
+
   const token = authHeader.split(" ")[1];
   try {
     const decoded = await verifyIdToken(token);
@@ -22,10 +22,10 @@ async function checkAdmin(req: Request) {
  */
 export async function PATCH(
   req: Request,
-  { params }: { params: Promise<{ userId: string }> }
+  { params }: { params: Promise<{ userId: string }> },
 ) {
   const { userId } = await params;
-  
+
   if (!(await checkAdmin(req))) {
     return NextResponse.json({ message: "Não autorizado" }, { status: 403 });
   }
@@ -47,7 +47,10 @@ export async function PATCH(
     }
 
     if (Object.keys(updates).length > 0) {
-      await adminDb.collection("users").doc(userId).set(updates, { merge: true });
+      await adminDb
+        .collection("users")
+        .doc(userId)
+        .set(updates, { merge: true });
     }
 
     return NextResponse.json({ success: true });
@@ -55,7 +58,7 @@ export async function PATCH(
     console.error("[AdminAPI] Error updating user:", error);
     return NextResponse.json(
       { message: error instanceof Error ? error.message : "Erro desconhecido" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -65,7 +68,7 @@ export async function PATCH(
  */
 export async function DELETE(
   req: Request,
-  { params }: { params: Promise<{ userId: string }> }
+  { params }: { params: Promise<{ userId: string }> },
 ) {
   const { userId } = await params;
 
@@ -78,7 +81,7 @@ export async function DELETE(
     await adminAuth.deleteUser(userId);
 
     // 2. Excluir dados do Firestore (Recursivo opcional, aqui via batch simples ou delete doc)
-    // Nota: O ideal seria deletar subcoleções, mas para MVP o doc principal e as 
+    // Nota: O ideal seria deletar subcoleções, mas para MVP o doc principal e as
     // regras de segurança do Firebase impedirão acesso posterior se o Auth sumiu.
     // Deletamos o documento do usuário.
     await adminDb.collection("users").doc(userId).delete();
@@ -88,7 +91,7 @@ export async function DELETE(
     console.error("[AdminAPI] Error deleting user:", error);
     return NextResponse.json(
       { message: error instanceof Error ? error.message : "Erro desconhecido" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

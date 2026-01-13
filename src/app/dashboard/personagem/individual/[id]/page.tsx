@@ -4,7 +4,11 @@ export const metadata = {
   title: "Identidade",
 };
 
-export default async function PersonagemByIdPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function PersonagemByIdPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const { id } = await params;
 
   return (

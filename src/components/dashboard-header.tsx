@@ -21,7 +21,13 @@ const SyncStatus = () => {
   const { isSyncing: powersSyncing } = usePowersContext();
   const { isSyncing: descriptorsSyncing } = useCustomDescriptors();
 
-  const isSyncing = identitySyncing || attributesSyncing || skillsSyncing || statusSyncing || powersSyncing || descriptorsSyncing;
+  const isSyncing =
+    identitySyncing ||
+    attributesSyncing ||
+    skillsSyncing ||
+    statusSyncing ||
+    powersSyncing ||
+    descriptorsSyncing;
 
   return (
     <div className="flex items-center gap-2 px-2 text-xs text-muted-foreground transition-opacity duration-300">
@@ -51,7 +57,9 @@ export const DashboardHeader = React.memo(function DashboardHeader() {
         console.debug(`[dev-dashboard-header] render #${renderRef.current}`);
       }
       if (renderRef.current === 10) {
-        console.debug("[dev-dashboard-header] further renders will be suppressed in logs");
+        console.debug(
+          "[dev-dashboard-header] further renders will be suppressed in logs",
+        );
       }
     }
   });

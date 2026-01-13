@@ -61,7 +61,7 @@ export function NavUser({
       const newMode = !isAdminMode;
       setIsAdminMode(newMode);
       resetAdmin();
-      
+
       // Se entrar no modo admin, redireciona automaticamente para a galeria
       if (newMode) {
         router.push("/dashboard/galeria");
@@ -155,7 +155,9 @@ export function NavUser({
                     <span className="truncate font-medium">
                       {user?.name || "Convidado"}
                     </span>
-                    <span className="truncate text-xs">{user?.email || ""}</span>
+                    <span className="truncate text-xs">
+                      {user?.email || ""}
+                    </span>
                   </div>
                 </div>
               </DropdownMenuLabel>
@@ -173,9 +175,15 @@ export function NavUser({
                     onClick={toggleAdminMode}
                     className={isAdminMode ? "text-primary" : ""}
                   >
-                    <Infinity className={isAdminMode ? "text-primary anim-pulse" : ""} />
+                    <Infinity
+                      className={isAdminMode ? "text-primary anim-pulse" : ""}
+                    />
                     Infinity Corp
-                    {isAdminMode && <span className="ml-auto text-[10px] bg-primary/10 px-1 rounded uppercase font-bold">ON</span>}
+                    {isAdminMode && (
+                      <span className="ml-auto text-[10px] bg-primary/10 px-1 rounded uppercase font-bold">
+                        ON
+                      </span>
+                    )}
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuItem

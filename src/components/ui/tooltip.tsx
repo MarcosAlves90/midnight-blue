@@ -74,7 +74,7 @@ function TooltipTrigger({
     timerRef.current = setTimeout(() => {
       isLongPressRef.current = true;
       context?.setOpen(true);
-      
+
       // Feedback tátil (vibração) se disponível
       if (typeof window !== "undefined" && window.navigator.vibrate) {
         window.navigator.vibrate(40);

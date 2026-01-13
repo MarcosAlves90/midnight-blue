@@ -20,12 +20,9 @@ export const PowerBuilderPreview = memo(
     selectedEffects,
   }: PowerBuilderPreviewProps) => {
     return (
-      <div className="hidden lg:flex flex-col bg-muted/5 p-6 border-l border-border/50">
-        <div className="sticky top-6 space-y-6">
+      <div className="hidden lg:flex flex-col bg-muted/5 border-border/50">
+        <div className="sticky top-6 space-y-5">
           <div>
-            <h3 className="text-sm font-medium text-muted-foreground mb-4 uppercase tracking-wider">
-              Pré-visualização
-            </h3>
             <PowerCard
               power={power}
               isEditMode={false}
@@ -34,9 +31,9 @@ export const PowerBuilderPreview = memo(
             />
           </div>
 
-          <div className="p-4 bg-background/50 rounded-xl border border-border/50 space-y-4">
+          <div className="p-4 bg-background/50 border border-border/50 space-y-4">
             <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-purple-400" />
+              <Sparkles className="h-4 w-4 text-blue-400" />
               Custo Total
             </h4>
 
@@ -113,7 +110,7 @@ export const PowerBuilderPreview = memo(
                       PP
                     </span>
                   </div>
-                  <div className="flex justify-between text-purple-400 border-t border-border/50 pt-1 mt-1">
+                  <div className="flex justify-between text-blue-400 border-t border-border/50 pt-1 mt-1">
                     <span>Modificadores Fixos</span>
                     <span>
                       {selectedModifierInstances
@@ -136,7 +133,7 @@ export const PowerBuilderPreview = memo(
               <span className="text-sm font-medium text-muted-foreground">
                 Total Final
               </span>
-              <span className="text-2xl font-bold text-purple-400">
+              <span className="text-2xl font-bold text-blue-400">
                 {calculateCost()} PP
               </span>
             </div>

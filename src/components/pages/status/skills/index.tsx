@@ -31,7 +31,8 @@ function SkillsList({
 }: {
   isEditMode?: boolean;
 }) {
-  const { skills, updateSkill, addSpecialization, removeSkill } = useSkillsContext();
+  const { skills, updateSkill, addSpecialization, removeSkill } =
+    useSkillsContext();
   const [isEditMode, setIsEditMode] = useState(initialIsEditMode);
   const [sortOption, setSortOption] = useState<SortOption>("name-asc");
   const [searchTerm, setSearchTerm] = useState("");
@@ -41,7 +42,10 @@ function SkillsList({
   const [selectedTemplate, setSelectedTemplate] = useState("");
   const [specName, setSpecName] = useState("");
 
-  const templates = useMemo(() => INITIAL_SKILLS.filter(s => s.isTemplate), []);
+  const templates = useMemo(
+    () => INITIAL_SKILLS.filter((s) => s.isTemplate),
+    [],
+  );
 
   const handleAddSpec = () => {
     if (selectedTemplate && specName.trim()) {
@@ -86,7 +90,9 @@ function SkillsList({
         (skill.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
           skill.attribute.toLowerCase().includes(searchTerm.toLowerCase()) ||
           (skill.abbreviation &&
-            skill.abbreviation.toLowerCase().includes(searchTerm.toLowerCase()))),
+            skill.abbreviation
+              .toLowerCase()
+              .includes(searchTerm.toLowerCase()))),
     );
 
     // Depois ordena
@@ -137,7 +143,9 @@ function SkillsList({
                   onChange={(e) => setSelectedTemplate(e.target.value)}
                   className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  <option value="" disabled className="bg-background">Selecione o tipo...</option>
+                  <option value="" disabled className="bg-background">
+                    Selecione o tipo...
+                  </option>
                   {templates.map((t) => (
                     <option key={t.id} value={t.id} className="bg-background">
                       {t.name}
@@ -157,7 +165,10 @@ function SkillsList({
               </div>
             </div>
             <DialogFooter>
-              <Button onClick={handleAddSpec} disabled={!selectedTemplate || !specName.trim()}>
+              <Button
+                onClick={handleAddSpec}
+                disabled={!selectedTemplate || !specName.trim()}
+              >
                 Adicionar
               </Button>
             </DialogFooter>
@@ -172,7 +183,9 @@ function SkillsList({
             ? "bg-primary text-primary-foreground hover:bg-primary/90"
             : "bg-muted-foreground/20 text-muted-foreground hover:bg-muted-foreground/30"
         }`}
-        title={isEditMode ? "Desativar modo de edição" : "Ativar modo de edição"}
+        title={
+          isEditMode ? "Desativar modo de edição" : "Ativar modo de edição"
+        }
         aria-label={
           isEditMode ? "Desativar modo de edição" : "Ativar modo de edição"
         }
@@ -197,13 +210,27 @@ function SkillsList({
         className="flex h-8 w-full items-center justify-between rounded-md border border-input bg-transparent px-3 py-1 text-xs shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 appearance-none pr-8 cursor-pointer hover:bg-accent/50"
         aria-label="Ordenar perícias"
       >
-        <option value="name-asc" className="bg-background">Nome (A-Z)</option>
-        <option value="name-desc" className="bg-background">Nome (Z-A)</option>
-        <option value="attribute" className="bg-background">Por Atributo</option>
-        <option value="value-asc" className="bg-background">Valor (↑)</option>
-        <option value="value-desc" className="bg-background">Valor (↓)</option>
-        <option value="others-asc" className="bg-background">Bônus (↑)</option>
-        <option value="others-desc" className="bg-background">Bônus (↓)</option>
+        <option value="name-asc" className="bg-background">
+          Nome (A-Z)
+        </option>
+        <option value="name-desc" className="bg-background">
+          Nome (Z-A)
+        </option>
+        <option value="attribute" className="bg-background">
+          Por Atributo
+        </option>
+        <option value="value-asc" className="bg-background">
+          Valor (↑)
+        </option>
+        <option value="value-desc" className="bg-background">
+          Valor (↓)
+        </option>
+        <option value="others-asc" className="bg-background">
+          Bônus (↑)
+        </option>
+        <option value="others-desc" className="bg-background">
+          Bônus (↓)
+        </option>
       </select>
       <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
     </div>
@@ -270,7 +297,9 @@ function SkillsList({
               value={skill.value ?? 0}
               others={skill.others ?? 0}
               onChange={handleChange}
-              onRemove={skill.parentId ? () => removeSkill(skill.id) : undefined}
+              onRemove={
+                skill.parentId ? () => removeSkill(skill.id) : undefined
+              }
               disabled={!isEditMode}
             />
           ))}

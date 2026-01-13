@@ -1,10 +1,5 @@
 ﻿"use client";
-import React, {
-  createContext,
-  useContext,
-  useCallback,
-  useMemo,
-} from "react";
+import React, { createContext, useContext, useCallback, useMemo } from "react";
 import { useCharacterSheet } from "./CharacterSheetContext";
 
 interface StatusContextType {
@@ -24,39 +19,63 @@ const StatusContext = createContext<StatusContextType | undefined>(undefined);
 export const StatusProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const { state, updateStatus: updateSheet, isSyncing, dirtyFields, markFieldDirty: markSheetDirty } = useCharacterSheet();
+  const {
+    state,
+    updateStatus: updateSheet,
+    isSyncing,
+    dirtyFields,
+    markFieldDirty: markSheetDirty,
+  } = useCharacterSheet();
 
   const powerLevel = state?.status?.powerLevel ?? 10;
   const extraPoints = state?.status?.extraPoints ?? 0;
 
-  const updatePowerLevel = useCallback((level: number) => {
-    updateSheet({ powerLevel: level });
-  }, [updateSheet]);
+  const updatePowerLevel = useCallback(
+    (level: number) => {
+      updateSheet({ powerLevel: level });
+    },
+    [updateSheet],
+  );
 
-  const updateExtraPoints = useCallback((points: number) => {
-    updateSheet({ extraPoints: points });
-  }, [updateSheet]);
+  const updateExtraPoints = useCallback(
+    (points: number) => {
+      updateSheet({ extraPoints: points });
+    },
+    [updateSheet],
+  );
 
-  const markFieldDirty = useCallback((field: string = "status") => {
-    markSheetDirty(field);
-  }, [markSheetDirty]);
+  const markFieldDirty = useCallback(
+    (field: string = "status") => {
+      markSheetDirty(field);
+    },
+    [markSheetDirty],
+  );
 
-  const value = useMemo(() => ({
-    powerLevel,
-    setPowerLevel: () => {},
-    updatePowerLevel,
-    extraPoints,
-    setExtraPoints: () => {},
-    updateExtraPoints,
-    isSyncing,
-    dirtyFields,
-    markFieldDirty
-  }), [powerLevel, updatePowerLevel, extraPoints, updateExtraPoints, isSyncing, dirtyFields, markFieldDirty]);
+  const value = useMemo(
+    () => ({
+      powerLevel,
+      setPowerLevel: () => {},
+      updatePowerLevel,
+      extraPoints,
+      setExtraPoints: () => {},
+      updateExtraPoints,
+      isSyncing,
+      dirtyFields,
+      markFieldDirty,
+    }),
+    [
+      powerLevel,
+      updatePowerLevel,
+      extraPoints,
+      updateExtraPoints,
+      isSyncing,
+      dirtyFields,
+      markFieldDirty,
+    ],
+  );
 
   return (
-    <StatusContext.Provider value={value}>
-      {children}
-    </StatusContext.Provider>
+    <StatusContext.Provider value={value}>{children}</StatusContext.Provider>
   );
 };
 

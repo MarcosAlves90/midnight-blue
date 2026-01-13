@@ -9,7 +9,18 @@ interface FormInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 }
 
 const FormInput = React.forwardRef<HTMLInputElement, FormInputProps>(
-  ({ className, variant = "transparent", debounceMs, onChange, value, onBlur, ...props }, ref) => {
+  (
+    {
+      className,
+      variant = "transparent",
+      debounceMs,
+      onChange,
+      value,
+      onBlur,
+      ...props
+    },
+    ref,
+  ) => {
     const variantClasses = {
       default: "border border-input",
       transparent: "bg-muted/20 border-transparent focus:bg-background",
@@ -24,39 +35,48 @@ const FormInput = React.forwardRef<HTMLInputElement, FormInputProps>(
       setLocalValue(String(value ?? ""));
     }, [value]);
 
-    const handleChangeDebounced = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-      const v = e.target.value;
-      setLocalValue(v);
-      if (!debounceMs || !onChange) {
-        return;
-      }
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-      timeoutRef.current = window.setTimeout(() => {
-        // Create a fresh event-like object to send the latest value
-        const ev = Object.assign({}, e, { target: { ...e.target, value: v } });
-        try {
-          onChange(ev as React.ChangeEvent<HTMLInputElement>);
-        } catch {
-          // ignore
+    const handleChangeDebounced = React.useCallback(
+      (e: React.ChangeEvent<HTMLInputElement>) => {
+        const v = e.target.value;
+        setLocalValue(v);
+        if (!debounceMs || !onChange) {
+          return;
         }
-        timeoutRef.current = undefined;
-      }, debounceMs);
-    }, [onChange, debounceMs]);
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        timeoutRef.current = window.setTimeout(() => {
+          // Create a fresh event-like object to send the latest value
+          const ev = Object.assign({}, e, {
+            target: { ...e.target, value: v },
+          });
+          try {
+            onChange(ev as React.ChangeEvent<HTMLInputElement>);
+          } catch {
+            // ignore
+          }
+          timeoutRef.current = undefined;
+        }, debounceMs);
+      },
+      [onChange, debounceMs],
+    );
 
-    const handleBlurDebounced = React.useCallback((e: React.FocusEvent<HTMLInputElement>) => {
-      // flush pending change
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-        timeoutRef.current = undefined;
-        const fake = Object.assign({}, { target: { value: localValue } });
-        try {
-          if (onChange) onChange(fake as unknown as React.ChangeEvent<HTMLInputElement>);
-        } catch {
-          // ignore
+    const handleBlurDebounced = React.useCallback(
+      (e: React.FocusEvent<HTMLInputElement>) => {
+        // flush pending change
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current);
+          timeoutRef.current = undefined;
+          const fake = Object.assign({}, { target: { value: localValue } });
+          try {
+            if (onChange)
+              onChange(fake as unknown as React.ChangeEvent<HTMLInputElement>);
+          } catch {
+            // ignore
+          }
         }
-      }
-      if (onBlur) onBlur(e);
-    }, [localValue, onChange, onBlur]);
+        if (onBlur) onBlur(e);
+      },
+      [localValue, onChange, onBlur],
+    );
 
     React.useEffect(() => {
       return () => {

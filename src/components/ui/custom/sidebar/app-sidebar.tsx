@@ -1,12 +1,7 @@
 "use client";
 
 import * as React from "react";
-import {
-  BookOpenText,
-  Store,
-  BookMarked,
-  VenetianMask,
-} from "lucide-react";
+import { BookOpenText, Store, BookMarked, VenetianMask } from "lucide-react";
 import { NavMain, NavUser, CharacterSwitcher } from ".";
 import {
   Sidebar,

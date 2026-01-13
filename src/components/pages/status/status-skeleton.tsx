@@ -6,10 +6,8 @@ export function StatusSkeleton() {
     <div className="flex flex-col gap-6 animate-in fade-in duration-500">
       {/* Main Grid Layout matching status-page-content.tsx */}
       <div className="flex flex-1 gap-4 pt-0 max-xl:flex-col">
-        
         {/* Left Column: Attributes and Advanced Status */}
         <div className="flex flex-col gap-4 w-full max-w-120">
-          
           {/* Attributes Grid Skeleton */}
           <div className="bg-muted/50 rounded-xl p-6">
             <div className="flex items-center justify-between mb-4">
@@ -20,10 +18,13 @@ export function StatusSkeleton() {
                 <Lock className="w-4 h-4" />
               </div>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {[...Array(6)].map((_, i) => (
-                <div key={i} className="bg-background/40 p-3 rounded-lg border border-border/5 flex items-center justify-between">
+                <div
+                  key={i}
+                  className="bg-background/40 p-3 rounded-lg border border-border/5 flex items-center justify-between"
+                >
                   <div className="flex items-center gap-3">
                     <Skeleton className="h-8 w-8 rounded-md" />
                     <div className="space-y-1">
@@ -45,7 +46,7 @@ export function StatusSkeleton() {
                 <Lock className="w-4 h-4" />
               </div>
             </div>
-            
+
             <div className="space-y-6">
               {/* Power Level and Points */}
               <div className="grid grid-cols-2 gap-4">
@@ -73,7 +74,10 @@ export function StatusSkeleton() {
                 </div>
                 <div className="grid grid-cols-1 gap-2">
                   {[...Array(5)].map((_, i) => (
-                    <div key={i} className="bg-background/30 p-2 border border-border/10 flex items-center justify-between rounded">
+                    <div
+                      key={i}
+                      className="bg-background/30 p-2 border border-border/10 flex items-center justify-between rounded"
+                    >
                       <div className="flex items-center gap-2">
                         <Skeleton className="h-4 w-4 rounded" />
                         <Skeleton className="h-4 w-20" />
@@ -86,7 +90,7 @@ export function StatusSkeleton() {
                   ))}
                 </div>
               </div>
-              
+
               {/* Initiative/Speed */}
               <div className="grid grid-cols-2 gap-3 pt-2">
                 <div className="bg-background/30 p-3 rounded-lg border border-border/10 flex flex-col gap-2">
@@ -110,7 +114,6 @@ export function StatusSkeleton() {
 
         {/* Right Column: Skills and Powers */}
         <div className="flex gap-4 flex-1 max-xl:flex-col">
-          
           {/* Skills List Skeleton */}
           <div className="bg-muted/50 flex-1 rounded-xl p-6 h-fit">
             <div className="flex items-center justify-between mb-4">
@@ -128,10 +131,13 @@ export function StatusSkeleton() {
               </div>
               <Skeleton className="h-9 w-24 rounded-md" />
             </div>
-            
+
             <div className="space-y-1">
               {[...Array(15)].map((_, i) => (
-                <div key={i} className="flex items-center gap-3 py-2 border-b border-border/5">
+                <div
+                  key={i}
+                  className="flex items-center gap-3 py-2 border-b border-border/5"
+                >
                   <Skeleton className="h-4 w-4 rounded-full opacity-30" />
                   <Skeleton className="h-4 flex-1" />
                   <Skeleton className="h-4 w-8 opacity-20" />
@@ -150,10 +156,13 @@ export function StatusSkeleton() {
               </div>
               <Skeleton className="h-8 w-8 rounded-md" />
             </div>
-            
+
             <div className="space-y-3">
               {[...Array(5)].map((_, i) => (
-                <div key={i} className="bg-background/30 border border-border/10 rounded-lg overflow-hidden">
+                <div
+                  key={i}
+                  className="bg-background/30 border border-border/10 rounded-lg overflow-hidden"
+                >
                   <div className="p-3 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className="p-1.5 rounded-md bg-purple-500/5">
@@ -171,7 +180,7 @@ export function StatusSkeleton() {
                   </div>
                 </div>
               ))}
-              
+
               {/* Empty state placeholder if few powers */}
               <div className="border-2 border-dashed border-border/5 rounded-xl h-32 flex items-center justify-center">
                 <Skeleton className="h-4 w-32 opacity-20" />
@@ -179,7 +188,6 @@ export function StatusSkeleton() {
             </div>
           </div>
         </div>
-
       </div>
     </div>
   );

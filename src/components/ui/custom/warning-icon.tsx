@@ -103,9 +103,7 @@ function WarningIcon({
                 %
               </>
             ) : (
-              <>
-                {`Bônus total ${total} (máximo: ${limit})`}
-              </>
+              <>{`Bônus total ${total} (máximo: ${limit})`}</>
             )}
           </div>
         ))}

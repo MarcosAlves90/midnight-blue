@@ -40,18 +40,28 @@ export interface NoteFolder {
 
 function toDateSafe(value: unknown): Date {
   const candidate = value as { toDate?: () => Date } | undefined;
-  if (candidate && typeof candidate.toDate === "function") return candidate.toDate();
+  if (candidate && typeof candidate.toDate === "function")
+    return candidate.toDate();
   if (value instanceof Date) return value;
   return new Date();
 }
 
 export const noteService = {
-  listenToNotes: (userId: string, characterId: string, callback: (notes: Note[]) => void): Unsubscribe => {
-    const notesRef = collection(db, USERS_COLLECTION, userId, NOTES_SUBCOLLECTION);
+  listenToNotes: (
+    userId: string,
+    characterId: string,
+    callback: (notes: Note[]) => void,
+  ): Unsubscribe => {
+    const notesRef = collection(
+      db,
+      USERS_COLLECTION,
+      userId,
+      NOTES_SUBCOLLECTION,
+    );
     const q = query(
-      notesRef, 
+      notesRef,
       where("characterId", "==", characterId),
-      orderBy("updatedAt", "desc")
+      orderBy("updatedAt", "desc"),
     );
 
     return onSnapshot(q, (snapshot) => {
@@ -68,12 +78,21 @@ export const noteService = {
     });
   },
 
-  listenToFolders: (userId: string, characterId: string, callback: (folders: NoteFolder[]) => void): Unsubscribe => {
-    const foldersRef = collection(db, USERS_COLLECTION, userId, FOLDERS_SUBCOLLECTION);
+  listenToFolders: (
+    userId: string,
+    characterId: string,
+    callback: (folders: NoteFolder[]) => void,
+  ): Unsubscribe => {
+    const foldersRef = collection(
+      db,
+      USERS_COLLECTION,
+      userId,
+      FOLDERS_SUBCOLLECTION,
+    );
     const q = query(
-      foldersRef, 
+      foldersRef,
       where("characterId", "==", characterId),
-      orderBy("name", "asc")
+      orderBy("name", "asc"),
     );
 
     return onSnapshot(q, (snapshot) => {
@@ -90,8 +109,17 @@ export const noteService = {
     });
   },
 
-  createNote: async (userId: string, characterId: string, note: Partial<Note>) => {
-    const notesRef = collection(db, USERS_COLLECTION, userId, NOTES_SUBCOLLECTION);
+  createNote: async (
+    userId: string,
+    characterId: string,
+    note: Partial<Note>,
+  ) => {
+    const notesRef = collection(
+      db,
+      USERS_COLLECTION,
+      userId,
+      NOTES_SUBCOLLECTION,
+    );
     const docRef = await addDoc(notesRef, {
       ...note,
       userId,
@@ -102,8 +130,18 @@ export const noteService = {
     return docRef.id;
   },
 
-  updateNote: async (userId: string, noteId: string, updates: Partial<Note>) => {
-    const noteRef = doc(db, USERS_COLLECTION, userId, NOTES_SUBCOLLECTION, noteId);
+  updateNote: async (
+    userId: string,
+    noteId: string,
+    updates: Partial<Note>,
+  ) => {
+    const noteRef = doc(
+      db,
+      USERS_COLLECTION,
+      userId,
+      NOTES_SUBCOLLECTION,
+      noteId,
+    );
     await updateDoc(noteRef, {
       ...updates,
       updatedAt: serverTimestamp(),
@@ -111,12 +149,28 @@ export const noteService = {
   },
 
   deleteNote: async (userId: string, noteId: string) => {
-    const noteRef = doc(db, USERS_COLLECTION, userId, NOTES_SUBCOLLECTION, noteId);
+    const noteRef = doc(
+      db,
+      USERS_COLLECTION,
+      userId,
+      NOTES_SUBCOLLECTION,
+      noteId,
+    );
     await deleteDoc(noteRef);
   },
 
-  createFolder: async (userId: string, characterId: string, name: string, parentId: string | null = null) => {
-    const foldersRef = collection(db, USERS_COLLECTION, userId, FOLDERS_SUBCOLLECTION);
+  createFolder: async (
+    userId: string,
+    characterId: string,
+    name: string,
+    parentId: string | null = null,
+  ) => {
+    const foldersRef = collection(
+      db,
+      USERS_COLLECTION,
+      userId,
+      FOLDERS_SUBCOLLECTION,
+    );
     const docRef = await addDoc(foldersRef, {
       name,
       parentId,
@@ -129,26 +183,48 @@ export const noteService = {
   },
 
   deleteFolder: async (userId: string, folderId: string) => {
-    const folderRef = doc(db, USERS_COLLECTION, userId, FOLDERS_SUBCOLLECTION, folderId);
+    const folderRef = doc(
+      db,
+      USERS_COLLECTION,
+      userId,
+      FOLDERS_SUBCOLLECTION,
+      folderId,
+    );
     await deleteDoc(folderRef);
-    
+
     // Optional: Move notes in this folder to root or delete them
     // For now, let's just leave them or handle in UI
   },
 
   updateFolder: async (userId: string, folderId: string, name: string) => {
-    const folderRef = doc(db, USERS_COLLECTION, userId, FOLDERS_SUBCOLLECTION, folderId);
+    const folderRef = doc(
+      db,
+      USERS_COLLECTION,
+      userId,
+      FOLDERS_SUBCOLLECTION,
+      folderId,
+    );
     await updateDoc(folderRef, {
       name,
       updatedAt: serverTimestamp(),
     });
   },
 
-  moveNoteToFolder: async (userId: string, noteId: string, folderId: string | null) => {
-    const noteRef = doc(db, USERS_COLLECTION, userId, NOTES_SUBCOLLECTION, noteId);
+  moveNoteToFolder: async (
+    userId: string,
+    noteId: string,
+    folderId: string | null,
+  ) => {
+    const noteRef = doc(
+      db,
+      USERS_COLLECTION,
+      userId,
+      NOTES_SUBCOLLECTION,
+      noteId,
+    );
     await updateDoc(noteRef, {
       folderId,
       updatedAt: serverTimestamp(),
     });
-  }
+  },
 };

@@ -2,12 +2,19 @@ import * as React from "react";
 
 import { cn } from "@/lib/utils";
 
-interface TextareaProps extends React.ComponentProps<'textarea'> {
+interface TextareaProps extends React.ComponentProps<"textarea"> {
   /** Optional debounce in ms to reduce updates per keystroke */
   debounceMs?: number;
 }
 
-function Textarea({ className, debounceMs, value, onChange, onBlur, ...props }: TextareaProps) {
+function Textarea({
+  className,
+  debounceMs,
+  value,
+  onChange,
+  onBlur,
+  ...props
+}: TextareaProps) {
   const [localValue, setLocalValue] = React.useState(String(value ?? ""));
   const timeoutRef = React.useRef<number | undefined>(undefined);
 
@@ -15,35 +22,42 @@ function Textarea({ className, debounceMs, value, onChange, onBlur, ...props }: 
     setLocalValue(String(value ?? ""));
   }, [value]);
 
-  const handleChange = React.useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const v = e.target.value;
-    setLocalValue(v);
-    if (!debounceMs || !onChange) return;
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    timeoutRef.current = window.setTimeout(() => {
-      const ev = Object.assign({}, e, { target: { ...e.target, value: v } });
-      try {
-        onChange(ev as React.ChangeEvent<HTMLTextAreaElement>);
-      } catch {
-        // ignore
-      }
-      timeoutRef.current = undefined;
-    }, debounceMs);
-  }, [debounceMs, onChange]);
+  const handleChange = React.useCallback(
+    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+      const v = e.target.value;
+      setLocalValue(v);
+      if (!debounceMs || !onChange) return;
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      timeoutRef.current = window.setTimeout(() => {
+        const ev = Object.assign({}, e, { target: { ...e.target, value: v } });
+        try {
+          onChange(ev as React.ChangeEvent<HTMLTextAreaElement>);
+        } catch {
+          // ignore
+        }
+        timeoutRef.current = undefined;
+      }, debounceMs);
+    },
+    [debounceMs, onChange],
+  );
 
-  const handleBlur = React.useCallback((e: React.FocusEvent<HTMLTextAreaElement>) => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = undefined;
-      const fake = Object.assign({}, { target: { value: localValue } });
-      try {
-        if (onChange) onChange(fake as unknown as React.ChangeEvent<HTMLTextAreaElement>);
-      } catch {
-        // ignore
+  const handleBlur = React.useCallback(
+    (e: React.FocusEvent<HTMLTextAreaElement>) => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = undefined;
+        const fake = Object.assign({}, { target: { value: localValue } });
+        try {
+          if (onChange)
+            onChange(fake as unknown as React.ChangeEvent<HTMLTextAreaElement>);
+        } catch {
+          // ignore
+        }
       }
-    }
-    if (onBlur) onBlur(e);
-  }, [localValue, onChange, onBlur]);
+      if (onBlur) onBlur(e);
+    },
+    [localValue, onChange, onBlur],
+  );
 
   React.useEffect(() => {
     return () => {

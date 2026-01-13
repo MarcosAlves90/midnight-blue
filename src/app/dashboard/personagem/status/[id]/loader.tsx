@@ -11,7 +11,7 @@ import { StatusSkeleton } from "@/components/pages/status/status-skeleton";
 export default function Loader({ id }: { id: string }) {
   const { loading: authLoading } = useAuth();
   const { activeContextId } = useAdmin();
-  
+
   const { loadCharacter } = useCharacterPersistence(activeContextId);
   const { setSelectedCharacter } = useCharacter();
 
@@ -49,7 +49,9 @@ export default function Loader({ id }: { id: string }) {
     };
 
     load();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [id, activeContextId, authLoading, loadCharacter, setSelectedCharacter]);
 
   if (loading) return <StatusSkeleton />;

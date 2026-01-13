@@ -12,11 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { FormInput } from "@/components/ui/form-input";
-import {
-  Field,
-  FieldLabel,
-  FieldGroup,
-} from "@/components/ui/field";
+import { Field, FieldLabel, FieldGroup } from "@/components/ui/field";
 import { authSuccess, authError } from "@/lib/toast";
 import { getFirebaseErrorMessage } from "@/lib/firebase-errors";
 import { sendPasswordResetEmail } from "firebase/auth";
@@ -36,7 +32,9 @@ export function ForgotPasswordDialog() {
     try {
       const auth = getClientAuth();
       await sendPasswordResetEmail(auth, email);
-      authSuccess("E-mail de redefinição enviado! Verifique sua caixa de entrada.");
+      authSuccess(
+        "E-mail de redefinição enviado! Verifique sua caixa de entrada.",
+      );
       setOpen(false);
       setEmail("");
     } catch (err: unknown) {
@@ -61,7 +59,8 @@ export function ForgotPasswordDialog() {
         <DialogHeader>
           <DialogTitle>Recuperar Senha</DialogTitle>
           <DialogDescription>
-            Insira seu e-mail abaixo para receber um link de redefinição de senha.
+            Insira seu e-mail abaixo para receber um link de redefinição de
+            senha.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleResetPassword}>

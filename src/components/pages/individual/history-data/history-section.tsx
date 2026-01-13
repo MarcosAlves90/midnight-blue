@@ -8,11 +8,18 @@ import { useIdentityField } from "@/hooks/use-identity-field";
 function HistorySectionInner() {
   const { markFieldDirty, updateIdentity } = useIdentityActions();
   const ext = useIdentityField("history");
-  const { value, handleChange, handleBlur } = useFieldLocalState(ext || "", (v: string) => updateIdentity("history", v), { debounceMs: 300, fieldName: "history", onDirty: () => markFieldDirty("history") });
+  const { value, handleChange, handleBlur } = useFieldLocalState(
+    ext || "",
+    (v: string) => updateIdentity("history", v),
+    {
+      debounceMs: 300,
+      fieldName: "history",
+      onDirty: () => markFieldDirty("history"),
+    },
+  );
 
   React.useEffect(() => {
     if (process.env.NODE_ENV === "development") {
-
       console.debug("[dev-history-section] render");
     }
   });

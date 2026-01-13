@@ -31,7 +31,10 @@ interface QueueTask<T = unknown> {
   // coalescing key to dedupe similar tasks on the same queue
   coalesceKey?: string | null;
   // multiple waiters can attach to the same task if coalesced
-  waiters: Array<{ resolve: (v: T | PromiseLike<T>) => void; reject: (err: unknown) => void }>;
+  waiters: Array<{
+    resolve: (v: T | PromiseLike<T>) => void;
+    reject: (err: unknown) => void;
+  }>;
 }
 
 export class BackgroundPersistence {
@@ -59,7 +62,9 @@ export class BackgroundPersistence {
 
     // If coalesceKey provided, try to find an existing queued task and attach as waiter, updating fn
     if (coalesceKey) {
-      const existing = queue.find((t) => (t.coalesceKey || null) === coalesceKey) as QueueTask<T> | undefined;
+      const existing = queue.find(
+        (t) => (t.coalesceKey || null) === coalesceKey,
+      ) as QueueTask<T> | undefined;
       if (existing) {
         // attach waiter to existing task and replace the function with the latest
         return new Promise<T>((resolve, reject) => {
@@ -142,7 +147,11 @@ export class BackgroundPersistence {
 
         // Resolve all waiters immediately via microtask
         for (const w of task.waiters) {
-          try { w.resolve(res as T); } catch { /* ignore */ }
+          try {
+            w.resolve(res as T);
+          } catch {
+            /* ignore */
+          }
         }
         return;
       } catch (err) {
@@ -151,22 +160,36 @@ export class BackgroundPersistence {
           const should = task.shouldRetry(err);
           if (!should) {
             // reject all waiters immediately
-            for (const w of task.waiters) { try { w.reject(err); } catch {} }
+            for (const w of task.waiters) {
+              try {
+                w.reject(err);
+              } catch {}
+            }
             return;
           }
         } catch {
           // if the predicate throws, don't retry
-          for (const w of task.waiters) { try { w.reject(err); } catch {} }
+          for (const w of task.waiters) {
+            try {
+              w.reject(err);
+            } catch {}
+          }
           return;
         }
 
         if (task.attempt > task.maxRetries) {
-          for (const w of task.waiters) { try { w.reject(err); } catch {} }
+          for (const w of task.waiters) {
+            try {
+              w.reject(err);
+            } catch {}
+          }
           return;
         }
 
         // exponential backoff with jitter
-        const backoff = Math.round(task.initialBackoffMs * Math.pow(2, task.attempt - 1));
+        const backoff = Math.round(
+          task.initialBackoffMs * Math.pow(2, task.attempt - 1),
+        );
         const jitter = Math.round(Math.random() * Math.min(500, backoff));
         const delay = backoff + jitter;
         await new Promise((r) => setTimeout(r, delay));

@@ -47,7 +47,12 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${brevis.variable} ${futuraProBook.variable} antialiased`}
       >
         <AppProviders>
-          <ThemeProvider attribute="class" defaultTheme="dark" themes={["dark", "black"]} enableSystem={false}>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="dark"
+            themes={["dark", "black"]}
+            enableSystem={false}
+          >
             <div className="relative min-h-screen">
               {children}
               <ToastContainer limit={5} />

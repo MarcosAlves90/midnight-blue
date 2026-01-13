@@ -15,7 +15,9 @@ export interface AutoSaveOptions {
   onError?: (err: unknown) => void;
 }
 
-export class AutoSaveService<T extends Record<string, unknown> = Record<string, unknown>> {
+export class AutoSaveService<
+  T extends Record<string, unknown> = Record<string, unknown>,
+> {
   private handler: AutoSaveHandler<T>;
   private debounceMs: number;
   private timeoutId: ReturnType<typeof setTimeout> | null = null;
@@ -41,25 +43,27 @@ export class AutoSaveService<T extends Record<string, unknown> = Record<string, 
     } else {
       // Deep merge for identity and status, shallow for others
       const merged = { ...this.pendingObj };
-      
+
       Object.keys(data).forEach((key) => {
         const val = data[key];
         const existing = merged[key];
-        
+
         if (
-          (key === "identity" || key === "status") && 
-          typeof val === "object" && val !== null &&
-          typeof existing === "object" && existing !== null
+          (key === "identity" || key === "status") &&
+          typeof val === "object" &&
+          val !== null &&
+          typeof existing === "object" &&
+          existing !== null
         ) {
-          merged[key as keyof T] = { 
-            ...(existing as Record<string, unknown>), 
-            ...(val as Record<string, unknown>) 
+          merged[key as keyof T] = {
+            ...(existing as Record<string, unknown>),
+            ...(val as Record<string, unknown>),
           } as T[keyof T];
         } else {
           merged[key as keyof T] = val as T[keyof T];
         }
       });
-      
+
       this.pendingObj = merged;
     }
 
@@ -87,7 +91,7 @@ export class AutoSaveService<T extends Record<string, unknown> = Record<string, 
 
     try {
       // Pequeno atraso para garantir que não estamos bloqueando a thread principal de UI
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
       const result = await this.handler(toSave);
       this.opts.onSuccess?.(result);
     } catch (err) {
@@ -113,20 +117,22 @@ export class AutoSaveService<T extends Record<string, unknown> = Record<string, 
       this.pendingObj = { ...data };
       return;
     }
-    
+
     const merged = { ...data };
     Object.keys(this.pendingObj).forEach((key) => {
       const val = this.pendingObj![key];
       const existing = merged[key];
-      
+
       if (
-        (key === "identity" || key === "status") && 
-        typeof val === "object" && val !== null &&
-        typeof existing === "object" && existing !== null
+        (key === "identity" || key === "status") &&
+        typeof val === "object" &&
+        val !== null &&
+        typeof existing === "object" &&
+        existing !== null
       ) {
-        merged[key as keyof T] = { 
-          ...(existing as Record<string, unknown>), 
-          ...(val as Record<string, unknown>) 
+        merged[key as keyof T] = {
+          ...(existing as Record<string, unknown>),
+          ...(val as Record<string, unknown>),
         } as T[keyof T];
       } else {
         merged[key as keyof T] = val as T[keyof T];

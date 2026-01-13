@@ -10,7 +10,12 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { FolderPlus, Loader2, Folder as FolderIcon, Pencil } from "lucide-react";
+import {
+  FolderPlus,
+  Loader2,
+  Folder as FolderIcon,
+  Pencil,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Folder } from "@/lib/types/character";
 
@@ -23,13 +28,13 @@ interface NewFolderDialogProps {
   folderToEdit?: Folder | null;
 }
 
-export function NewFolderDialog({ 
-  open, 
-  onOpenChange, 
-  onCreate, 
+export function NewFolderDialog({
+  open,
+  onOpenChange,
+  onCreate,
   onUpdate,
   parentId,
-  folderToEdit 
+  folderToEdit,
 }: NewFolderDialogProps) {
   const [name, setName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -66,7 +71,9 @@ export function NewFolderDialog({
       setName("");
       onOpenChange(false);
     } catch {
-      setError(`Erro ao ${folderToEdit ? "atualizar" : "criar"} pasta. Tente novamente.`);
+      setError(
+        `Erro ao ${folderToEdit ? "atualizar" : "criar"} pasta. Tente novamente.`,
+      );
     } finally {
       setIsLoading(false);
     }
@@ -74,16 +81,20 @@ export function NewFolderDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent 
+      <DialogContent
         className="sm:max-w-[400px] p-0 overflow-hidden border-primary/20 bg-card"
         onCloseAutoFocus={(e) => e.preventDefault()}
       >
         <div className="absolute top-0 left-0 w-full h-1 bg-primary/50" />
-        
+
         <DialogHeader className="p-6 pb-0">
           <div className="flex items-center gap-2 mb-2">
             <div className="p-1.5 rounded bg-primary/10 text-primary">
-              {folderToEdit ? <Pencil className="w-4 h-4" /> : <FolderPlus className="w-4 h-4" />}
+              {folderToEdit ? (
+                <Pencil className="w-4 h-4" />
+              ) : (
+                <FolderPlus className="w-4 h-4" />
+              )}
             </div>
             <span className="text-[10px] font-bold tracking-[0.2em] text-muted-foreground uppercase">
               Sistema de Arquivamento
@@ -93,7 +104,9 @@ export function NewFolderDialog({
             {folderToEdit ? "Editar Seção" : "Nova Seção"}
           </DialogTitle>
           <DialogDescription className="sr-only">
-            {folderToEdit ? "Alterando identificador do diretório." : "Criando novo diretório para organização de dossiês."}
+            {folderToEdit
+              ? "Alterando identificador do diretório."
+              : "Criando novo diretório para organização de dossiês."}
           </DialogDescription>
         </DialogHeader>
 
@@ -112,13 +125,15 @@ export function NewFolderDialog({
               }}
               className={cn(
                 "bg-muted/20 border-primary/10 font-mono uppercase placeholder:opacity-30 focus-visible:ring-primary/30",
-                error && "border-destructive/50"
+                error && "border-destructive/50",
               )}
               autoFocus
               disabled={isLoading}
             />
             {error && (
-              <p className="text-[10px] font-mono text-destructive uppercase mt-1">{error}</p>
+              <p className="text-[10px] font-mono text-destructive uppercase mt-1">
+                {error}
+              </p>
             )}
           </div>
 
@@ -142,8 +157,10 @@ export function NewFolderDialog({
                   <Loader2 className="mr-2 h-3 w-3 animate-spin" />
                   {folderToEdit ? "Salvando..." : "Criando..."}
                 </>
+              ) : folderToEdit ? (
+                "Salvar"
               ) : (
-                folderToEdit ? "Salvar" : "Criar"
+                "Criar"
               )}
             </Button>
           </div>
@@ -151,8 +168,12 @@ export function NewFolderDialog({
 
         {/* Decorative footer */}
         <div className="px-6 py-3 border-t border-primary/5 flex justify-between items-center opacity-30 bg-muted/10">
-          <span className="text-[8px] font-mono uppercase tracking-tighter">Indexação: Automática</span>
-          <span className="text-[8px] font-mono uppercase tracking-tighter">Ref: DIR-{Math.random().toString(36).substring(2, 6).toUpperCase()}</span>
+          <span className="text-[8px] font-mono uppercase tracking-tighter">
+            Indexação: Automática
+          </span>
+          <span className="text-[8px] font-mono uppercase tracking-tighter">
+            Ref: DIR-{Math.random().toString(36).substring(2, 6).toUpperCase()}
+          </span>
         </div>
       </DialogContent>
     </Dialog>

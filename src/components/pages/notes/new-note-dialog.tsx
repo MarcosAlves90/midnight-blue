@@ -17,11 +17,20 @@ import { StickyNote, Plus } from "lucide-react";
 interface NewNoteDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onCreate: (title: string, content: string, folderId: string | null) => Promise<void>;
+  onCreate: (
+    title: string,
+    content: string,
+    folderId: string | null,
+  ) => Promise<void>;
   currentFolderId: string | null;
 }
 
-export function NewNoteDialog({ open, onOpenChange, onCreate, currentFolderId }: NewNoteDialogProps) {
+export function NewNoteDialog({
+  open,
+  onOpenChange,
+  onCreate,
+  currentFolderId,
+}: NewNoteDialogProps) {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -53,15 +62,22 @@ export function NewNoteDialog({ open, onOpenChange, onCreate, currentFolderId }:
               <Plus className="w-5 h-5" />
             </div>
             <div>
-              <DialogTitle className="uppercase font-black tracking-tighter text-xl">Novo Registro</DialogTitle>
-              <p className="text-[10px] text-muted-foreground uppercase font-mono tracking-widest mt-0.5">Criar nova entrada no banco de dados</p>
+              <DialogTitle className="uppercase font-black tracking-tighter text-xl">
+                Novo Registro
+              </DialogTitle>
+              <p className="text-[10px] text-muted-foreground uppercase font-mono tracking-widest mt-0.5">
+                Criar nova entrada no banco de dados
+              </p>
             </div>
           </div>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
           <div className="space-y-2 group">
-            <Label htmlFor="title" className="text-[10px] uppercase font-bold text-primary/70 tracking-widest ml-1">
+            <Label
+              htmlFor="title"
+              className="text-[10px] uppercase font-bold text-primary/70 tracking-widest ml-1"
+            >
               Título da Nota
             </Label>
             <Input
@@ -75,7 +91,10 @@ export function NewNoteDialog({ open, onOpenChange, onCreate, currentFolderId }:
           </div>
 
           <div className="space-y-2 group">
-            <Label htmlFor="content" className="text-[10px] uppercase font-bold text-primary/70 tracking-widest ml-1">
+            <Label
+              htmlFor="content"
+              className="text-[10px] uppercase font-bold text-primary/70 tracking-widest ml-1"
+            >
               Conteúdo Inicial
             </Label>
             <Textarea
@@ -88,16 +107,16 @@ export function NewNoteDialog({ open, onOpenChange, onCreate, currentFolderId }:
           </div>
 
           <DialogFooter className="pt-2">
-            <Button 
-              type="button" 
-              variant="ghost" 
+            <Button
+              type="button"
+              variant="ghost"
               onClick={() => onOpenChange(false)}
               className="uppercase font-bold text-[11px] tracking-widest"
             >
               Abortar
             </Button>
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               disabled={!title.trim() || isSubmitting}
               className="min-w-[120px] uppercase font-black tracking-widest shadow-[0_0_15px_rgba(var(--primary),0.2)]"
             >

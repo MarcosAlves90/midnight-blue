@@ -16,9 +16,12 @@ export function useSelectedCharacter() {
     }
   }, [selectedCharacter?.id, setCurrentCharacterId]);
 
-  return { 
-    character: selectedCharacter, 
-    isLoading: contextLoading, 
-    error: !selectedCharacter && !contextLoading ? "Nenhuma ficha selecionada" : null 
+  return {
+    character: selectedCharacter,
+    isLoading: contextLoading,
+    error:
+      !selectedCharacter && !contextLoading
+        ? "Nenhuma ficha selecionada"
+        : null,
   };
 }

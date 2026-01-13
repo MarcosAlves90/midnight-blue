@@ -1,6 +1,12 @@
 "use client";
 
-import { Folder as FolderIcon, MoreVertical, Trash2, ChevronRight, Pencil } from "lucide-react";
+import {
+  Folder as FolderIcon,
+  MoreVertical,
+  Trash2,
+  ChevronRight,
+  Pencil,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -20,7 +26,13 @@ interface FolderCardProps {
   label?: string;
 }
 
-export function FolderCard({ folder, onClick, onDelete, onEdit, label = "Acessar Arquivos" }: FolderCardProps) {
+export function FolderCard({
+  folder,
+  onClick,
+  onDelete,
+  onEdit,
+  label = "Acessar Arquivos",
+}: FolderCardProps) {
   return (
     <div
       onClick={onClick}
@@ -33,12 +45,12 @@ export function FolderCard({ folder, onClick, onDelete, onEdit, label = "Acessar
         <div className="p-2 rounded-md bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
           <FolderIcon className="w-5 h-5" />
         </div>
-        
+
         <DropdownMenu modal={false}>
           <DropdownMenuTrigger asChild>
-            <Button 
-              variant="ghost" 
-              size="icon" 
+            <Button
+              variant="ghost"
+              size="icon"
               className="h-8 w-8 rounded-full opacity-0 group-hover:opacity-100 data-[state=open]:opacity-100 transition-opacity"
               onClick={(e) => e.stopPropagation()}
             >
@@ -47,7 +59,7 @@ export function FolderCard({ folder, onClick, onDelete, onEdit, label = "Acessar
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             {onEdit && (
-              <DropdownMenuItem 
+              <DropdownMenuItem
                 onSelect={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
@@ -58,7 +70,7 @@ export function FolderCard({ folder, onClick, onDelete, onEdit, label = "Acessar
                 Editar Nome
               </DropdownMenuItem>
             )}
-            <DropdownMenuItem 
+            <DropdownMenuItem
               className="text-destructive focus:text-destructive"
               onSelect={(e) => {
                 e.preventDefault();
@@ -74,14 +86,18 @@ export function FolderCard({ folder, onClick, onDelete, onEdit, label = "Acessar
       </div>
 
       <div className="space-y-1 relative z-10">
-        <p className="text-[8px] text-primary font-bold uppercase tracking-tight opacity-80">Diretório / Seção</p>
+        <p className="text-[8px] text-primary font-bold uppercase tracking-tight opacity-80">
+          Diretório / Seção
+        </p>
         <h3 className="font-bold text-sm leading-tight truncate group-hover:text-primary transition-colors uppercase italic tracking-tighter">
           {folder.name}
         </h3>
       </div>
 
       <div className="flex items-center justify-between mt-auto pt-2 border-t border-border/50 relative z-10">
-        <span className="text-[9px] font-mono text-muted-foreground uppercase">{label}</span>
+        <span className="text-[9px] font-mono text-muted-foreground uppercase">
+          {label}
+        </span>
         <ChevronRight className="w-3 h-3 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
       </div>
     </div>

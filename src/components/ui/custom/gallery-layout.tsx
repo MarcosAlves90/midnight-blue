@@ -42,14 +42,12 @@ export const GalleryLayout = React.memo(function GalleryLayout({
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight uppercase">{title}</h1>
-          <div className="text-muted-foreground">
-            {description}
-          </div>
+          <h1 className="text-3xl font-bold tracking-tight uppercase">
+            {title}
+          </h1>
+          <div className="text-muted-foreground">{description}</div>
         </div>
-        <div className="flex items-center gap-2">
-          {actions}
-        </div>
+        <div className="flex items-center gap-2">{actions}</div>
       </div>
 
       <div className="flex flex-col gap-4">
@@ -75,7 +73,9 @@ export const GalleryLayout = React.memo(function GalleryLayout({
           onClick={() => onFolderClick(null)}
           className={cn(
             "h-8 px-2 flex items-center gap-1.5 uppercase",
-            !currentFolderId ? "text-primary font-bold" : "text-muted-foreground"
+            !currentFolderId
+              ? "text-primary font-bold"
+              : "text-muted-foreground",
           )}
         >
           <Home className="w-3.5 h-3.5" />
@@ -83,7 +83,10 @@ export const GalleryLayout = React.memo(function GalleryLayout({
         </Button>
 
         {folderPath.map((folder, index) => (
-          <div key={`breadcrumb-${folder.id}`} className="flex items-center gap-2">
+          <div
+            key={`breadcrumb-${folder.id}`}
+            className="flex items-center gap-2"
+          >
             <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/50" />
             <Button
               variant="ghost"
@@ -91,7 +94,9 @@ export const GalleryLayout = React.memo(function GalleryLayout({
               onClick={() => onFolderClick(folder.id)}
               className={cn(
                 "h-8 px-2 flex items-center gap-1.5 uppercase",
-                index === folderPath.length - 1 ? "text-primary font-bold" : "text-muted-foreground"
+                index === folderPath.length - 1
+                  ? "text-primary font-bold"
+                  : "text-muted-foreground",
               )}
             >
               {folder.name.toUpperCase()}
@@ -100,9 +105,7 @@ export const GalleryLayout = React.memo(function GalleryLayout({
         ))}
       </div>
 
-      <div className="space-y-6">
-        {children}
-      </div>
+      <div className="space-y-6">{children}</div>
     </div>
   );
 });

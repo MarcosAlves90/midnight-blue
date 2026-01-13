@@ -113,7 +113,11 @@ export function useBreadcrumb(config?: BreadcrumbConfig): BreadcrumbItem[] {
     const key = filteredSegments.join("/");
 
     // If key and config reference are unchanged, return the previous array reference
-    if (key === prevKeyRef.current && config === prevConfigRef.current && prevResultRef.current) {
+    if (
+      key === prevKeyRef.current &&
+      config === prevConfigRef.current &&
+      prevResultRef.current
+    ) {
       return prevResultRef.current;
     }
 

@@ -1,9 +1,20 @@
 type IdleHandle = number | ReturnType<typeof setTimeout>;
 
-const pending = new Map<string, { serialized: string; handle: IdleHandle | undefined }>();
+const pending = new Map<
+  string,
+  { serialized: string; handle: IdleHandle | undefined }
+>();
 
 function scheduleIdle(fn: () => void) {
-  const win = typeof window !== "undefined" ? (window as unknown as { requestIdleCallback?: (cb: () => void, opts?: { timeout?: number }) => number; }) : undefined;
+  const win =
+    typeof window !== "undefined"
+      ? (window as unknown as {
+          requestIdleCallback?: (
+            cb: () => void,
+            opts?: { timeout?: number },
+          ) => number;
+        })
+      : undefined;
   if (win && typeof win.requestIdleCallback === "function") {
     return win.requestIdleCallback(fn, { timeout: 2000 });
   }
@@ -38,7 +49,10 @@ export function setItemAsync(key: string, value: unknown) {
     }
 
     // Create a new pending slot and start async serialization
-    const slot = { serialized: "", handle: undefined as IdleHandle | undefined };
+    const slot = {
+      serialized: "",
+      handle: undefined as IdleHandle | undefined,
+    };
     pending.set(key, slot);
 
     // Start serialization asynchronously
@@ -113,7 +127,9 @@ export function removeItemAsync(key: string) {
     if (existing) pending.delete(key);
     // schedule removal in idle
     scheduleIdle(() => {
-      try { localStorage.removeItem(key); } catch {}
+      try {
+        localStorage.removeItem(key);
+      } catch {}
     });
   } catch {
     // ignore

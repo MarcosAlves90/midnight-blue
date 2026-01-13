@@ -30,20 +30,29 @@ export const StatField: React.FC<StatFieldProps> = ({
   const { markFieldDirty, updateIdentity } = useIdentityActions();
 
   // Always call the hook to satisfy rules-of-hooks; if no `fieldKey` is provided we ignore the subscribed value
-  const _subscribedValue = useIdentityField(fieldKey as keyof import("@/contexts/IdentityContext").IdentityData);
+  const _subscribedValue = useIdentityField(
+    fieldKey as keyof import("@/contexts/IdentityContext").IdentityData,
+  );
   const extValue = fieldKey ? (_subscribedValue as unknown as string) : value;
 
-  const commit = React.useCallback((v: string) => {
-    if (fieldKey) {
-      // The typed mapping from field -> value is dynamic here; cast safely and keep the rule narrow
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      updateIdentity(fieldKey as any, v as any);
-    } else if (parentOnChange) {
-      parentOnChange(v);
-    }
-  }, [fieldKey, parentOnChange, updateIdentity]);
+  const commit = React.useCallback(
+    (v: string) => {
+      if (fieldKey) {
+        // The typed mapping from field -> value is dynamic here; cast safely and keep the rule narrow
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        updateIdentity(fieldKey as any, v as any);
+      } else if (parentOnChange) {
+        parentOnChange(v);
+      }
+    },
+    [fieldKey, parentOnChange, updateIdentity],
+  );
 
-  const { value: localValue, handleChange, handleBlur } = useFieldLocalState(extValue, commit, {
+  const {
+    value: localValue,
+    handleChange,
+    handleBlur,
+  } = useFieldLocalState(extValue, commit, {
     debounceMs: 300,
     fieldName: fieldKey ? String(fieldKey) : undefined,
     onDirty: () => fieldKey && markFieldDirty(String(fieldKey)),
@@ -63,8 +72,8 @@ export const StatField: React.FC<StatFieldProps> = ({
           side="top"
           align="start"
         >
-          <label 
-            htmlFor={fieldKey ? String(fieldKey) : undefined} 
+          <label
+            htmlFor={fieldKey ? String(fieldKey) : undefined}
             className="text-[10px] font-medium text-muted-foreground uppercase flex items-center gap-1.5 group-hover:text-primary transition-colors cursor-help w-fit max-w-full"
           >
             <span className="shrink-0">{icon}</span>
@@ -79,8 +88,8 @@ export const StatField: React.FC<StatFieldProps> = ({
           </label>
         </Tip>
       ) : (
-        <label 
-          htmlFor={fieldKey ? String(fieldKey) : undefined} 
+        <label
+          htmlFor={fieldKey ? String(fieldKey) : undefined}
           className="text-[10px] font-medium text-muted-foreground uppercase flex items-center gap-1.5 group-hover:text-primary transition-colors w-fit max-w-full"
         >
           <span className="shrink-0">{icon}</span>
@@ -96,7 +105,9 @@ export const StatField: React.FC<StatFieldProps> = ({
       )}
       <FormInput
         id={fieldKey ? String(fieldKey) : undefined}
-        name={fieldKey ? String(fieldKey) : label.replace(/\s+/g, "-").toLowerCase()}
+        name={
+          fieldKey ? String(fieldKey) : label.replace(/\s+/g, "-").toLowerCase()
+        }
         value={localValue}
         onChange={(e) => handleChange(e)}
         onBlur={handleBlur}

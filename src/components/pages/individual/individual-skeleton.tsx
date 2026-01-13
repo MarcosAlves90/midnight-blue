@@ -3,7 +3,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 export function IndividualSkeleton() {
   return (
     <div className="pb-10 animate-in fade-in duration-500">
-
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
         <div className="xl:col-span-3">
           <div className="sticky top-6">
@@ -15,7 +14,7 @@ export function IndividualSkeleton() {
                   <Skeleton className="h-4 w-32" />
                   <Skeleton className="h-6 w-6 rounded-full" />
                 </div>
-                
+
                 {/* Image Area */}
                 <div className="aspect-[4/3] w-full bg-muted/10 flex items-center justify-center relative overflow-hidden">
                   <Skeleton className="absolute inset-0 w-full h-full" />
@@ -37,7 +36,6 @@ export function IndividualSkeleton() {
                   </div>
                 </div>
               </div>
-
             </div>
           </div>
         </div>
@@ -60,7 +58,7 @@ export function IndividualSkeleton() {
                   ))}
                 </div>
               </div>
-              
+
               {/* Personal Data */}
               <div className="p-6 border rounded-xl space-y-6 bg-card/20 border-border/40">
                 <div className="flex items-center gap-2 mb-2">
@@ -118,7 +116,10 @@ export function IndividualSkeleton() {
           </div>
           <div className="space-y-3">
             {[...Array(2)].map((_, i) => (
-              <div key={i} className="flex gap-3 items-start p-3 border rounded-lg bg-black/10 border-border/10">
+              <div
+                key={i}
+                className="flex gap-3 items-start p-3 border rounded-lg bg-black/10 border-border/10"
+              >
                 <Skeleton className="h-5 w-5 rounded shrink-0" />
                 <div className="flex-1 space-y-2">
                   <Skeleton className="h-4 w-24" />

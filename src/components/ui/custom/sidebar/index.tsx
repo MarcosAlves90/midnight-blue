@@ -1,5 +1,5 @@
 // Exportações dos componentes da sidebar
-export { AppSidebar as Sidebar } from './app-sidebar';
-export { CharacterSwitcher } from './character-switcher';
-export { NavMain } from './nav-main';
-export { NavUser } from './nav-user';
+export { AppSidebar as Sidebar } from "./app-sidebar";
+export { CharacterSwitcher } from "./character-switcher";
+export { NavMain } from "./nav-main";
+export { NavUser } from "./nav-user";

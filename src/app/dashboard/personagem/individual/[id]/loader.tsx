@@ -11,7 +11,7 @@ import { IndividualSkeleton } from "@/components/pages/individual/individual-ske
 export default function Loader({ id }: { id: string }) {
   const { loading: authLoading } = useAuth();
   const { activeContextId, isAdminRestored } = useAdmin();
-  
+
   const { loadCharacter } = useCharacterPersistence(activeContextId);
   const { setSelectedCharacter } = useCharacter();
 
@@ -53,8 +53,17 @@ export default function Loader({ id }: { id: string }) {
     };
 
     load();
-    return () => { cancelled = true; };
-  }, [id, activeContextId, authLoading, loadCharacter, setSelectedCharacter, isAdminRestored]);
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    id,
+    activeContextId,
+    authLoading,
+    loadCharacter,
+    setSelectedCharacter,
+    isAdminRestored,
+  ]);
 
   if (loading) return <IndividualSkeleton />;
   if (error) return <div className="text-red-500">{error}</div>;

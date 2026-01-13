@@ -56,14 +56,14 @@ export const AttributeCard = memo(function AttributeCard({
     onValueChange,
     disabled || !editable,
     inputLimits,
-    () => markFieldDirty("attributes")
+    () => markFieldDirty("attributes"),
   );
   const bonusValueState = useEditableValue(
     bonus ?? 0,
     onBonusChange,
     disabled || !editable,
     inputLimits,
-    () => markFieldDirty("attributes")
+    () => markFieldDirty("attributes"),
   );
 
   const colorClasses = useMemo(() => getColorClasses(color), [color]);
@@ -154,8 +154,10 @@ export const AttributeCard = memo(function AttributeCard({
           <div>{renderFields()}</div>
         ) : (
           <div className="flex flex-col gap-1">
-            <input              id={`${abbreviation}-base`}
-              name={`${abbreviation}-base`}              value={baseValueState.inputValue}
+            <input
+              id={`${abbreviation}-base`}
+              name={`${abbreviation}-base`}
+              value={baseValueState.inputValue}
               onChange={(e) => baseValueState.handleChange(e.target.value)}
               onBlur={baseValueState.handleBlur}
               onKeyDown={baseValueState.handleKeyDown}

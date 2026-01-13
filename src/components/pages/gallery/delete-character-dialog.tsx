@@ -34,12 +34,12 @@ export function DeleteCharacterDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent 
+      <DialogContent
         className="sm:max-w-[400px] p-0 overflow-hidden border-destructive/20 bg-card"
         onCloseAutoFocus={(e) => e.preventDefault()}
       >
         <div className="absolute top-0 left-0 w-full h-1 bg-destructive/50" />
-        
+
         <DialogHeader className="p-6 pb-0">
           <div className="flex items-center gap-2 mb-2">
             <div className="p-1.5 rounded bg-destructive/10 text-destructive">
@@ -62,9 +62,12 @@ export function DeleteCharacterDialog({
             <div className="flex items-start gap-3">
               <Trash2 className="w-5 h-5 text-destructive mt-0.5 flex-shrink-0" />
               <div className="space-y-1">
-                <p className="text-sm font-mono font-bold uppercase text-foreground">[{heroName}]</p>
+                <p className="text-sm font-mono font-bold uppercase text-foreground">
+                  [{heroName}]
+                </p>
                 <p className="text-xs text-muted-foreground font-mono">
-                  Esta ação removerá permanentemente todos os dados, atributos e histórico deste indivíduo do banco de dados central.
+                  Esta ação removerá permanentemente todos os dados, atributos e
+                  histórico deste indivíduo do banco de dados central.
                 </p>
               </div>
             </div>
@@ -102,8 +105,12 @@ export function DeleteCharacterDialog({
 
         {/* Decorative footer */}
         <div className="px-6 py-3 border-t border-destructive/5 flex justify-between items-center opacity-30 bg-muted/10">
-          <span className="text-[8px] font-mono uppercase tracking-tighter">Status: Aguardando Confirmação</span>
-          <span className="text-[8px] font-mono uppercase tracking-tighter">Ref: EXP-{refId}</span>
+          <span className="text-[8px] font-mono uppercase tracking-tighter">
+            Status: Aguardando Confirmação
+          </span>
+          <span className="text-[8px] font-mono uppercase tracking-tighter">
+            Ref: EXP-{refId}
+          </span>
         </div>
       </DialogContent>
     </Dialog>

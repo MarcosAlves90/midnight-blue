@@ -17,7 +17,11 @@ interface NewCharacterDialogProps {
   onCharacterCreated?: () => void;
 }
 
-export function NewCharacterDialog({ open, onOpenChange, onCharacterCreated }: NewCharacterDialogProps) {
+export function NewCharacterDialog({
+  open,
+  onOpenChange,
+  onCharacterCreated,
+}: NewCharacterDialogProps) {
   const router = useRouter();
 
   const handleSuccess = (characterId: string) => {
@@ -32,12 +36,12 @@ export function NewCharacterDialog({ open, onOpenChange, onCharacterCreated }: N
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent 
+      <DialogContent
         className="sm:max-w-[450px] p-0 overflow-hidden border-primary/20 bg-card"
         onCloseAutoFocus={(e) => e.preventDefault()}
       >
         <div className="absolute top-0 left-0 w-full h-1 bg-primary/50" />
-        
+
         <DialogHeader className="p-6 pb-0">
           <div className="flex items-center gap-2 mb-2">
             <div className="p-1.5 rounded bg-primary/10 text-primary">
@@ -61,8 +65,12 @@ export function NewCharacterDialog({ open, onOpenChange, onCharacterCreated }: N
 
         {/* Decorative footer */}
         <div className="px-6 py-3 border-t border-primary/5 flex justify-between items-center opacity-30 bg-muted/10">
-          <span className="text-[8px] font-mono uppercase tracking-tighter">Status: Aguardando Entrada de Dados</span>
-          <span className="text-[8px] font-mono uppercase tracking-tighter">Ref: REG-{Math.random().toString(36).substring(2, 6).toUpperCase()}</span>
+          <span className="text-[8px] font-mono uppercase tracking-tighter">
+            Status: Aguardando Entrada de Dados
+          </span>
+          <span className="text-[8px] font-mono uppercase tracking-tighter">
+            Ref: REG-{Math.random().toString(36).substring(2, 6).toUpperCase()}
+          </span>
         </div>
       </DialogContent>
     </Dialog>

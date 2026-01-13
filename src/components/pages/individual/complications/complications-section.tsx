@@ -141,7 +141,8 @@ export const ComplicationsSectionInner: React.FC = () => {
     setSelectedType(COMPLICATION_TYPES[0]);
   };
 
-  const writeComplications = (next: Complication[]) => updateIdentity("complications", next);
+  const writeComplications = (next: Complication[]) =>
+    updateIdentity("complications", next);
 
   const handleRemove = (id: string) => {
     const updatedComplications = (complications || []).filter(
@@ -192,7 +193,10 @@ export const ComplicationsSectionInner: React.FC = () => {
       <div className="space-y-3 mb-4 bg-muted/10 p-3 rounded-lg border border-border/20">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
           <div className="md:col-span-4">
-            <label htmlFor="complication-type" className="text-[10px] font-medium text-muted-foreground uppercase mb-1 block">
+            <label
+              htmlFor="complication-type"
+              className="text-[10px] font-medium text-muted-foreground uppercase mb-1 block"
+            >
               Tipo
             </label>
             <select
@@ -214,7 +218,10 @@ export const ComplicationsSectionInner: React.FC = () => {
             </select>
           </div>
           <div className="md:col-span-8">
-            <label htmlFor="complication-description" className="text-[10px] font-medium text-muted-foreground uppercase mb-1 block">
+            <label
+              htmlFor="complication-description"
+              className="text-[10px] font-medium text-muted-foreground uppercase mb-1 block"
+            >
               Descrição
             </label>
             <FormInput
@@ -335,6 +342,6 @@ export const ComplicationsSectionInner: React.FC = () => {
       </div>
     </div>
   );
-}
+};
 
 export const ComplicationsSection = React.memo(ComplicationsSectionInner);

@@ -18,20 +18,24 @@ export const calculatePowerCost = (
   const effectsCost = selectedEffects.reduce((acc, effect) => {
     const opts = effectOptions[effect.id] || {};
     const effectRank = opts.rank ?? fallbackRank;
-    const effectBaseCost = typeof opts.ppCost === "number" ? opts.ppCost : effect.baseCost;
+    const effectBaseCost =
+      typeof opts.ppCost === "number" ? opts.ppCost : effect.baseCost;
 
     // Modificadores que se aplicam a este efeito (ou a todos)
     const costPerRankFromModifiers = selectedModifierInstances
       .filter((inst) => {
         if (inst.modifier.isFlat) return false;
-        
+
         // Se a instância tiver alvos específicos, usa eles
         const targets = inst.appliesTo || inst.modifier.appliesTo;
         if (!targets || targets.length === 0) return true;
         return targets.includes(effect.id);
       })
       .reduce((sum, inst) => {
-        return sum + ((inst.options?.costPerRank as number) ?? inst.modifier.costPerRank);
+        return (
+          sum +
+          ((inst.options?.costPerRank as number) ?? inst.modifier.costPerRank)
+        );
       }, 0);
 
     const totalCostPerRank = effectBaseCost + costPerRankFromModifiers;
@@ -51,7 +55,10 @@ export const calculatePowerCost = (
   const flatModifiersTotal = selectedModifierInstances
     .filter((inst) => inst.modifier.isFlat)
     .reduce((sum, inst) => {
-      return sum + ((inst.options?.costPerRank as number) ?? inst.modifier.costPerRank);
+      return (
+        sum +
+        ((inst.options?.costPerRank as number) ?? inst.modifier.costPerRank)
+      );
     }, 0);
 
   return Math.max(1, effectsCost + flatModifiersTotal);

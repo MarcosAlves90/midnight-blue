@@ -8,9 +8,10 @@ import { deepEqual } from "@/lib/deep-equal";
  * Isola a lógica de comparação e atualização para evitar poluição no componente de UI.
  */
 export function useCharacterSync() {
-  const { setIdentity, setCurrentCharacterId, dirtyFields, isReady } = useIdentityContext();
+  const { setIdentity, setCurrentCharacterId, dirtyFields, isReady } =
+    useIdentityContext();
   const { character, isLoading, error } = useSelectedCharacter();
-  
+
   const characterIdRef = useRef<string | null>(null);
   const lastSyncedIdentityRef = useRef<string | null>(null);
 
@@ -27,9 +28,10 @@ export function useCharacterSync() {
 
     // Se o ID mudou, sempre sincroniza
     const idChanged = characterIdRef.current !== character.id;
-    
+
     // Se o ID é o mesmo mas a identity mudou (dados atualizados), também sincroniza
-    const identityChanged = lastSyncedIdentityRef.current !== currentIdentityHash;
+    const identityChanged =
+      lastSyncedIdentityRef.current !== currentIdentityHash;
 
     if (!idChanged && !identityChanged) {
       return;
@@ -72,16 +74,22 @@ export function useCharacterSync() {
 
       if (Object.keys(patch).length === 0) return prev;
 
-      console.debug("[useCharacterSync] Syncing identity from character", { 
-        idChanged, 
-        identityChanged, 
+      console.debug("[useCharacterSync] Syncing identity from character", {
+        idChanged,
+        identityChanged,
         fieldsChanged: changedEntries.length,
-        dirtyFieldsCount: dirtyFields.size 
+        dirtyFieldsCount: dirtyFields.size,
       });
 
       return { ...prev, ...patch } as IdentityData;
     });
-  }, [character?.id, character?.identity, setCurrentCharacterId, setIdentity, dirtyFields]);
+  }, [
+    character?.id,
+    character?.identity,
+    setCurrentCharacterId,
+    setIdentity,
+    dirtyFields,
+  ]);
 
   return { character, isLoading: isLoading || !isReady, error };
 }

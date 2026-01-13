@@ -18,21 +18,34 @@ interface DeleteFolderDialogProps {
   folderName: string;
 }
 
-export function DeleteFolderDialog({ open, onOpenChange, onConfirm, folderName }: DeleteFolderDialogProps) {
+export function DeleteFolderDialog({
+  open,
+  onOpenChange,
+  onConfirm,
+  folderName,
+}: DeleteFolderDialogProps) {
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle className="uppercase font-bold tracking-tighter">Excluir Pasta?</AlertDialogTitle>
+          <AlertDialogTitle className="uppercase font-bold tracking-tighter">
+            Excluir Pasta?
+          </AlertDialogTitle>
           <AlertDialogDescription>
-            Você está prestes a excluir a pasta <span className="font-bold text-foreground">&quot;{folderName}&quot;</span>. 
-            As notas dentro desta pasta não serão excluídas, mas ficarão sem pasta.
-            Esta ação não pode ser desfeita.
+            Você está prestes a excluir a pasta{" "}
+            <span className="font-bold text-foreground">
+              &quot;{folderName}&quot;
+            </span>
+            . As notas dentro desta pasta não serão excluídas, mas ficarão sem
+            pasta. Esta ação não pode ser desfeita.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancelar</AlertDialogCancel>
-          <AlertDialogAction onClick={onConfirm} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+          <AlertDialogAction
+            onClick={onConfirm}
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+          >
             Excluir Pasta
           </AlertDialogAction>
         </AlertDialogFooter>

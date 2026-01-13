@@ -31,7 +31,7 @@ export default function NotFound() {
         </div>
 
         <div className="space-y-2 mb-8">
-          <GlitchText 
+          <GlitchText
             className="text-4xl font-bold tracking-tighter sm:text-7xl text-primary uppercase"
             glitchChance={0.05}
           >
@@ -44,21 +44,28 @@ export default function NotFound() {
 
         <div className="bg-muted/30 backdrop-blur-sm border border-primary/10 rounded-xl p-6 mb-10 w-full max-w-md shadow-2xl shadow-primary/5">
           <p className="text-muted-foreground leading-relaxed mb-6">
-            O endereço solicitado foi movido, deletado ou nunca existiu nos servidores da <span className="text-primary font-bold">Sevastopol</span>. Verifique suas credenciais ou retorne ao terminal seguro.
+            O endereço solicitado foi movido, deletado ou nunca existiu nos
+            servidores da{" "}
+            <span className="text-primary font-bold">Sevastopol</span>.
+            Verifique suas credenciais ou retorne ao terminal seguro.
           </p>
-          
+
           <div className="grid grid-cols-1 gap-3">
-            <Button 
-              onClick={() => router.back()} 
-              variant="outline" 
+            <Button
+              onClick={() => router.back()}
+              variant="outline"
               className="w-full group border-primary/20 hover:border-primary/50 transition-all"
             >
               <ArrowLeft className="mr-2 h-4 w-4 group-hover:-translate-x-1 transition-transform" />
               VOLTAR PARA PÁGINA ANTERIOR
             </Button>
-            
+
             <div className="grid grid-cols-2 gap-3">
-              <Button asChild variant="default" className="font-bold shadow-lg shadow-primary/20">
+              <Button
+                asChild
+                variant="default"
+                className="font-bold shadow-lg shadow-primary/20"
+              >
                 <Link href="/dashboard">
                   <Terminal className="mr-2 h-4 w-4" />
                   DASHBOARD

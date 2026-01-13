@@ -6,7 +6,13 @@ import { useIdentityContext } from "@/contexts/IdentityContext";
 import { useCharacterUpload } from "@/hooks/use-character-upload";
 import { useCharacterSync } from "@/hooks/use-character-sync";
 import { IdentityCard } from "@/components/pages/individual/identity-card";
-import { BiometricDataLazy, PersonalDataLazy, ConfidentialFileLazy, HistoryLazy, ComplicationsLazy } from "@/components/pages/individual/lazy-sections";
+import {
+  BiometricDataLazy,
+  PersonalDataLazy,
+  ConfidentialFileLazy,
+  HistoryLazy,
+  ComplicationsLazy,
+} from "@/components/pages/individual/lazy-sections";
 import { NoCharacterSelected } from "@/components/config/character";
 import { IndividualSkeleton } from "./individual-skeleton";
 
@@ -15,8 +21,6 @@ export default function Individual() {
   const { isLoading, error } = useCharacterSync();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const cardRef = useRef<HTMLDivElement | null>(null);
-
-
 
   const { uploadImage, uploading } = useCharacterUpload();
 
@@ -77,7 +81,11 @@ export default function Individual() {
       return <NoCharacterSelected />;
     }
 
-    return <div className="flex items-center justify-center p-8 text-red-500">{error}</div>;
+    return (
+      <div className="flex items-center justify-center p-8 text-red-500">
+        {error}
+      </div>
+    );
   }
 
   return (

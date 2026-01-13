@@ -25,7 +25,7 @@ export class PersistenceManager {
   async save(
     characterId: string,
     data: Partial<CharacterData>,
-    pendingFields: Set<string>
+    pendingFields: Set<string>,
   ): Promise<PersistenceResult> {
     // Calcula fingerprint ANTES do salvamento
     const fingerprint = getCheapFingerprint(data);
@@ -39,12 +39,18 @@ export class PersistenceManager {
       async () => {
         // Tenta usar patch (mais leve) se disponível
         if (typeof this.repo.patchCharacter === "function") {
-          await this.repo.patchCharacter(characterId, data as Partial<CharacterData>);
+          await this.repo.patchCharacter(
+            characterId,
+            data as Partial<CharacterData>,
+          );
           return { success: true } as const;
         }
 
         // Fallback para update completo
-        return this.repo.updateCharacter(characterId, data as Partial<CharacterData>);
+        return this.repo.updateCharacter(
+          characterId,
+          data as Partial<CharacterData>,
+        );
       },
       {
         priority: 5,
@@ -52,14 +58,16 @@ export class PersistenceManager {
         initialBackoffMs: 400,
         coalesceKey: "autosave-patch",
         shouldRetry: (err: unknown) => this.shouldRetrySave(err),
-      }
+      },
     );
 
     // Trata resultado de conflito
     if (res && typeof res === "object") {
       const asObj = res as Record<string, unknown>;
       if (asObj["success"] === false) {
-        const err = new Error("conflict") as Error & { conflict?: CharacterDocument };
+        const err = new Error("conflict") as Error & {
+          conflict?: CharacterDocument;
+        };
         err.conflict = asObj["conflict"] as CharacterDocument | undefined;
         throw err;
       }
@@ -71,12 +79,22 @@ export class PersistenceManager {
   /**
    * Determina quais campos foram salvos para notificar a UI.
    */
-  private extractSavedFields(data: Partial<CharacterData>, pendingFields: Set<string>): string[] {
+  private extractSavedFields(
+    data: Partial<CharacterData>,
+    pendingFields: Set<string>,
+  ): string[] {
     const savedFields: string[] = Array.from(pendingFields);
-    
+
     // Fallback: se pendingFields estiver vazio, tenta extrair da identidade
-    if (savedFields.length === 0 && data.identity && typeof data.identity === "object") {
-      const identityFields = data.identity as unknown as Record<string, unknown>;
+    if (
+      savedFields.length === 0 &&
+      data.identity &&
+      typeof data.identity === "object"
+    ) {
+      const identityFields = data.identity as unknown as Record<
+        string,
+        unknown
+      >;
       Object.keys(identityFields).forEach((key) => {
         if (!savedFields.includes(key)) {
           savedFields.push(key);

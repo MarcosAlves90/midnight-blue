@@ -1,7 +1,14 @@
 "use client";
 
 import * as React from "react";
-import { ChevronsUpDown, Plus, BookOpen, AlertCircle, Eye, RefreshCw } from "lucide-react";
+import {
+  ChevronsUpDown,
+  Plus,
+  BookOpen,
+  AlertCircle,
+  Eye,
+  RefreshCw,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { CharacterImage } from "@/components/ui/custom/character-image";
 import { cn } from "@/lib/utils";
@@ -27,14 +34,24 @@ import { useCharacterPersistence } from "@/hooks/use-character-persistence";
 import type { CharacterDocument } from "@/lib/types/character";
 
 // Componente para item de personagem (DRY: elimina duplicação)
-function CharacterDropdownItem({ character, onClick }: { character: CharacterDocument; onClick: () => void }) {
+function CharacterDropdownItem({
+  character,
+  onClick,
+}: {
+  character: CharacterDocument;
+  onClick: () => void;
+}) {
   const civil = character.identity?.name || "";
   const hero = character.identity?.heroName || "";
   const profileImage = character.identity?.profileImage;
   const imagePosition = character.identity?.imagePosition;
 
   return (
-    <DropdownMenuItem key={character.id} onClick={onClick} className="gap-2 p-2">
+    <DropdownMenuItem
+      key={character.id}
+      onClick={onClick}
+      className="gap-2 p-2"
+    >
       <div className="flex size-6 shrink-0 items-center justify-center rounded-md border bg-muted/50 overflow-hidden relative">
         <CharacterImage
           src={profileImage}
@@ -43,13 +60,17 @@ function CharacterDropdownItem({ character, onClick }: { character: CharacterDoc
           fill
           sizes="24px"
           fallback={
-            <span className="text-xs font-bold">{(civil || hero || "?").charAt(0).toUpperCase()}</span>
+            <span className="text-xs font-bold">
+              {(civil || hero || "?").charAt(0).toUpperCase()}
+            </span>
           }
         />
       </div>
       <div className="flex flex-col flex-1 min-w-0">
         <span className="text-sm font-medium truncate">{civil || hero}</span>
-        <span className="text-xs text-muted-foreground truncate">{hero || "Sem título"}</span>
+        <span className="text-xs text-muted-foreground truncate">
+          {hero || "Sem título"}
+        </span>
       </div>
     </DropdownMenuItem>
   );
@@ -75,11 +96,11 @@ const CharacterSwitcherComponent = () => {
   const { isAdminMode, targetUserId } = useAdmin();
   const router = useRouter();
   const characterContext = useCharacter();
-  const { selectedCharacter, setSelectedCharacter, activeContextId } = characterContext;
-  
-  const { listenToCharacters, selectCharacter } = useCharacterPersistence(
-    activeContextId,
-  );
+  const { selectedCharacter, setSelectedCharacter, activeContextId } =
+    characterContext;
+
+  const { listenToCharacters, selectCharacter } =
+    useCharacterPersistence(activeContextId);
 
   const [characters, setCharacters] = React.useState<CharacterDocument[]>([]);
   const [error, setError] = React.useState<string | null>(null);
@@ -100,7 +121,7 @@ const CharacterSwitcherComponent = () => {
     }
 
     let unsubscribe: (() => void) | undefined;
-    
+
     // NÃO limpa estado anterior imediatamente para evitar flashes visíveis
     // Apenas se o ID do usuário de fato mudou drasticamente
     try {
@@ -134,17 +155,17 @@ const CharacterSwitcherComponent = () => {
   const handleCreateNewCharacter = () => {
     characterContext.setOpenNewDialog(true);
     router.push("/dashboard/galeria");
-  }; 
+  };
 
   const handleOpenGallery = () => {
     router.push("/dashboard/galeria");
   };
 
   // Se estivermos em modo admin e a ficha selecionada (ou o target da galeria) não for a nossa
-  const isViewingAdminContext = isAdminMode && (
-    (targetUserId && targetUserId !== user?.uid) || 
-    (selectedCharacter && selectedCharacter.userId !== user?.uid)
-  );
+  const isViewingAdminContext =
+    isAdminMode &&
+    ((targetUserId && targetUserId !== user?.uid) ||
+      (selectedCharacter && selectedCharacter.userId !== user?.uid));
 
   if (error) {
     return (
@@ -163,13 +184,17 @@ const CharacterSwitcherComponent = () => {
     return <InitialCharacterButton onCreate={handleCreateNewCharacter} />;
   }
 
-  const selectedCharacterName = selectedCharacter 
-    ? (selectedCharacter.identity?.name || "Sem Nome")
-    : (isAdminMode ? "ESPERANDO SELEÇÃO" : "Selecionar Ficha");
+  const selectedCharacterName = selectedCharacter
+    ? selectedCharacter.identity?.name || "Sem Nome"
+    : isAdminMode
+      ? "ESPERANDO SELEÇÃO"
+      : "Selecionar Ficha";
 
   const selectedCharacterPlayer = selectedCharacter
-    ? (selectedCharacter.identity?.heroName || "Alternar Ficha")
-    : (isAdminMode ? "Infinity Corp" : "");
+    ? selectedCharacter.identity?.heroName || "Alternar Ficha"
+    : isAdminMode
+      ? "Infinity Corp"
+      : "";
 
   const selectedProfileImage = selectedCharacter?.identity?.profileImage;
   const selectedImagePosition = selectedCharacter?.identity?.imagePosition;
@@ -185,7 +210,7 @@ const CharacterSwitcherComponent = () => {
                 tooltip={selectedCharacterName}
                 className={cn(
                   "data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground transition-all duration-200",
-                  isViewingAdminContext && "bg-primary/5"
+                  isViewingAdminContext && "bg-primary/5",
                 )}
               >
                 <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 shrink-0 items-center justify-center rounded-lg overflow-hidden relative">
@@ -216,8 +241,8 @@ const CharacterSwitcherComponent = () => {
                     {selectedCharacterName}
                   </span>
                   <span className="truncate text-xs text-muted-foreground">
-                    {isViewingAdminContext && selectedCharacter 
-                      ? "Rastreando..." 
+                    {isViewingAdminContext && selectedCharacter
+                      ? "Rastreando..."
                       : selectedCharacterPlayer}
                   </span>
                 </div>

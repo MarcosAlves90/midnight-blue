@@ -20,9 +20,11 @@ export function CharacterCard({
   isDeleting,
 }: CharacterCardProps) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const heroName = character.identity?.heroName || character.identity?.name || "UNKNOWN";
+  const heroName =
+    character.identity?.heroName || character.identity?.name || "UNKNOWN";
   const civilName = character.identity?.name || "CLASSIFIED";
-  const powerLevel = (character.status as { powerLevel?: number }).powerLevel ?? 0;
+  const powerLevel =
+    (character.status as { powerLevel?: number }).powerLevel ?? 0;
   const fileId = character.id.slice(-8).toUpperCase();
   const updatedAt = new Date(character.updatedAt).toLocaleDateString("pt-BR", {
     day: "2-digit",
@@ -37,19 +39,19 @@ export function CharacterCard({
         className="group relative rounded-lg border border-border bg-card overflow-hidden hover:border-primary/50 transition-all duration-300 flex flex-col shadow-md hover:shadow-primary/5 cursor-default"
       >
         <MugshotArea character={character} heroName={heroName} />
-        
+
         <div className="p-2.5 flex flex-col flex-1 gap-2.5">
-          <CharacterInfo 
-            heroName={heroName} 
-            fileId={fileId} 
-            civilName={civilName} 
-            powerLevel={powerLevel} 
-            updatedAt={updatedAt} 
+          <CharacterInfo
+            heroName={heroName}
+            fileId={fileId}
+            civilName={civilName}
+            powerLevel={powerLevel}
+            updatedAt={updatedAt}
           />
-          
-          <CharacterActions 
-            isDeleting={isDeleting} 
-            onDelete={() => setIsDeleteDialogOpen(true)} 
+
+          <CharacterActions
+            isDeleting={isDeleting}
+            onDelete={() => setIsDeleteDialogOpen(true)}
           />
         </div>
 
@@ -76,14 +78,25 @@ export function CharacterCard({
   );
 }
 
-function MugshotArea({ character, heroName }: { character: CharacterDocument; heroName: string }) {
+function MugshotArea({
+  character,
+  heroName,
+}: {
+  character: CharacterDocument;
+  heroName: string;
+}) {
   return (
     <div className="h-40 w-full bg-muted/20 overflow-hidden relative border-b border-border cursor-pointer">
       {/* Height Scale Visual Effect */}
       <div className="absolute inset-0 opacity-10 pointer-events-none flex flex-col justify-between py-2 px-1 font-mono">
         {[...Array(8)].map((_, i) => (
-          <div key={i} className="w-full border-t border-foreground/50 flex justify-end">
-            <span className="text-[6px] leading-none pr-0.5">{180 - i * 10}</span>
+          <div
+            key={i}
+            className="w-full border-t border-foreground/50 flex justify-end"
+          >
+            <span className="text-[6px] leading-none pr-0.5">
+              {180 - i * 10}
+            </span>
           </div>
         ))}
       </div>
@@ -97,7 +110,9 @@ function MugshotArea({ character, heroName }: { character: CharacterDocument; he
         className="grayscale contrast-110 brightness-90 group-hover:grayscale-0 transition-all duration-500"
         fallback={
           <div className="h-full w-full flex items-center justify-center bg-muted/30">
-            <span className="text-2xl font-bold text-muted-foreground/20 font-mono">SEM FOTO</span>
+            <span className="text-2xl font-bold text-muted-foreground/20 font-mono">
+              SEM FOTO
+            </span>
           </div>
         }
       />
@@ -109,57 +124,73 @@ function MugshotArea({ character, heroName }: { character: CharacterDocument; he
       </div>
 
       <div className="absolute top-3 left-2 -rotate-12 border-2 border-destructive/40 px-1.5 py-1.5 invert rounded-sm pointer-events-none font-mono flex items-center">
-        <span className="text-[8px] font-black text-destructive/60 tracking-tighter uppercase">Confidencial</span>
+        <span className="text-[8px] font-black text-destructive/60 tracking-tighter uppercase">
+          Confidencial
+        </span>
       </div>
     </div>
   );
 }
 
-function CharacterInfo({ 
-  heroName, 
-  fileId, 
-  civilName, 
-  powerLevel, 
-  updatedAt 
-}: { 
-  heroName: string; 
-  fileId: string; 
-  civilName: string; 
-  powerLevel: number; 
-  updatedAt: string; 
+function CharacterInfo({
+  heroName,
+  fileId,
+  civilName,
+  powerLevel,
+  updatedAt,
+}: {
+  heroName: string;
+  fileId: string;
+  civilName: string;
+  powerLevel: number;
+  updatedAt: string;
 }) {
   return (
     <div className="flex flex-col gap-2 cursor-pointer">
       <div className="flex justify-between items-start gap-2">
         <div className="flex-1 min-w-0">
-          <p className="text-[8px] text-primary font-bold uppercase tracking-tight opacity-80">Codinome / Alias</p>
+          <p className="text-[8px] text-primary font-bold uppercase tracking-tight opacity-80">
+            Codinome / Alias
+          </p>
           <h3 className="font-bold text-xs leading-tight truncate group-hover:text-primary transition-colors">
             {heroName}
           </h3>
         </div>
         <div className="text-right font-mono">
-          <p className="text-[8px] text-muted-foreground font-bold uppercase tracking-tighter">ID Arquivo</p>
+          <p className="text-[8px] text-muted-foreground font-bold uppercase tracking-tighter">
+            ID Arquivo
+          </p>
           <p className="text-[9px] font-bold opacity-80">#{fileId}</p>
         </div>
       </div>
 
       <div className="space-y-1 border-t border-border pt-1.5">
         <div>
-          <p className="text-[7px] text-muted-foreground uppercase font-bold">Nome do Indivíduo:</p>
+          <p className="text-[7px] text-muted-foreground uppercase font-bold">
+            Nome do Indivíduo:
+          </p>
           <p className="text-[9px] font-medium truncate">{civilName}</p>
         </div>
         <div className="flex justify-between items-end">
           <div>
-            <p className="text-[7px] text-muted-foreground uppercase font-bold">Nível de Ameaça:</p>
+            <p className="text-[7px] text-muted-foreground uppercase font-bold">
+              Nível de Ameaça:
+            </p>
             <div className="flex items-center gap-1">
-              <Shield className={`w-2.5 h-2.5 ${powerLevel > 10 ? "text-destructive" : "text-primary"}`} />
-              <p className={`text-[9px] font-bold ${powerLevel > 10 ? "text-destructive" : "text-primary"}`}>
+              <Shield
+                className={`w-2.5 h-2.5 ${powerLevel > 10 ? "text-destructive" : "text-primary"}`}
+              />
+              <p
+                className={`text-[9px] font-bold ${powerLevel > 10 ? "text-destructive" : "text-primary"}`}
+              >
                 CLASSE-{powerLevel}
               </p>
             </div>
           </div>
           <div className="text-right">
-            <p className="text-[7px] text-muted-foreground uppercase font-bold">Visto por último:</p>
+            <p className="text-[7px] text-muted-foreground uppercase font-bold">
+              Visto por último:
+            </p>
             <p className="text-[9px] text-muted-foreground">{updatedAt}</p>
           </div>
         </div>
@@ -168,12 +199,12 @@ function CharacterInfo({
   );
 }
 
-function CharacterActions({ 
-  isDeleting, 
-  onDelete 
-}: { 
-  isDeleting: boolean; 
-  onDelete: () => void; 
+function CharacterActions({
+  isDeleting,
+  onDelete,
+}: {
+  isDeleting: boolean;
+  onDelete: () => void;
 }) {
   return (
     <div className="flex items-center justify-end mt-auto pt-1.5 border-t border-border relative z-10">

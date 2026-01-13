@@ -47,4 +47,4 @@ export function shallowEqual(a: unknown, b: unknown): boolean {
   }
 
   return true;
-} 
+}

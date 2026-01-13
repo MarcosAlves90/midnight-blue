@@ -20,20 +20,30 @@ export const GalleryActions = React.memo(function GalleryActions({
 }: GalleryActionsProps) {
   return (
     <div className="flex items-center gap-2">
-      <Button 
-        variant="outline" 
-        size="sm" 
-        onClick={onNewFolder} 
-        className={cn("h-9 transition-all", isAdminMode && !targetUserId && "opacity-40 grayscale-[0.5] pointer-events-none")}
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={onNewFolder}
+        className={cn(
+          "h-9 transition-all",
+          isAdminMode &&
+            !targetUserId &&
+            "opacity-40 grayscale-[0.5] pointer-events-none",
+        )}
         disabled={isAdminMode && !targetUserId}
       >
         <FolderPlus className="w-4 h-4 mr-2" />
         Nova Pasta
       </Button>
-      <Button 
-        size="sm" 
-        onClick={onNewCharacter} 
-        className={cn("h-9 transition-all", isAdminMode && !targetUserId && "opacity-40 grayscale-[0.5] pointer-events-none")}
+      <Button
+        size="sm"
+        onClick={onNewCharacter}
+        className={cn(
+          "h-9 transition-all",
+          isAdminMode &&
+            !targetUserId &&
+            "opacity-40 grayscale-[0.5] pointer-events-none",
+        )}
         disabled={isAdminMode && !targetUserId}
       >
         <PlusCircle className="w-4 h-4 mr-2" />

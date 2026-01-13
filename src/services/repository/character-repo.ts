@@ -1,6 +1,11 @@
 "use client";
 
-import type { CharacterDocument, CharacterData, Folder, UpdateResult } from "@/lib/types/character";
+import type {
+  CharacterDocument,
+  CharacterData,
+  Folder,
+  UpdateResult,
+} from "@/lib/types/character";
 import {
   doc,
   setDoc,
@@ -35,13 +40,25 @@ export interface CharacterRepository {
   saveCharacter: (data: CharacterData, characterId?: string) => Promise<string>;
   getCharacter: (characterId: string) => Promise<CharacterDocument | null>;
   listCharacters: () => Promise<CharacterDocument[]>;
-  updateCharacter: (characterId: string, updates: Partial<CharacterData>, options?: { baseVersion?: number }) => Promise<UpdateResult>;
-  patchCharacter: (characterId: string, updates: Partial<CharacterData>) => Promise<void>;
+  updateCharacter: (
+    characterId: string,
+    updates: Partial<CharacterData>,
+    options?: { baseVersion?: number },
+  ) => Promise<UpdateResult>;
+  patchCharacter: (
+    characterId: string,
+    updates: Partial<CharacterData>,
+  ) => Promise<void>;
   deleteCharacter: (characterId: string) => Promise<void>;
-  
+
   // Listeners
-  onCharactersChange: (callback: (characters: CharacterDocument[]) => void) => Unsubscribe;
-  onCharacterChange: (characterId: string, callback: (character: CharacterDocument | null) => void) => Unsubscribe;
+  onCharactersChange: (
+    callback: (characters: CharacterDocument[]) => void,
+  ) => Unsubscribe;
+  onCharacterChange: (
+    characterId: string,
+    callback: (character: CharacterDocument | null) => void,
+  ) => Unsubscribe;
 
   // Last selected
   setLastSelectedCharacter: (characterId: string) => Promise<void>;
@@ -52,7 +69,10 @@ export interface CharacterRepository {
   updateFolder: (folderId: string, name: string) => Promise<void>;
   deleteFolder: (folderId: string) => Promise<void>;
   listFolders: () => Promise<Folder[]>;
-  moveCharacterToFolder: (characterId: string, folderId: string | null) => Promise<void>;
+  moveCharacterToFolder: (
+    characterId: string,
+    folderId: string | null,
+  ) => Promise<void>;
   onFoldersChange: (callback: (folders: Folder[]) => void) => Unsubscribe;
 }
 
@@ -63,7 +83,12 @@ export class FirebaseCharacterRepository implements CharacterRepository {
   }
 
   private get characterCollection() {
-    return collection(db, USERS_COLLECTION, this.userId, CHARACTERS_SUBCOLLECTION);
+    return collection(
+      db,
+      USERS_COLLECTION,
+      this.userId,
+      CHARACTERS_SUBCOLLECTION,
+    );
   }
 
   private get folderCollection() {
@@ -71,10 +96,19 @@ export class FirebaseCharacterRepository implements CharacterRepository {
   }
 
   private getDocRef(characterId: string) {
-    return doc(db, USERS_COLLECTION, this.userId, CHARACTERS_SUBCOLLECTION, characterId);
+    return doc(
+      db,
+      USERS_COLLECTION,
+      this.userId,
+      CHARACTERS_SUBCOLLECTION,
+      characterId,
+    );
   }
 
-  async saveCharacter(data: CharacterData, characterId?: string): Promise<string> {
+  async saveCharacter(
+    data: CharacterData,
+    characterId?: string,
+  ): Promise<string> {
     const id = characterId ?? doc(this.characterCollection).id;
     const docRef = this.getDocRef(id);
     const now = new Date();
@@ -86,11 +120,19 @@ export class FirebaseCharacterRepository implements CharacterRepository {
       updatedAt: now,
       version: 1,
       identity: normalizeIdentity(data.identity),
-      attributes: serializeAttributes((data.attributes as Attribute[]) ?? INITIAL_ATTRIBUTES),
+      attributes: serializeAttributes(
+        (data.attributes as Attribute[]) ?? INITIAL_ATTRIBUTES,
+      ),
       skills: serializeSkills((data.skills as Skill[]) ?? INITIAL_SKILLS),
       powers: data.powers ?? [],
       status: data.status ?? { powerLevel: 10, extraPoints: 0 },
-      defenses: data.defenses ?? { aparar: 0, esquiva: 0, fortitude: 0, resistencia: 0, vontade: 0 },
+      defenses: data.defenses ?? {
+        aparar: 0,
+        esquiva: 0,
+        fortitude: 0,
+        resistencia: 0,
+        vontade: 0,
+      },
       customDescriptors: data.customDescriptors ?? [],
       folderId: data.folderId ?? null,
     };
@@ -114,12 +156,17 @@ export class FirebaseCharacterRepository implements CharacterRepository {
       .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
   }
 
-  async updateCharacter(characterId: string, updates: Partial<CharacterData>, options?: { baseVersion?: number }): Promise<UpdateResult> {
+  async updateCharacter(
+    characterId: string,
+    updates: Partial<CharacterData>,
+    options?: { baseVersion?: number },
+  ): Promise<UpdateResult> {
     const docRef = this.getDocRef(characterId);
     const payload = this.prepareUpdatePayload(updates);
 
-    const { runTransaction, serverTimestamp } = await import("firebase/firestore");
-    
+    const { runTransaction, serverTimestamp } =
+      await import("firebase/firestore");
+
     return runTransaction(db, async (t) => {
       const snap = await t.get(docRef);
       if (!snap.exists()) throw new Error("Document does not exist");
@@ -127,33 +174,54 @@ export class FirebaseCharacterRepository implements CharacterRepository {
       const serverData = snap.data();
       const serverVersion = Number((serverData.version as number) ?? 0);
 
-      if (typeof options?.baseVersion === "number" && options.baseVersion !== serverVersion) {
-        return { success: false as const, conflict: mapFirestoreToCharacter(snap.id, serverData) };
+      if (
+        typeof options?.baseVersion === "number" &&
+        options.baseVersion !== serverVersion
+      ) {
+        return {
+          success: false as const,
+          conflict: mapFirestoreToCharacter(snap.id, serverData),
+        };
       }
 
       const newVersion = serverVersion + 1;
-      t.update(docRef, { ...payload, updatedAt: serverTimestamp(), version: newVersion });
+      t.update(docRef, {
+        ...payload,
+        updatedAt: serverTimestamp(),
+        version: newVersion,
+      });
       return { success: true as const, newVersion };
     });
   }
 
-  async patchCharacter(characterId: string, updates: Partial<CharacterData>): Promise<void> {
+  async patchCharacter(
+    characterId: string,
+    updates: Partial<CharacterData>,
+  ): Promise<void> {
     const docRef = this.getDocRef(characterId);
     const payload = this.prepareUpdatePayload(updates);
 
     if (Object.keys(payload).length === 0) return;
 
-    const { updateDoc, serverTimestamp, increment } = await import("firebase/firestore");
-    await updateDoc(docRef, { ...payload, updatedAt: serverTimestamp(), version: increment(1) });
+    const { updateDoc, serverTimestamp, increment } =
+      await import("firebase/firestore");
+    await updateDoc(docRef, {
+      ...payload,
+      updatedAt: serverTimestamp(),
+      version: increment(1),
+    });
   }
 
   async deleteCharacter(characterId: string): Promise<void> {
     await deleteDoc(this.getDocRef(characterId));
   }
 
-  onCharactersChange(callback: (characters: CharacterDocument[]) => void, onError?: (error: Error) => void): Unsubscribe {
+  onCharactersChange(
+    callback: (characters: CharacterDocument[]) => void,
+    onError?: (error: Error) => void,
+  ): Unsubscribe {
     return onSnapshot(
-      query(this.characterCollection), 
+      query(this.characterCollection),
       (snapshot) => {
         const chars = snapshot.docs
           .map((d) => mapFirestoreToCharacter(d.id, d.data()))
@@ -161,15 +229,25 @@ export class FirebaseCharacterRepository implements CharacterRepository {
         callback(chars);
       },
       (error) => {
-        console.error("[FirebaseCharacterRepository] error in onCharactersChange:", error);
+        console.error(
+          "[FirebaseCharacterRepository] error in onCharactersChange:",
+          error,
+        );
         onError?.(error as Error);
-      }
+      },
     );
   }
 
-  onCharacterChange(characterId: string, callback: (character: CharacterDocument | null) => void): Unsubscribe {
+  onCharacterChange(
+    characterId: string,
+    callback: (character: CharacterDocument | null) => void,
+  ): Unsubscribe {
     return onSnapshot(this.getDocRef(characterId), (snapshot) => {
-      callback(snapshot.exists() ? mapFirestoreToCharacter(snapshot.id, snapshot.data()) : null);
+      callback(
+        snapshot.exists()
+          ? mapFirestoreToCharacter(snapshot.id, snapshot.data())
+          : null,
+      );
     });
   }
 
@@ -177,8 +255,16 @@ export class FirebaseCharacterRepository implements CharacterRepository {
     const userDoc = doc(db, USERS_COLLECTION, this.userId);
     const now = new Date();
     const snap = await getDoc(userDoc);
-    if (!snap.exists()) await setDoc(userDoc, { lastSelectedCharacterId: characterId, updatedAt: now });
-    else await updateDoc(userDoc, { lastSelectedCharacterId: characterId, updatedAt: now });
+    if (!snap.exists())
+      await setDoc(userDoc, {
+        lastSelectedCharacterId: characterId,
+        updatedAt: now,
+      });
+    else
+      await updateDoc(userDoc, {
+        lastSelectedCharacterId: characterId,
+        updatedAt: now,
+      });
   }
 
   async getLastSelectedCharacterId(): Promise<string | null> {
@@ -186,11 +272,20 @@ export class FirebaseCharacterRepository implements CharacterRepository {
     return snap.exists() ? snap.data().lastSelectedCharacterId || null : null;
   }
 
-  async createFolder(name: string, parentId: string | null = null): Promise<string> {
+  async createFolder(
+    name: string,
+    parentId: string | null = null,
+  ): Promise<string> {
     const id = doc(this.folderCollection).id;
     const docRef = doc(this.folderCollection, id);
     const now = new Date();
-    await setDoc(docRef, { id, name, createdAt: now, updatedAt: now, parentId });
+    await setDoc(docRef, {
+      id,
+      name,
+      createdAt: now,
+      updatedAt: now,
+      parentId,
+    });
     return id;
   }
 
@@ -206,56 +301,88 @@ export class FirebaseCharacterRepository implements CharacterRepository {
     const folderRef = doc(this.folderCollection, folderId);
     const snapshot = await getDocs(query(this.characterCollection));
     const batchUpdates = snapshot.docs
-      .filter(d => d.data().folderId === folderId)
-      .map(d => updateDoc(this.getDocRef(d.id), { folderId: null }));
+      .filter((d) => d.data().folderId === folderId)
+      .map((d) => updateDoc(this.getDocRef(d.id), { folderId: null }));
 
     await Promise.all([...batchUpdates, deleteDoc(folderRef)]);
   }
 
   async listFolders(): Promise<Folder[]> {
-    const snapshot = await getDocs(query(this.folderCollection, orderBy("name", "asc")));
-    return snapshot.docs.map(d => ({
-      ...d.data(),
-      id: d.id,
-      createdAt: toDateSafe(d.data().createdAt),
-      updatedAt: toDateSafe(d.data().updatedAt),
-    } as Folder));
-  }
-
-  async moveCharacterToFolder(characterId: string, folderId: string | null): Promise<void> {
-    await updateDoc(this.getDocRef(characterId), { folderId, updatedAt: new Date() });
-  }
-
-  onFoldersChange(callback: (folders: Folder[]) => void, onError?: (error: Error) => void): Unsubscribe {
-    return onSnapshot(
-      query(this.folderCollection, orderBy("name", "asc")), 
-      (snapshot) => {
-        callback(snapshot.docs.map(d => ({
+    const snapshot = await getDocs(
+      query(this.folderCollection, orderBy("name", "asc")),
+    );
+    return snapshot.docs.map(
+      (d) =>
+        ({
           ...d.data(),
           id: d.id,
           createdAt: toDateSafe(d.data().createdAt),
           updatedAt: toDateSafe(d.data().updatedAt),
-        } as Folder)));
-      },
-      (error) => {
-        console.error("[FirebaseCharacterRepository] error in onFoldersChange:", error);
-        onError?.(error as Error);
-      }
+        }) as Folder,
     );
   }
 
-  private prepareUpdatePayload(updates: Partial<CharacterData>): Record<string, unknown> {
+  async moveCharacterToFolder(
+    characterId: string,
+    folderId: string | null,
+  ): Promise<void> {
+    await updateDoc(this.getDocRef(characterId), {
+      folderId,
+      updatedAt: new Date(),
+    });
+  }
+
+  onFoldersChange(
+    callback: (folders: Folder[]) => void,
+    onError?: (error: Error) => void,
+  ): Unsubscribe {
+    return onSnapshot(
+      query(this.folderCollection, orderBy("name", "asc")),
+      (snapshot) => {
+        callback(
+          snapshot.docs.map(
+            (d) =>
+              ({
+                ...d.data(),
+                id: d.id,
+                createdAt: toDateSafe(d.data().createdAt),
+                updatedAt: toDateSafe(d.data().updatedAt),
+              }) as Folder,
+          ),
+        );
+      },
+      (error) => {
+        console.error(
+          "[FirebaseCharacterRepository] error in onFoldersChange:",
+          error,
+        );
+        onError?.(error as Error);
+      },
+    );
+  }
+
+  private prepareUpdatePayload(
+    updates: Partial<CharacterData>,
+  ): Record<string, unknown> {
     const payload: Record<string, unknown> = {};
     const updatesRecord = updates as Record<string, unknown>;
 
-    console.debug("[CharacterRepo] prepareUpdatePayload - Inputs:", Object.keys(updatesRecord));
+    console.debug(
+      "[CharacterRepo] prepareUpdatePayload - Inputs:",
+      Object.keys(updatesRecord),
+    );
 
     if (updatesRecord.attributes) {
-      payload.attributes = serializeAttributes(updates.attributes as Attribute[]);
+      payload.attributes = serializeAttributes(
+        updates.attributes as Attribute[],
+      );
     }
     if (updatesRecord.skills) {
       payload.skills = serializeSkills(updates.skills as Skill[]);
-      console.debug("[CharacterRepo] Skills serializadas:", (payload.skills as unknown[]).length);
+      console.debug(
+        "[CharacterRepo] Skills serializadas:",
+        (payload.skills as unknown[]).length,
+      );
     }
     if (updatesRecord.defenses) payload.defenses = updates.defenses;
 
@@ -266,9 +393,18 @@ export class FirebaseCharacterRepository implements CharacterRepository {
       if (key === "powers" || key === "customDescriptors") {
         payload[key] = val;
       } else if (key === "status" && typeof val === "object" && val !== null) {
-        Object.keys(val).forEach(k => payload[`status.${k}`] = (val as Record<string, unknown>)[k]);
-      } else if (key === "identity" && typeof val === "object" && val !== null) {
-        Object.keys(val).forEach(k => payload[`identity.${k}`] = (val as Record<string, unknown>)[k]);
+        Object.keys(val).forEach(
+          (k) => (payload[`status.${k}`] = (val as Record<string, unknown>)[k]),
+        );
+      } else if (
+        key === "identity" &&
+        typeof val === "object" &&
+        val !== null
+      ) {
+        Object.keys(val).forEach(
+          (k) =>
+            (payload[`identity.${k}`] = (val as Record<string, unknown>)[k]),
+        );
       } else if (key.includes(".") || key === "heroName") {
         payload[key === "heroName" ? "identity.heroName" : key] = val;
       } else {

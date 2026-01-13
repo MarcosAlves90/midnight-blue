@@ -49,6 +49,9 @@ export function usePowerBuilder(editingPower?: Power) {
     editingPower?.alternatives || [],
   );
 
+  // Estado auxiliar para saber onde inserir o próximo efeito selecionado
+  const [activeSlotIndex, setActiveSlotIndex] = useState<number | null>(null);
+
   // O rank global agora reflete a maior graduação entre os efeitos para compatibilidade
   const maxRank = useMemo(() => {
     const ranks = Object.values(effectOptions)
@@ -112,16 +115,19 @@ export function usePowerBuilder(editingPower?: Power) {
     });
   }, []);
 
-  const addModifierInstance = useCallback((modifier: Modifier, effectId?: string) => {
-    const newInstance: ModifierInstance = {
-      id: crypto.randomUUID(),
-      modifierId: modifier.id,
-      modifier,
-      customDescription: undefined,
-      appliesTo: effectId ? [effectId] : undefined,
-    };
-    setSelectedModifierInstances((prev) => [...prev, newInstance]);
-  }, []);
+  const addModifierInstance = useCallback(
+    (modifier: Modifier, effectId?: string) => {
+      const newInstance: ModifierInstance = {
+        id: crypto.randomUUID(),
+        modifierId: modifier.id,
+        modifier,
+        customDescription: undefined,
+        appliesTo: effectId ? [effectId] : undefined,
+      };
+      setSelectedModifierInstances((prev) => [...prev, newInstance]);
+    },
+    [],
+  );
 
   const removeModifierInstance = useCallback((instanceId: string) => {
     setSelectedModifierInstances((prev) =>
@@ -174,7 +180,13 @@ export function usePowerBuilder(editingPower?: Power) {
       rank,
     );
     return primaryCost + (alternatives?.length || 0);
-  }, [selectedEffects, selectedModifierInstances, effectOptions, rank, alternatives]);
+  }, [
+    selectedEffects,
+    selectedModifierInstances,
+    effectOptions,
+    rank,
+    alternatives,
+  ]);
 
   const previewPower: Power = useMemo(
     () => ({
@@ -223,18 +235,18 @@ export function usePowerBuilder(editingPower?: Power) {
     setAlternatives((prev) => prev.filter((a) => a.id !== id));
   }, []);
 
-  const updateAlternative = useCallback((id: string, updates: Partial<Power>) => {
-    setAlternatives((prev) =>
-      prev.map((a) => (a.id === id ? { ...a, ...updates } : a)),
-    );
-  }, []);
+  const updateAlternative = useCallback(
+    (id: string, updates: Partial<Power>) => {
+      setAlternatives((prev) =>
+        prev.map((a) => (a.id === id ? { ...a, ...updates } : a)),
+      );
+    },
+    [],
+  );
 
   const canProceed = useCallback(() => {
-    if (step === 1) return selectedEffects.length > 0;
-    if (step === 2) return rank >= 1;
-    if (step === 3) return !!name.trim();
-    return false;
-  }, [step, selectedEffects.length, rank, name]);
+    return selectedEffects.length > 0 && !!name.trim();
+  }, [selectedEffects.length, name]);
 
   return {
     step,

@@ -39,13 +39,16 @@ export function useFieldLocalState(
     }
   }, [externalValue]);
 
-  const commit = useCallback((v: string) => {
-    if (v === lastCommittedValueRef.current) return;
-    
-    lastCommittedValueRef.current = v;
-    onCommit(v);
-    isDirtyRef.current = false; // Marcar como limpo após commit inicial (o servidor confirmará depois)
-  }, [onCommit]);
+  const commit = useCallback(
+    (v: string) => {
+      if (v === lastCommittedValueRef.current) return;
+
+      lastCommittedValueRef.current = v;
+      onCommit(v);
+      isDirtyRef.current = false; // Marcar como limpo após commit inicial (o servidor confirmará depois)
+    },
+    [onCommit],
+  );
 
   const flush = useCallback(() => {
     if (timeoutRef.current) {
@@ -55,35 +58,47 @@ export function useFieldLocalState(
     commit(value);
   }, [commit, value]);
 
-  const scheduleCommit = useCallback((v: string) => {
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    
-    if (debounceMs <= 0) {
-      commit(v);
-      return;
-    }
+  const scheduleCommit = useCallback(
+    (v: string) => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
 
-    timeoutRef.current = window.setTimeout(() => {
-      timeoutRef.current = undefined;
-      commit(v);
-    }, debounceMs) as unknown as number;
-  }, [debounceMs, commit]);
+      if (debounceMs <= 0) {
+        commit(v);
+        return;
+      }
 
-  const handleChange = useCallback((payload: string | React.ChangeEvent<HTMLInputElement> | React.ChangeEvent<HTMLTextAreaElement>) => {
-    const newVal = typeof payload === "string" ? payload : payload.target.value ?? "";
-    
-    setValue(newVal);
-    isDirtyRef.current = true;
+      timeoutRef.current = window.setTimeout(() => {
+        timeoutRef.current = undefined;
+        commit(v);
+      }, debounceMs) as unknown as number;
+    },
+    [debounceMs, commit],
+  );
 
-    // Notify dirty state once per session
-    try {
-      if (fieldName && onDirty) onDirty(fieldName);
-    } catch {
-      // ignore
-    }
+  const handleChange = useCallback(
+    (
+      payload:
+        | string
+        | React.ChangeEvent<HTMLInputElement>
+        | React.ChangeEvent<HTMLTextAreaElement>,
+    ) => {
+      const newVal =
+        typeof payload === "string" ? payload : (payload.target.value ?? "");
 
-    scheduleCommit(newVal);
-  }, [scheduleCommit, fieldName, onDirty]);
+      setValue(newVal);
+      isDirtyRef.current = true;
+
+      // Notify dirty state once per session
+      try {
+        if (fieldName && onDirty) onDirty(fieldName);
+      } catch {
+        // ignore
+      }
+
+      scheduleCommit(newVal);
+    },
+    [scheduleCommit, fieldName, onDirty],
+  );
 
   const handleBlur = useCallback(() => {
     flush();

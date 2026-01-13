@@ -34,7 +34,10 @@ function BreadcrumbNode({
             {item.label}
           </BreadcrumbPage>
         ) : (
-          <BreadcrumbLink href={item.href} className="flex items-center gap-1.5">
+          <BreadcrumbLink
+            href={item.href}
+            className="flex items-center gap-1.5"
+          >
             {isFirst && <Home className="h-4 w-4" />}
             {item.label}
           </BreadcrumbLink>
@@ -52,14 +55,10 @@ const MemoBreadcrumbNode = React.memo(
     prev.item.label === next.item.label &&
     prev.item.isCurrentPage === next.item.isCurrentPage &&
     prev.index === next.index &&
-    prev.total === next.total
+    prev.total === next.total,
 );
 
-function DynamicBreadcrumbInner({
-  isLoading,
-}: {
-  isLoading?: boolean;
-}) {
+function DynamicBreadcrumbInner({ isLoading }: { isLoading?: boolean }) {
   const breadcrumbItems = useBreadcrumb();
 
   // Dev-only render counter to help diagnose excessive renders
@@ -72,7 +71,9 @@ function DynamicBreadcrumbInner({
         console.debug(`[dev-breadcrumb] render #${renderCount.current}`);
       }
       if (renderCount.current === 10) {
-        console.debug("[dev-breadcrumb] further renders will be suppressed in logs");
+        console.debug(
+          "[dev-breadcrumb] further renders will be suppressed in logs",
+        );
       }
     }
   });
@@ -118,4 +119,3 @@ function DynamicBreadcrumbInner({
 }
 
 export const DynamicBreadcrumb = React.memo(DynamicBreadcrumbInner);
-

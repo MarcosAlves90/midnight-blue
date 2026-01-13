@@ -39,7 +39,10 @@ export function NotesSkeleton() {
       <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
         {/* Folders Placeholders */}
         {[...Array(2)].map((_, i) => (
-          <div key={`folder-${i}`} className="rounded-xl border border-border bg-card/50 p-4 flex flex-col gap-3">
+          <div
+            key={`folder-${i}`}
+            className="rounded-xl border border-border bg-card/50 p-4 flex flex-col gap-3"
+          >
             <div className="flex justify-between items-start">
               <Skeleton className="h-10 w-10 rounded-lg" />
               <Skeleton className="h-6 w-6 rounded-full" />
@@ -53,7 +56,10 @@ export function NotesSkeleton() {
 
         {/* Notes Placeholders */}
         {[...Array(8)].map((_, i) => (
-          <div key={`note-${i}`} className="rounded-xl border border-border bg-card p-3 flex flex-col h-40 gap-3">
+          <div
+            key={`note-${i}`}
+            className="rounded-xl border border-border bg-card p-3 flex flex-col h-40 gap-3"
+          >
             <div className="flex justify-between items-start">
               <div className="flex items-center gap-2 flex-1">
                 <Skeleton className="h-4 w-4 rounded" />

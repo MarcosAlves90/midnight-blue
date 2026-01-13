@@ -20,23 +20,23 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
   return (
     <AuthProvider>
       <AdminProvider>
-          <CharacterProvider>
-            <CharacterSheetProvider>
-              <CustomDescriptorsProvider>
-                <StatusProvider>
-                  <DefensesProvider>
-                    <PowersProvider>
-                      <AttributesProvider>
-                        <SkillsProvider>
-                          <IdentityProvider>{children}</IdentityProvider>
-                        </SkillsProvider>
-                      </AttributesProvider>
-                    </PowersProvider>
-                  </DefensesProvider>
-                </StatusProvider>
-              </CustomDescriptorsProvider>
-            </CharacterSheetProvider>
-          </CharacterProvider>
+        <CharacterProvider>
+          <CharacterSheetProvider>
+            <CustomDescriptorsProvider>
+              <StatusProvider>
+                <DefensesProvider>
+                  <PowersProvider>
+                    <AttributesProvider>
+                      <SkillsProvider>
+                        <IdentityProvider>{children}</IdentityProvider>
+                      </SkillsProvider>
+                    </AttributesProvider>
+                  </PowersProvider>
+                </DefensesProvider>
+              </StatusProvider>
+            </CustomDescriptorsProvider>
+          </CharacterSheetProvider>
+        </CharacterProvider>
       </AdminProvider>
     </AuthProvider>
   );
