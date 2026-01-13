@@ -51,6 +51,7 @@ export const PowerBuilderStepEffects = memo(
   }: PowerBuilderStepEffectsProps) => {
     const [selectorOpen, setSelectorOpen] = useState(false);
     const [targetGroup, setTargetGroup] = useState<"primary" | { alternativeId: string }>("primary");
+    const [expandedPrimaryId, setExpandedPrimaryId] = useState<string | null>(null);
     const [expandedAltId, setExpandedAltId] = useState<string | null>(null);
     const [expandedAltEffectId, setExpandedAltEffectId] = useState<string | null>(null);
 
@@ -104,15 +105,22 @@ export const PowerBuilderStepEffects = memo(
 
           <div className="grid grid-cols-1 gap-4">
             {selectedEffects.length > 0 ? (
-              selectedEffects.map((effect) => (
+              selectedEffects.map((effect) => {
+                const isExpanded = expandedPrimaryId === effect.id;
+                return (
                 <div 
                   key={effect.id} 
-                  className="bg-muted/10 border border-purple-500/20 rounded-xl overflow-hidden hover:border-purple-500/40 transition-all duration-300 group shadow-lg shadow-purple-900/5"
+                  className={`bg-muted/10 border rounded-xl overflow-hidden transition-all duration-300 group shadow-lg shadow-purple-900/5 ${
+                    isExpanded ? "border-purple-500/60 ring-1 ring-purple-500/20" : "border-purple-500/20 hover:border-purple-500/40"
+                  }`}
                 >
                   {/* Card Header */}
-                  <div className="p-4 bg-purple-500/5 border-b border-purple-500/10 flex items-center justify-between">
+                  <div 
+                    onClick={() => setExpandedPrimaryId(isExpanded ? null : effect.id)}
+                    className="p-4 bg-purple-500/5 border-b border-purple-500/10 flex items-center justify-between cursor-pointer hover:bg-purple-500/10 transition-all"
+                  >
                     <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-lg bg-purple-500/10 text-purple-400 group-hover:scale-110 transition-transform">
+                      <div className={`p-2 rounded-lg bg-purple-500/10 text-purple-400 transition-transform ${isExpanded ? "scale-110" : "group-hover:scale-110"}`}>
                          <Sparkles className="h-4 w-4" />
                       </div>
                       <div>
@@ -127,7 +135,10 @@ export const PowerBuilderStepEffects = memo(
                         </span>
                       </div>
                       <button 
-                        onClick={() => onToggleEffect(effect)}
+                        onClick={(ev) => {
+                          ev.stopPropagation();
+                          onToggleEffect(effect);
+                        }}
                         className="p-1.5 hover:bg-red-500/10 rounded-lg text-red-400/50 hover:text-red-400 transition-all"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -136,52 +147,70 @@ export const PowerBuilderStepEffects = memo(
                   </div>
 
                   {/* Configurações Internas */}
-                  <div className="p-4 space-y-4 bg-background/20">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {isExpanded && (
+                    <div className="p-4 space-y-4 bg-background/20 animate-in slide-in-from-top-2 duration-300">
                       <div className="space-y-1.5">
-                        <div className="flex items-center justify-between">
-                          <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Graduação</label>
-                          <span className="text-[10px] font-mono text-purple-400/60">
-                            {effectOptions?.[effect.id]?.rank ?? rank} Ranks
-                          </span>
-                        </div>
-                        <FormInput
-                          type="number"
-                          id={`rank-${effect.id}`}
-                          name={`rank-${effect.id}`}
-                          min={0}
-                          value={effectOptions?.[effect.id]?.rank === 0 ? "" : effectOptions?.[effect.id]?.rank ?? rank}
-                          onChange={(e) => {
-                            const val = e.target.value === "" ? 0 : parseInt(e.target.value);
-                            onUpdateEffectOptions?.(effect.id, {
-                              ...(effectOptions?.[effect.id] || {}),
-                              rank: val,
-                            });
+                        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Descrição Personalizada</label>
+                        <textarea
+                          placeholder="Ex: Raios de energia azul que emanam dos olhos..."
+                          value={(effectOptions?.[effect.id]?.description as string) || ""}
+                          onChange={(ev) => {
+                             onUpdateEffectOptions?.(effect.id, {
+                               ...(effectOptions?.[effect.id] || {}),
+                               description: ev.target.value
+                             });
                           }}
-                          className="h-9 bg-background/50 border-purple-500/20 text-sm focus:border-purple-500/50"
+                          className="w-full bg-background/50 border border-purple-500/20 rounded-lg p-2 text-xs focus:outline-none focus:ring-1 focus:ring-purple-500/50 min-h-[60px] resize-none"
                         />
                       </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <div className="flex items-center justify-between">
+                            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Graduação</label>
+                            <span className="text-[10px] font-mono text-purple-400/60">
+                              {effectOptions?.[effect.id]?.rank ?? rank} Ranks
+                            </span>
+                          </div>
+                          <FormInput
+                            type="number"
+                            id={`rank-${effect.id}`}
+                            name={`rank-${effect.id}`}
+                            min={0}
+                            value={effectOptions?.[effect.id]?.rank === 0 ? "" : effectOptions?.[effect.id]?.rank ?? rank}
+                            onChange={(e) => {
+                              const val = e.target.value === "" ? 0 : parseInt(e.target.value);
+                              onUpdateEffectOptions?.(effect.id, {
+                                ...(effectOptions?.[effect.id] || {}),
+                                rank: val,
+                              });
+                            }}
+                            className="h-9 bg-background/50 border-purple-500/20 text-sm focus:border-purple-500/50"
+                          />
+                        </div>
+                      </div>
+
+                      <EffectSpecificOptions
+                        effectId={effect.id}
+                        options={effectOptions?.[effect.id]}
+                        rank={effectOptions?.[effect.id]?.rank ?? rank}
+                        onChange={(opts) => onUpdateEffectOptions && onUpdateEffectOptions(effect.id, opts)}
+                      />
+
+                      <EffectModifierManager
+                        effectId={effect.id}
+                        selectedModifierInstances={selectedModifierInstances}
+                        onAddModifier={onAddModifier}
+                        onRemoveModifier={onRemoveModifier}
+                        onUpdateModifierOptions={onUpdateModifierOptions}
+                        availableExtras={availableExtras}
+                        availableFlaws={availableFlaws}
+                      />
                     </div>
-
-                    <EffectSpecificOptions
-                      effectId={effect.id}
-                      options={effectOptions?.[effect.id]}
-                      rank={effectOptions?.[effect.id]?.rank ?? rank}
-                      onChange={(opts) => onUpdateEffectOptions && onUpdateEffectOptions(effect.id, opts)}
-                    />
-
-                    <EffectModifierManager
-                      effectId={effect.id}
-                      selectedModifierInstances={selectedModifierInstances}
-                      onAddModifier={onAddModifier}
-                      onRemoveModifier={onRemoveModifier}
-                      onUpdateModifierOptions={onUpdateModifierOptions}
-                      availableExtras={availableExtras}
-                      availableFlaws={availableFlaws}
-                    />
-                  </div>
+                  )}
                 </div>
-              ))
+                );
+              })
             ) : (
               <button 
                 onClick={() => {
@@ -306,6 +335,20 @@ export const PowerBuilderStepEffects = memo(
                             {/* Detalhes do Efeito no Alternativo */}
                             {isEffectExpanded && (
                               <div className="p-4 border-t border-indigo-500/10 space-y-4 bg-indigo-500/5 animate-in fade-in duration-300">
+                                <div className="space-y-1.5">
+                                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Descrição Personalizada</label>
+                                  <textarea
+                                    placeholder="Ex: Alvo fica paralisado por cristais de gelo..."
+                                    value={(alt.effectOptions?.[eff.id]?.description as string) || ""}
+                                    onChange={(ev) => {
+                                      const newOpts = { ...(alt.effectOptions || {}) };
+                                      newOpts[eff.id] = { ...(newOpts[eff.id] || {}), description: ev.target.value };
+                                      onUpdateAlternative?.(alt.id, { effectOptions: newOpts });
+                                    }}
+                                    className="w-full bg-background/50 border border-indigo-500/20 rounded-lg p-2 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500/50 min-h-[60px] resize-none"
+                                  />
+                                </div>
+
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                   <div className="space-y-1.5">
                                     <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Graduação</label>
