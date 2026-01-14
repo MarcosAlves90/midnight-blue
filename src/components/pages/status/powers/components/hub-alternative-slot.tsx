@@ -1,6 +1,6 @@
 "use client";
 
-import { memo } from "react";
+import { memo, useMemo, useCallback } from "react";
 import { 
   ArrowRight, 
   Trash2, 
@@ -10,21 +10,18 @@ import {
 } from "lucide-react";
 import { HubCollapsibleSection } from "./hub-collapsible-section";
 import { Button } from "@/components/ui/button";
-import { Effect, EffectOptions, Modifier, ModifierInstance, Power } from "../types";
+import { ActionType, DurationType, Effect, EffectOptions, Modifier, ModifierInstance, Power, RangeType } from "../types";
 import { HubEffectItem } from "./hub-effect-item";
 import { calculatePowerCost } from "@/lib/powers/utils";
+import { usePowerBuilderContext } from "../context/PowerBuilderContext";
 
 interface HubAlternativeSlotProps {
   alt: Power;
   index: number;
   isExpanded: boolean;
   onToggle: () => void;
-  totalCost: number;
-  onRemoveAlternative: (id: string) => void;
-  onUpdateAlternative: (id: string, updates: Partial<Power>) => void;
+  basePowerLimit: number;
   onOpenSelector: () => void;
-  availableExtras: Modifier[];
-  availableFlaws: Modifier[];
   expandedIds: string[];
   onToggleExpand: (id: string) => void;
 }
@@ -34,34 +31,37 @@ export const HubAlternativeSlot = memo(({
   index,
   isExpanded,
   onToggle,
-  totalCost,
-  onRemoveAlternative,
-  onUpdateAlternative,
+  basePowerLimit,
   onOpenSelector,
-  availableExtras,
-  availableFlaws,
   expandedIds,
   onToggleExpand,
 }: HubAlternativeSlotProps) => {
-  const internalCost = calculatePowerCost(
+  const { 
+    onUpdateAlternative, 
+    onRemoveAlternative,
+    availableExtras,
+    availableFlaws 
+  } = usePowerBuilderContext();
+
+  const internalCost = useMemo(() => calculatePowerCost(
     alt.effects,
     alt.modifiers || [],
     alt.effectOptions || {},
     alt.rank
-  );
+  ), [alt.effects, alt.modifiers, alt.effectOptions, alt.rank]);
 
-  const isOverLimit = internalCost > totalCost;
+  const isOverLimit = internalCost > basePowerLimit;
 
-  const handleUpdateEffectOptions = (effectId: string, opts: EffectOptions) => {
+  const handleUpdateEffectOptions = useCallback((effectId: string, opts: EffectOptions) => {
     onUpdateAlternative(alt.id, {
       effectOptions: {
         ...(alt.effectOptions || {}),
         [effectId]: opts,
       },
     });
-  };
+  }, [alt.id, alt.effectOptions, onUpdateAlternative]);
 
-  const handleAddModifier = (m: Modifier, effectId: string) => {
+  const handleAddModifier = useCallback((m: Modifier, effectId: string) => {
     const newModifierInstance: ModifierInstance = {
       id: Math.random().toString(36).substr(2, 9),
       modifierId: m.id,
@@ -71,27 +71,27 @@ export const HubAlternativeSlot = memo(({
     onUpdateAlternative(alt.id, {
       modifiers: [...(alt.modifiers || []), newModifierInstance],
     });
-  };
+  }, [alt.id, alt.modifiers, onUpdateAlternative]);
 
-  const handleRemoveModifier = (id: string) => {
+  const handleRemoveModifier = useCallback((id: string) => {
     onUpdateAlternative(alt.id, {
       modifiers: (alt.modifiers || []).filter((m) => m.id !== id),
     });
-  };
+  }, [alt.id, alt.modifiers, onUpdateAlternative]);
 
-  const handleUpdateModifierOptions = (id: string, opts: Record<string, unknown>) => {
+  const handleUpdateModifierOptions = useCallback((id: string, opts: Record<string, unknown>) => {
     onUpdateAlternative(alt.id, {
       modifiers: (alt.modifiers || []).map((m) =>
         m.id === id ? { ...m, options: { ...(m.options || {}), ...opts } } : m
       ),
     });
-  };
+  }, [alt.id, alt.modifiers, onUpdateAlternative]);
 
-  const handleRemoveEffect = (effect: Effect) => {
+  const handleRemoveEffect = useCallback((effect: Effect) => {
     onUpdateAlternative(alt.id, {
       effects: alt.effects.filter((e) => e.id !== effect.id),
     });
-  };
+  }, [alt.id, alt.effects, onUpdateAlternative]);
 
   return (
     <HubCollapsibleSection
@@ -104,7 +104,7 @@ export const HubAlternativeSlot = memo(({
       subtitle={
         <div className="flex flex-col gap-0.5">
           <span className="text-[10px] text-emerald-400/60 font-medium">
-            {alt.effects.length} efeito(s) • Custo Interno Máx: {totalCost} PP
+            {alt.effects.length} efeito(s) • Custo Interno Máx: {basePowerLimit} PP
           </span>
           <div className="flex items-center gap-1.5">
             <span className={`text-[9px] font-bold uppercase tracking-tighter ${isOverLimit ? "text-rose-400" : "text-emerald-400"}`}>
@@ -120,7 +120,10 @@ export const HubAlternativeSlot = memo(({
       }
       actions={
         <button
-          onClick={() => onRemoveAlternative(alt.id)}
+          onClick={(e) => {
+            e.stopPropagation();
+            onRemoveAlternative(alt.id);
+          }}
           className="p-2 text-zinc-600 hover:text-rose-400 transition-colors"
         >
           <Trash2 className="h-4 w-4" />
@@ -135,16 +138,16 @@ export const HubAlternativeSlot = memo(({
               effect={eff}
               isExpanded={expandedIds.includes(`${alt.id}-${eff.id}`)}
               onToggle={() => onToggleExpand(`${alt.id}-${eff.id}`)}
-              rank={alt.rank}
-              effectOptions={alt.effectOptions || {}}
-              selectedModifierInstances={alt.modifiers || []}
-              onToggleEffect={handleRemoveEffect}
-              onUpdateEffectOptions={handleUpdateEffectOptions}
-              onAddModifier={handleAddModifier}
-              onRemoveModifier={handleRemoveModifier}
-              onUpdateModifierOptions={handleUpdateModifierOptions}
-              availableExtras={availableExtras}
-              availableFlaws={availableFlaws}
+              overrideHandlers={{
+                rank: alt.rank,
+                effectOptions: alt.effectOptions || {},
+                selectedModifierInstances: alt.modifiers || [],
+                onToggleEffect: handleRemoveEffect,
+                onUpdateEffectOptions: handleUpdateEffectOptions,
+                onAddModifier: handleAddModifier,
+                onRemoveModifier: handleRemoveModifier,
+                onUpdateModifierOptions: handleUpdateModifierOptions,
+              }}
             />
           ))}
           <Button

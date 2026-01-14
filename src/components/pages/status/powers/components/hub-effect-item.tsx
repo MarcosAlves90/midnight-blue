@@ -1,6 +1,6 @@
 "use client";
 
-import { memo } from "react";
+import { memo, useMemo } from "react";
 import { 
   Layers, 
   Trash2, 
@@ -11,48 +11,59 @@ import { QuickEffectOptions } from "./quick-options";
 import { EffectModifierManager } from "../effect-modifier-manager";
 import { Effect, EffectOptions, Modifier, ModifierInstance } from "../types";
 import { calculatePowerCost } from "@/lib/powers/utils";
+import { usePowerBuilderContext } from "../context/PowerBuilderContext";
 
 interface HubEffectItemProps {
   effect: Effect;
   isExpanded: boolean;
   onToggle: () => void;
-  rank: number;
-  effectOptions: Record<string, EffectOptions>;
-  selectedModifierInstances: ModifierInstance[];
-  onToggleEffect: (effect: Effect) => void;
-  onUpdateEffectOptions: (id: string, opts: EffectOptions) => void;
-  onAddModifier: (m: Modifier, effectId: string) => void;
-  onRemoveModifier: (id: string) => void;
-  onUpdateModifierOptions: (id: string, opts: Record<string, unknown>) => void;
-  availableExtras: Modifier[];
-  availableFlaws: Modifier[];
+  // Permite sobrescrever dados quando dentro de um slot alternativo
+  overrideHandlers?: {
+    rank: number;
+    effectOptions: Record<string, EffectOptions>;
+    selectedModifierInstances: ModifierInstance[];
+    onToggleEffect: (effect: Effect) => void;
+    onUpdateEffectOptions: (id: string, opts: EffectOptions) => void;
+    onAddModifier: (m: Modifier, effectId: string) => void;
+    onRemoveModifier: (id: string) => void;
+    onUpdateModifierOptions: (id: string, opts: Record<string, unknown>) => void;
+  };
 }
 
 export const HubEffectItem = memo(({
   effect,
   isExpanded,
   onToggle,
-  rank,
-  effectOptions,
-  selectedModifierInstances,
-  onToggleEffect,
-  onUpdateEffectOptions,
-  onAddModifier,
-  onRemoveModifier,
-  onUpdateModifierOptions,
-  availableExtras,
-  availableFlaws,
+  overrideHandlers,
 }: HubEffectItemProps) => {
-  const modifiers = selectedModifierInstances.filter((m) =>
-    m.appliesTo?.includes(effect.id),
+  const context = usePowerBuilderContext();
+  
+  // Resolve handlers (prioridade para override se existir)
+  const handlers = overrideHandlers || context;
+  const {
+    rank,
+    effectOptions,
+    selectedModifierInstances,
+    onToggleEffect,
+    onUpdateEffectOptions,
+    onAddModifier,
+    onRemoveModifier,
+    onUpdateModifierOptions,
+  } = handlers;
+  
+  const { availableExtras, availableFlaws } = context;
+
+  const modifiers = useMemo(() => 
+    selectedModifierInstances.filter((m) => m.appliesTo?.includes(effect.id)),
+    [selectedModifierInstances, effect.id]
   );
   
-  const currentEffectCost = calculatePowerCost(
+  const currentEffectCost = useMemo(() => calculatePowerCost(
     [effect],
     selectedModifierInstances,
     effectOptions,
     effectOptions[effect.id]?.rank ?? rank,
-  );
+  ), [effect, selectedModifierInstances, effectOptions, rank]);
 
   const displayName = effectOptions[effect.id]?.customName || effect.name;
 
