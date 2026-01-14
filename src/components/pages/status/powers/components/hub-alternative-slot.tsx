@@ -5,11 +5,14 @@ import {
   ArrowRight, 
   Trash2, 
   Sparkles, 
-  X 
+  X,
+  AlertTriangle 
 } from "lucide-react";
 import { HubCollapsibleSection } from "./hub-collapsible-section";
 import { Button } from "@/components/ui/button";
-import { Power } from "../types";
+import { Effect, EffectOptions, Modifier, ModifierInstance, Power } from "../types";
+import { HubEffectItem } from "./hub-effect-item";
+import { calculatePowerCost } from "@/lib/powers/utils";
 
 interface HubAlternativeSlotProps {
   alt: Power;
@@ -20,6 +23,10 @@ interface HubAlternativeSlotProps {
   onRemoveAlternative: (id: string) => void;
   onUpdateAlternative: (id: string, updates: Partial<Power>) => void;
   onOpenSelector: () => void;
+  availableExtras: Modifier[];
+  availableFlaws: Modifier[];
+  expandedIds: string[];
+  onToggleExpand: (id: string) => void;
 }
 
 export const HubAlternativeSlot = memo(({
@@ -30,8 +37,62 @@ export const HubAlternativeSlot = memo(({
   totalCost,
   onRemoveAlternative,
   onUpdateAlternative,
-  onOpenSelector
+  onOpenSelector,
+  availableExtras,
+  availableFlaws,
+  expandedIds,
+  onToggleExpand,
 }: HubAlternativeSlotProps) => {
+  const internalCost = calculatePowerCost(
+    alt.effects,
+    alt.modifiers || [],
+    alt.effectOptions || {},
+    alt.rank
+  );
+
+  const isOverLimit = internalCost > totalCost;
+
+  const handleUpdateEffectOptions = (effectId: string, opts: EffectOptions) => {
+    onUpdateAlternative(alt.id, {
+      effectOptions: {
+        ...(alt.effectOptions || {}),
+        [effectId]: opts,
+      },
+    });
+  };
+
+  const handleAddModifier = (m: Modifier, effectId: string) => {
+    const newModifierInstance: ModifierInstance = {
+      id: Math.random().toString(36).substr(2, 9),
+      modifierId: m.id,
+      modifier: m,
+      appliesTo: [effectId],
+    };
+    onUpdateAlternative(alt.id, {
+      modifiers: [...(alt.modifiers || []), newModifierInstance],
+    });
+  };
+
+  const handleRemoveModifier = (id: string) => {
+    onUpdateAlternative(alt.id, {
+      modifiers: (alt.modifiers || []).filter((m) => m.id !== id),
+    });
+  };
+
+  const handleUpdateModifierOptions = (id: string, opts: Record<string, unknown>) => {
+    onUpdateAlternative(alt.id, {
+      modifiers: (alt.modifiers || []).map((m) =>
+        m.id === id ? { ...m, options: { ...(m.options || {}), ...opts } } : m
+      ),
+    });
+  };
+
+  const handleRemoveEffect = (effect: Effect) => {
+    onUpdateAlternative(alt.id, {
+      effects: alt.effects.filter((e) => e.id !== effect.id),
+    });
+  };
+
   return (
     <HubCollapsibleSection
       id={alt.id}
@@ -41,9 +102,21 @@ export const HubAlternativeSlot = memo(({
       icon={<ArrowRight className="h-4 w-4" />}
       title={`Slot Alternativo ${index + 1}`}
       subtitle={
-        <span className="text-[10px] text-emerald-400/60 font-medium">
-          {alt.effects.length} efeito(s) • Custo Interno Máx: {totalCost} PP
-        </span>
+        <div className="flex flex-col gap-0.5">
+          <span className="text-[10px] text-emerald-400/60 font-medium">
+            {alt.effects.length} efeito(s) • Custo Interno Máx: {totalCost} PP
+          </span>
+          <div className="flex items-center gap-1.5">
+            <span className={`text-[9px] font-bold uppercase tracking-tighter ${isOverLimit ? "text-rose-400" : "text-emerald-400"}`}>
+              Custo Atual: {internalCost} PP
+            </span>
+            {isOverLimit && (
+              <span className="flex items-center gap-1 text-[8px] text-rose-400 font-bold uppercase animate-pulse">
+                <AlertTriangle className="h-2.5 w-2.5" /> Excede Limite
+              </span>
+            )}
+          </div>
+        </div>
       }
       actions={
         <button
@@ -57,30 +130,22 @@ export const HubAlternativeSlot = memo(({
       <div className="p-6 pt-0 border-t border-white/5 space-y-4 bg-black/20">
         <div className="mt-4 space-y-3">
           {alt.effects.map((eff) => (
-            <div
+            <HubEffectItem
               key={eff.id}
-              className="flex items-center justify-between p-3 bg-white/5 border border-white/5"
-            >
-              <div className="flex items-center gap-3">
-                <Sparkles className="h-3 w-3 text-emerald-400" />
-                <span className="text-xs font-bold uppercase">
-                  {eff.name}
-                </span>
-              </div>
-              <button
-                onClick={() => {
-                  const newEffects = alt.effects.filter(
-                    (e) => e.id !== eff.id,
-                  );
-                  onUpdateAlternative(alt.id, {
-                    effects: newEffects,
-                  });
-                }}
-                className="text-white/20 hover:text-rose-400 transition-colors"
-              >
-                <X className="h-3 w-3" />
-              </button>
-            </div>
+              effect={eff}
+              isExpanded={expandedIds.includes(`${alt.id}-${eff.id}`)}
+              onToggle={() => onToggleExpand(`${alt.id}-${eff.id}`)}
+              rank={alt.rank}
+              effectOptions={alt.effectOptions || {}}
+              selectedModifierInstances={alt.modifiers || []}
+              onToggleEffect={handleRemoveEffect}
+              onUpdateEffectOptions={handleUpdateEffectOptions}
+              onAddModifier={handleAddModifier}
+              onRemoveModifier={handleRemoveModifier}
+              onUpdateModifierOptions={handleUpdateModifierOptions}
+              availableExtras={availableExtras}
+              availableFlaws={availableFlaws}
+            />
           ))}
           <Button
             variant="ghost"

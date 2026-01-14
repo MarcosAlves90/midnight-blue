@@ -55,17 +55,17 @@ export const EffectModifierManager: FC<EffectModifierManagerProps> = memo(
     }, [activeTab, availableExtras, availableFlaws, search, effectId]);
 
     return (
-      <div className="mt-3 space-y-2 border-t border-border/20 pt-3">
-        <div className="flex items-center justify-between px-1">
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
           <h5 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
             Modificadores do Efeito
           </h5>
           <button
             onClick={() => setIsAdding(!isAdding)}
-            className={`p-1 rounded transition-colors ${
+            className={`p-1 transition-colors ${
               isAdding
-                ? "bg-purple-500 text-white"
-                : "bg-purple-500/10 text-purple-400 hover:bg-purple-500/20"
+                ? "bg-blue-500 text-white"
+                : "bg-blue-500/10 text-blue-400 hover:bg-blue-500/20"
             }`}
           >
             <Plus className="h-3 w-3" />
@@ -73,11 +73,11 @@ export const EffectModifierManager: FC<EffectModifierManagerProps> = memo(
         </div>
 
         {isAdding && (
-          <div className="p-2 bg-background/40 border border-purple-500/20 rounded-md space-y-2 animate-in fade-in slide-in-from-top-1">
+          <div className="p-2 bg-background/40 border border-blue-500/20 space-y-2 animate-in fade-in slide-in-from-top-1">
             <div className="flex gap-1">
               <button
                 onClick={() => setActiveTab("extra")}
-                className={`flex-1 py-1 text-[9px] font-bold rounded uppercase tracking-tighter transition-colors ${
+                className={`flex-1 py-1 text-[9px] font-bold uppercase tracking-tighter transition-colors ${
                   activeTab === "extra"
                     ? "bg-green-500/20 text-green-400 border border-green-500/30"
                     : "bg-muted/20 text-muted-foreground border border-transparent"
@@ -87,7 +87,7 @@ export const EffectModifierManager: FC<EffectModifierManagerProps> = memo(
               </button>
               <button
                 onClick={() => setActiveTab("falha")}
-                className={`flex-1 py-1 text-[9px] font-bold rounded uppercase tracking-tighter transition-colors ${
+                className={`flex-1 py-1 text-[9px] font-bold uppercase tracking-tighter transition-colors ${
                   activeTab === "falha"
                     ? "bg-red-500/20 text-red-400 border border-red-500/30"
                     : "bg-muted/20 text-muted-foreground border border-transparent"
@@ -103,13 +103,13 @@ export const EffectModifierManager: FC<EffectModifierManagerProps> = memo(
                 placeholder="Buscar..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-7 pr-2 py-1 bg-background/50 border border-border/30 rounded text-xs focus:outline-none focus:border-purple-500/50"
+                className="w-full pl-7 pr-2 py-1 bg-background/50 border border-border/30 text-xs focus:outline-none focus:border-blue-500/50"
               />
             </div>
             <div className="max-h-48 overflow-y-auto space-y-3 pr-1 custom-scrollbar">
               {specific.length > 0 && (
                 <div className="space-y-1">
-                  <p className="text-[9px] text-purple-400 font-bold uppercase tracking-tighter px-1">
+                  <p className="text-[9px] text-blue-400 font-bold uppercase tracking-tighter px-1">
                     Específicos do Efeito
                   </p>
                   <div className="space-y-1">
@@ -128,18 +128,23 @@ export const EffectModifierManager: FC<EffectModifierManagerProps> = memo(
                             onAddModifier(m, effectId);
                             setSearch("");
                           }}
-                          className="w-full text-left p-1.5 rounded bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/20 transition-all group"
+                          className="w-full text-left p-1.5 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 transition-all group"
                         >
                           <div className="flex items-center justify-between">
-                            <span className="text-[11px] font-medium group-hover:text-purple-300 cursor-help underline decoration-dotted underline-offset-2">
+                            <span className="text-[11px] font-medium group-hover:text-blue-300 cursor-help underline decoration-dotted underline-offset-2">
                               {m.name}
                             </span>
-                            <span
-                              className={`text-[9px] font-mono ${activeTab === "extra" ? "text-green-400" : "text-red-400"}`}
-                            >
-                              {m.costPerRank > 0 ? "+" : ""}
-                              {m.costPerRank}
-                            </span>
+                            <div className="flex flex-col items-end">
+                              <span
+                                className={`text-[9px] font-mono leading-none ${activeTab === "extra" ? "text-green-400" : "text-red-400"}`}
+                              >
+                                {m.costPerRank > 0 ? "+" : ""}
+                                {m.costPerRank}
+                              </span>
+                              <span className="text-[7px] font-bold opacity-50 text-white">
+                                {m.isFlat ? "PF" : "PP"}
+                              </span>
+                            </div>
                           </div>
                         </button>
                       </Tip>
@@ -169,18 +174,23 @@ export const EffectModifierManager: FC<EffectModifierManagerProps> = memo(
                             onAddModifier(m, effectId);
                             setSearch("");
                           }}
-                          className="w-full text-left p-1.5 rounded bg-muted/20 hover:bg-purple-500/10 border border-transparent hover:border-purple-500/20 transition-all group"
+                          className="w-full text-left p-1.5 bg-muted/20 hover:bg-blue-500/10 border border-transparent hover:border-blue-500/20 transition-all group"
                         >
                           <div className="flex items-center justify-between">
-                            <span className="text-[11px] font-medium group-hover:text-purple-300 cursor-help underline decoration-dotted underline-offset-2">
+                            <span className="text-[11px] font-medium group-hover:text-blue-300 cursor-help underline decoration-dotted underline-offset-2">
                               {m.name}
                             </span>
-                            <span
-                              className={`text-[9px] font-mono ${activeTab === "extra" ? "text-green-400" : "text-red-400"}`}
-                            >
-                              {m.costPerRank > 0 ? "+" : ""}
-                              {m.costPerRank}
-                            </span>
+                            <div className="flex flex-col items-end">
+                              <span
+                                className={`text-[9px] font-mono leading-none ${activeTab === "extra" ? "text-green-400" : "text-red-400"}`}
+                              >
+                                {m.costPerRank > 0 ? "+" : ""}
+                                {m.costPerRank}
+                              </span>
+                              <span className="text-[7px] font-bold opacity-50 text-white">
+                                {m.isFlat ? "PF" : "PP"}
+                              </span>
+                            </div>
                           </div>
                         </button>
                       </Tip>
@@ -205,7 +215,7 @@ export const EffectModifierManager: FC<EffectModifierManagerProps> = memo(
             return (
               <div
                 key={inst.id}
-                className={`flex items-center justify-between gap-3 p-2 rounded-lg border transition-all hover:bg-white/[0.02] ${
+                className={`flex items-center justify-between gap-3 p-2-lg border transition-all hover:bg-white/[0.02] ${
                   isExtra
                     ? "border-emerald-500/20 bg-emerald-500/[0.03]"
                     : "border-rose-500/20 bg-rose-500/[0.03]"
@@ -213,14 +223,14 @@ export const EffectModifierManager: FC<EffectModifierManagerProps> = memo(
               >
                 <div className="flex items-center gap-2.5 min-w-0">
                   <div
-                    className={`w-1 h-4 rounded-full shadow-[0_0_8px] ${isExtra ? "bg-emerald-500 shadow-emerald-500/50" : "bg-rose-500 shadow-rose-500/50"}`}
+                    className={`w-1 h-4-full shadow-[0_0_8px] ${isExtra ? "bg-emerald-500 shadow-emerald-500/50" : "bg-rose-500 shadow-rose-500/50"}`}
                   />
                   <div className="flex flex-col min-w-0">
                     <span className="text-[10px] font-black uppercase tracking-tight truncate text-zinc-200">
                       {inst.modifier.name}
                     </span>
                     <span className="text-[8px] text-zinc-500 font-medium truncate uppercase">
-                      {inst.modifier.isFlat ? "Custo Fixo" : "Custo/Rank"}
+                      {inst.modifier.isFlat ? "PF (Ponto Fixo)" : "PP (Por Graduação)"}
                     </span>
                   </div>
                 </div>
@@ -235,7 +245,7 @@ export const EffectModifierManager: FC<EffectModifierManagerProps> = memo(
                   <div className="w-px h-4 bg-white/5" />
                   <button
                     onClick={() => onRemoveModifier(inst.id)}
-                    className="p-1 text-zinc-600 hover:text-rose-400 hover:bg-rose-500/10 rounded transition-all"
+                    className="p-1 text-zinc-600 hover:text-rose-400 hover:bg-rose-500/10 transition-all"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>
@@ -244,7 +254,7 @@ export const EffectModifierManager: FC<EffectModifierManagerProps> = memo(
             );
           })}
           {effectModifiers.length === 0 && !isAdding && (
-            <div className="flex flex-col items-center justify-center py-6 px-4 bg-white/[0.02] rounded-xl border border-dashed border-white/5 opacity-40">
+            <div className="flex flex-col items-center justify-center py-6 px-4 bg-white/[0.02] border border-dashed border-white/5 opacity-40">
               <Plus className="h-4 w-4 mb-2 text-zinc-500" />
               <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest">
                 Ajuste o efeito com modificadores

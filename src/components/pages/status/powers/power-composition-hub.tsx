@@ -104,21 +104,21 @@ export const PowerCompositionHub = memo(
         prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id],
       );
 
-    const totalCost = useMemo(() => {
-      const base = calculatePowerCost(
+    const basePowerCost = useMemo(() => {
+      return calculatePowerCost(
         selectedEffects,
         selectedModifierInstances,
         effectOptions,
-        rank,
+        rank
       );
-      return base + (alternatives?.length || 0);
     }, [
       selectedEffects,
       selectedModifierInstances,
       effectOptions,
       rank,
-      alternatives,
     ]);
+
+    const totalCost = basePowerCost + (alternatives?.length || 0);
 
     const handleEffectSelect = (effect: Effect) => {
       if (targetGroup === "primary") {
@@ -257,13 +257,17 @@ export const PowerCompositionHub = memo(
                   index={idx}
                   isExpanded={expandedIds.includes(alt.id)}
                   onToggle={() => toggleExpand(alt.id)}
-                  totalCost={totalCost}
+                  totalCost={basePowerCost}
                   onRemoveAlternative={onRemoveAlternative}
                   onUpdateAlternative={onUpdateAlternative}
                   onOpenSelector={() => {
                     setTargetGroup({ alternativeId: alt.id });
                     setSelectorOpen(true);
                   }}
+                  availableExtras={availableExtras}
+                  availableFlaws={availableFlaws}
+                  expandedIds={expandedIds}
+                  onToggleExpand={toggleExpand}
                 />
               ))}
             </div>

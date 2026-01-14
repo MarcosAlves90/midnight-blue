@@ -40,6 +40,7 @@ export const ModifierTag = memo(
           <span className="opacity-60 font-mono">
             {modifier.costPerRank > 0 ? "+" : ""}
             {modifier.costPerRank}
+            {modifier.isFlat ? " PF" : " PP"}
           </span>
         </div>
       </Tip>

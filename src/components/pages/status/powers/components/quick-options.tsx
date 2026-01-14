@@ -17,26 +17,24 @@ export const QuickEffectOptions = memo(
     return (
       <div className="space-y-4">
         <div className="grid grid-cols-1 gap-4">
-          {/* Descrição Inline */}
-          <div className="space-y-1.5">
-            <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.1em]">
-              Descrição Narrativa
-            </label>
-            <textarea
-              placeholder="Descreva como o efeito se manifesta visualmente..."
-              value={(options.description as string) || ""}
-              onChange={(e) =>
-                onUpdate({ ...options, description: e.target.value })
-              }
-              className="w-full bg-black/40 border border-white/5 rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-purple-500/50 min-h-[80px] resize-none transition-all placeholder:text-white/10"
-            />
-          </div>
-
-          {/* Graduação e Opções Específicas */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Nome e Graduação na mesma linha */}
+          <div className="grid grid-cols-1 sm:grid-cols-[1fr_100px] gap-4">
             <div className="space-y-1.5">
               <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.1em]">
-                Ranks (Nível)
+                Nome do Efeito Individual
+              </label>
+              <FormInput
+                placeholder={`Ex: Rajada de Gelo (Padrão: ${effect.name})`}
+                value={options.customName || ""}
+                onChange={(e) =>
+                  onUpdate({ ...options, customName: e.target.value })
+                }
+                className="h-10 bg-black/40 border-white/5 text-sm focus:ring-1 focus:ring-purple-500/50 rounded-none transition-all placeholder:text-white/10"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.1em]">
+                Ranks
               </label>
               <FormInput
                 type="number"
@@ -47,9 +45,24 @@ export const QuickEffectOptions = memo(
                     e.target.value === "" ? 0 : parseInt(e.target.value);
                   onUpdate({ ...options, rank: val });
                 }}
-                className="h-10 bg-black/40 border-white/5 text-sm focus:border-purple-500/50"
+                className="h-10 bg-black/40 border-white/5 text-sm rounded-none text-center focus:border-purple-500/50"
               />
             </div>
+          </div>
+
+          {/* Descrição Narrativa abaixo */}
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.1em]">
+              Descrição Narrativa
+            </label>
+            <textarea
+              placeholder="Descreva como o efeito se manifesta visualmente..."
+              value={(options.description as string) || ""}
+              onChange={(e) =>
+                onUpdate({ ...options, description: e.target.value })
+              }
+              className="w-full bg-black/40 border border-white/5 p-2.5 text-xs focus:ring-1 focus:ring-purple-500/50 min-h-[80px] resize-none transition-all placeholder:text-white/10"
+            />
           </div>
         </div>
 

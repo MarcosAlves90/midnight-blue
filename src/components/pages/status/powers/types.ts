@@ -56,6 +56,7 @@ export interface Effect {
 }
 
 export interface EffectOptions {
+  customName?: string;
   sub?: string;
   ppCost?: number;
   rank?: number;

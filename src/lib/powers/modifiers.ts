@@ -7,8 +7,7 @@ export const COMMON_EXTRAS: Modifier[] = [
     type: "extra",
     costPerRank: 1,
     isFlat: true,
-    description:
-      "Adiciona +2 por graduação nos testes de ataque feitos com o efeito.",
+    description: "Bônus de ataque de +2 por graduação. (Fixo por graduação)",
   },
   {
     id: "afeta-intangivel",
@@ -16,14 +15,24 @@ export const COMMON_EXTRAS: Modifier[] = [
     type: "extra",
     costPerRank: 1,
     isFlat: true,
-    description: "Faz com que o efeito funcione contra alvos intangíveis.",
+    description:
+      "O efeito funciona em seres intangíveis com metade de seu efeito (1 graduação) ou com seu efeito completo (2 graduações). (1 ou 2 pontos fixos)",
   },
   {
     id: "afeta-outros",
     name: "Afeta Outros",
     type: "extra",
     costPerRank: 1,
-    description: "Permite estender um efeito de alcance pessoal a outros.",
+    description: "Efeito pessoal funciona nos outros. (+1 por graduação)",
+  },
+  {
+    id: "afeta-tangivel",
+    name: "Afeta Tangível",
+    type: "extra",
+    costPerRank: 1,
+    isFlat: true,
+    description:
+      "O Efeito funciona em seres tangíveis com graduação igual à da graduação do extra. (Fixo por graduação)",
   },
   {
     id: "alcance",
@@ -32,7 +41,7 @@ export const COMMON_EXTRAS: Modifier[] = [
     costPerRank: 1,
     isFlat: true,
     description:
-      "Aumenta o alcance de um efeito de perto em 1,5 metros por graduação.",
+      "O alcance do efeito aumenta em 1,5 metros por graduação. (Fixo por graduação)",
   },
   {
     id: "alcance-estendido",
@@ -40,15 +49,14 @@ export const COMMON_EXTRAS: Modifier[] = [
     type: "extra",
     costPerRank: 1,
     isFlat: true,
-    description:
-      "Dobra todas as categorias de alcance de um efeito à distância.",
+    description: "Dobra o alcance à distância por graduação. (Fixo por graduação)",
   },
   {
     id: "area",
     name: "Área",
     type: "extra",
     costPerRank: 1,
-    description: "Permite que o efeito afete uma área em vez de um único alvo.",
+    description: "O efeito funciona em uma área. (+1 por graduação)",
   },
   {
     id: "ataque",
@@ -56,7 +64,7 @@ export const COMMON_EXTRAS: Modifier[] = [
     type: "extra",
     costPerRank: 0,
     description:
-      "Transforma um efeito de alcance pessoal em um efeito de ataque de alcance perto.",
+      "Um efeito pessoal funciona nos outros como um ataque. (+0 por graduação)",
   },
   {
     id: "caracteristica",
@@ -64,7 +72,8 @@ export const COMMON_EXTRAS: Modifier[] = [
     type: "extra",
     costPerRank: 1,
     isFlat: true,
-    description: "Adiciona uma habilidade ou benefício menor ao efeito básico.",
+    description:
+      "Adiciona uma habilidade ou benefício menor a um efeito. (Fixo por graduação)",
   },
   {
     id: "contagioso",
@@ -72,7 +81,7 @@ export const COMMON_EXTRAS: Modifier[] = [
     type: "extra",
     costPerRank: 1,
     description:
-      "O efeito funciona em qualquer um que entre em contato com o alvo original.",
+      "O efeito funciona em qualquer um que entre em contato com o alvo. (+1 por graduação)",
   },
   {
     id: "descritor-variavel",
@@ -80,7 +89,7 @@ export const COMMON_EXTRAS: Modifier[] = [
     type: "extra",
     costPerRank: 1,
     isFlat: true,
-    description: "Permite mudar o descritor de um efeito como uma ação livre.",
+    description: "O efeito pode mudar de descritores. (1 ou 2 pontos fixos)",
   },
   {
     id: "dimensional",
@@ -88,15 +97,15 @@ export const COMMON_EXTRAS: Modifier[] = [
     type: "extra",
     costPerRank: 1,
     isFlat: true,
-    description: "Permite que o efeito funcione em alvos em outras dimensões.",
+    description:
+      "O efeito funciona em alvos em outras dimensões. (1 a 3 pontos fixos)",
   },
   {
     id: "distancia-aumentada",
     name: "Distância Aumentada",
     type: "extra",
     costPerRank: 1,
-    description:
-      "Melhora o alcance de um efeito (ex: de perto para à distância).",
+    description: "Melhora o alcance de um efeito. (+1 por graduação)",
   },
   {
     id: "dividido",
@@ -104,15 +113,15 @@ export const COMMON_EXTRAS: Modifier[] = [
     type: "extra",
     costPerRank: 1,
     isFlat: true,
-    description: "Permite que o efeito seja dividido entre dois ou mais alvos.",
+    description:
+      "O efeito pode ser dividido em efeitos múltiplos, menores. (Fixo por graduação)",
   },
   {
     id: "duracao-aumentada",
     name: "Duração Aumentada",
     type: "extra",
     costPerRank: 1,
-    description:
-      "Aumenta a duração de um efeito (ex: de instantâneo para concentração).",
+    description: "Aumenta a duração de um efeito. (+1 por graduação)",
   },
   {
     id: "efeito-alternativo",
@@ -120,31 +129,31 @@ export const COMMON_EXTRAS: Modifier[] = [
     type: "extra",
     costPerRank: 1,
     isFlat: true,
-    description: "Permite trocar um efeito por outro (arranjo).",
+    description: "Substitui um efeito por outro em um poder. (1 ou 2 pontos fixos)",
   },
   {
     id: "efeito-secundario",
     name: "Efeito Secundário",
     type: "extra",
     costPerRank: 1,
-    description:
-      "Um efeito instantâneo atinge o alvo uma segunda vez na rodada seguinte.",
+    description: "Efeito instantâneo funciona duas vezes no alvo. (+1 por graduação)",
   },
   {
-    id: "engatilhado",
-    name: "Engatilhado",
+    id: "condicional",
+    name: "Condicional",
     type: "extra",
     costPerRank: 1,
     isFlat: true,
     description:
-      "Permite que um efeito instantâneo seja ativado automaticamente sob circunstâncias específicas.",
+      "Efeito pode ter sua ativação definida para mais tarde. (Fixo por graduação)",
   },
   {
     id: "impenetravel",
     name: "Impenetrável",
     type: "extra",
     costPerRank: 1,
-    description: "Torna uma defesa altamente resistente a efeitos mais fracos.",
+    description:
+      "Um salvamento ignora efeitos cujo modificador de dificuldade tenha a metade ou menos graduações que ela. (+1 por graduação)",
   },
   {
     id: "inato",
@@ -152,8 +161,7 @@ export const COMMON_EXTRAS: Modifier[] = [
     type: "extra",
     costPerRank: 1,
     isFlat: true,
-    description:
-      "O efeito é parte inata de sua natureza e não pode ser Nulificado.",
+    description: "Efeito não pode ser Nulificado. (1 ponto fixo)",
   },
   {
     id: "indireto",
@@ -162,7 +170,7 @@ export const COMMON_EXTRAS: Modifier[] = [
     costPerRank: 1,
     isFlat: true,
     description:
-      "Permite que o efeito se origine de um ponto que não seja o usuário.",
+      "Efeito pode se originar de um ponto que não seja o usuário. (Fixo por graduação)",
   },
   {
     id: "ligado",
@@ -170,8 +178,7 @@ export const COMMON_EXTRAS: Modifier[] = [
     type: "extra",
     costPerRank: 0,
     isFlat: true,
-    description:
-      "Combina dois ou mais efeitos para que funcionem simultaneamente.",
+    description: "Dois ou mais efeitos funcionam como um. (0 pontos fixos)",
   },
   {
     id: "multiataque",
@@ -179,7 +186,7 @@ export const COMMON_EXTRAS: Modifier[] = [
     type: "extra",
     costPerRank: 1,
     description:
-      "Permite atingir múltiplos alvos ou um único alvo múltiplas vezes.",
+      "Efeito pode atingir múltiplos alvos ou um único alvo múltiplas vezes. (+1 por graduação)",
   },
   {
     id: "penetrante",
@@ -187,7 +194,7 @@ export const COMMON_EXTRAS: Modifier[] = [
     type: "extra",
     costPerRank: 1,
     isFlat: true,
-    description: "O efeito ignora Resistência Impenetrável.",
+    description: "Efeito atravessa Resistência Impenetrável. (Fixo por graduação)",
   },
   {
     id: "preciso",
@@ -195,8 +202,7 @@ export const COMMON_EXTRAS: Modifier[] = [
     type: "extra",
     costPerRank: 1,
     isFlat: true,
-    description:
-      "Permite realizar tarefas que exijam delicadeza e controle fino.",
+    description: "Efeito pode realizar tarefas delicadas e precisas. (1 ponto fixo)",
   },
   {
     id: "reacao",
@@ -204,14 +210,14 @@ export const COMMON_EXTRAS: Modifier[] = [
     type: "extra",
     costPerRank: 1,
     description:
-      "Altera a ação exigida para o efeito funcionar como uma reação.",
+      "A ação exigida pelo efeito muda para reação. (+1 a +3 por graduação)",
   },
   {
     id: "resistencia-alternativa",
     name: "Resistência Alternativa",
     type: "extra",
     costPerRank: 1,
-    description: "Altera o teste de salvamento do efeito.",
+    description: "O efeito usa uma salvamento diferente. (+0-1 por graduação)",
   },
   {
     id: "reversivel",
@@ -220,7 +226,7 @@ export const COMMON_EXTRAS: Modifier[] = [
     costPerRank: 1,
     isFlat: true,
     description:
-      "Permite remover condições ou danos causados pelo efeito à vontade.",
+      "Efeito pode ser removido à vontade como uma ação livre. (1 ponto fixo)",
   },
   {
     id: "ricochetear",
@@ -229,28 +235,30 @@ export const COMMON_EXTRAS: Modifier[] = [
     costPerRank: 1,
     isFlat: true,
     description:
-      "Permite que o ataque ricocheteie em superfícies para mudar sua direção.",
+      "O atacante pode ricochetear o efeito para mudar sua direção. (1 ponto fixo)",
   },
   {
     id: "seletivo",
     name: "Seletivo",
     type: "extra",
     costPerRank: 1,
-    description: "Permite escolher quem é ou não afetado por um efeito.",
+    description:
+      "Efeito resistível funciona apenas nos alvos que vocês escolher. (+1 por graduação)",
   },
   {
     id: "sonifero",
     name: "Sonífero",
     type: "extra",
     costPerRank: 0,
-    description: "Deixa o alvo adormecido em vez de incapacitado.",
+    description:
+      "O efeito deixo os alvos adormecidos em vez de incapacitados. (+0 por graduação)",
   },
   {
     id: "sustentado",
     name: "Sustentado",
     type: "extra",
     costPerRank: 0,
-    description: "Altera um efeito de duração permanente para sustentada.",
+    description: "Torna um efeito permanente em sustentado. (+0 por graduação)",
   },
   {
     id: "sutil",
@@ -258,7 +266,8 @@ export const COMMON_EXTRAS: Modifier[] = [
     type: "extra",
     costPerRank: 1,
     isFlat: true,
-    description: "Torna o efeito menos perceptível ou indetectável.",
+    description:
+      "O efeito é menos perceptível (1 ponto) ou completamente imperceptível (2 pontos). (1 ou 2 pontos fixos)",
   },
   {
     id: "teleguiado",
@@ -267,7 +276,7 @@ export const COMMON_EXTRAS: Modifier[] = [
     costPerRank: 1,
     isFlat: true,
     description:
-      "Concede uma oportunidade adicional de acertar um ataque à distância.",
+      "Um efeito de ataque ganha chances adicionais de acertar o alvo. (Fixo por graduação)",
   },
   {
     id: "traicoeiro",
@@ -275,7 +284,8 @@ export const COMMON_EXTRAS: Modifier[] = [
     type: "extra",
     costPerRank: 1,
     isFlat: true,
-    description: "Torna o resultado do efeito mais difícil de detectar.",
+    description:
+      "O resultado do efeito é mais difícil de ser detectado. (1 ponto fixo)",
   },
 ];
 
@@ -462,7 +472,7 @@ export const EFFECT_SPECIFIC_EXTRAS: Modifier[] = [
     isFlat: true,
     appliesTo: ["intangibilidade"],
     description:
-      "Permite que um ser intangível use o efeito no mundo corpóreo; a graduação deste modificador limita a graduação do efeito usado.",
+      "O efeito funciona em seres corpóreos com graduação igual à graduação extra. (Fixo por graduação)",
   },
   {
     id: "afeta-objetos",
@@ -471,7 +481,7 @@ export const EFFECT_SPECIFIC_EXTRAS: Modifier[] = [
     costPerRank: 1,
     appliesTo: ["cura", "enfraquecer"],
     description:
-      "Permite que efeitos normalmente resistidos por Fortitude funcionem em objetos não vivos.",
+      "Efeito resistido por Fortitude funciona sobre objetos. (+0-1 por graduação)",
   },
   {
     id: "aumentar-massa",
@@ -480,7 +490,8 @@ export const EFFECT_SPECIFIC_EXTRAS: Modifier[] = [
     costPerRank: 1,
     isFlat: true,
     appliesTo: ["mover-objeto", "teleporte"],
-    description: "Aumenta a graduação de massa que o efeito pode carregar.",
+    description:
+      "Efeito pode carregar uma quantidade maior de massa. (Fixo por graduação)",
   },
   {
     id: "incuravel",
@@ -490,7 +501,7 @@ export const EFFECT_SPECIFIC_EXTRAS: Modifier[] = [
     isFlat: true,
     appliesTo: ["dano", "enfraquecer"],
     description:
-      "O dano ou condição causada pelo efeito não podem ser curados normalmente.",
+      "Efeito não pode ser contra-atacado ou removido usando Cura ou Regeneração. (1 ponto fixo)",
   },
   {
     id: "amarrar",

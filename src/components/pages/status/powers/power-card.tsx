@@ -63,16 +63,21 @@ export function PowerCard({
             </h4>
             <div className="text-xs text-muted-foreground flex flex-wrap items-center gap-1">
               {power.effects.map((e, i) => {
-                const eRank = power.effectOptions?.[e.id]?.rank ?? power.rank;
+                const opts = power.effectOptions?.[e.id];
+                const eRank = opts?.rank ?? power.rank;
+                const eName = opts?.customName || e.name;
                 return (
                   <span key={i} className="flex items-center">
                     <Tip
                       content={
-                        <div className="max-w-xs text-xs">{e.description}</div>
+                        <div className="max-w-xs text-xs">
+                          <p className="font-bold">{e.name}</p>
+                          <p>{e.description}</p>
+                        </div>
                       }
                     >
                       <span className="hover:text-blue-400 cursor-help underline decoration-dotted underline-offset-2">
-                        {e.name} {eRank > 0 && `(${eRank})`}
+                        {eName} {eRank > 0 && `(${eRank})`}
                       </span>
                     </Tip>
                     {i < power.effects.length - 1 && (
@@ -175,7 +180,13 @@ export function PowerCard({
                 <div key={idx} className="space-y-1">
                   <p className="text-xs text-muted-foreground">
                     <span className="font-medium text-foreground">
-                      {effect.name}:
+                      {opts?.customName || effect.name}
+                      {opts?.customName && (
+                        <span className="text-[10px] text-muted-foreground ml-1 font-normal italic">
+                          ({effect.name})
+                        </span>
+                      )}
+                      :
                     </span>{" "}
                     {effect.description}
                   </p>
@@ -224,8 +235,8 @@ export function PowerCard({
                         >
                           {m.modifier.name}{" "}
                           {m.modifier.isFlat
-                            ? ""
-                            : `(${m.modifier.costPerRank > 0 ? "+" : ""}${m.modifier.costPerRank})`}
+                            ? "(PF)"
+                            : `(${m.modifier.costPerRank > 0 ? "+" : ""}${m.modifier.costPerRank} PP)`}
                         </span>
                       </Tip>
                     ))}
@@ -280,7 +291,7 @@ export function PowerCard({
                           {instance.modifier.name} (+
                           {(instance.options?.costPerRank as number) ??
                             instance.modifier.costPerRank}
-                          )
+                          {instance.modifier.isFlat ? " PF" : " PP"})
                         </span>
                       </Tip>
                     ))}
@@ -318,7 +329,7 @@ export function PowerCard({
                           (
                           {(instance.options?.costPerRank as number) ??
                             instance.modifier.costPerRank}
-                          )
+                          {instance.modifier.isFlat ? " PF" : " PP"})
                         </span>
                       </Tip>
                     ))}

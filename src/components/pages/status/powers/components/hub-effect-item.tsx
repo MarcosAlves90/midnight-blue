@@ -4,7 +4,6 @@ import { memo } from "react";
 import { 
   Layers, 
   Trash2, 
-  Settings2 
 } from "lucide-react";
 import { HubCollapsibleSection } from "./hub-collapsible-section";
 import { ModifierTag } from "./modifier-tag";
@@ -55,6 +54,8 @@ export const HubEffectItem = memo(({
     effectOptions[effect.id]?.rank ?? rank,
   );
 
+  const displayName = effectOptions[effect.id]?.customName || effect.name;
+
   return (
     <HubCollapsibleSection
       id={effect.id}
@@ -64,7 +65,12 @@ export const HubEffectItem = memo(({
       icon={<Layers className="h-4 w-4" />}
       title={
         <div className="flex items-center gap-2">
-          <span>{effect.name}</span>
+          <span>{displayName}</span>
+          {effectOptions[effect.id]?.customName && (
+            <span className="text-[10px] text-zinc-500 font-medium italic">
+              ({effect.name})
+            </span>
+          )}
           <span className="text-[9px] font-bold text-zinc-600 px-1.5 py-0.5 bg-white/5 rounded lowercase">
             {effect.category}
           </span>
@@ -124,12 +130,9 @@ export const HubEffectItem = memo(({
         </div>
       }
     >
-      <div className="p-6 pt-2 border-t border-white/5 space-y-6">
+      <div className="p-2 border-t border-white/5 space-y-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <div className="space-y-4">
-            <h5 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
-              <Settings2 className="h-3 w-3" /> Parâmetros do Componente
-            </h5>
             <QuickEffectOptions
               effect={effect}
               options={effectOptions[effect.id] || {}}

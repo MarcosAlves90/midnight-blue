@@ -27,15 +27,6 @@ export const PowerSummaryHeader = memo(
                 placeholder="Nome do Poder..."
                 className="w-full bg-transparent border-none p-0 text-xl font-black text-white placeholder:text-white/20 focus:outline-none focus:ring-0 uppercase tracking-tighter"
               />
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-bold text-blue-400/80 uppercase tracking-widest">
-                  Configuração do Projeto
-                </span>
-                <div className="h-1 w-1 bg-white/20" />
-                <span className="text-[10px] text-muted-foreground">
-                  ID: {Math.random().toString(36).substring(7).toUpperCase()}
-                </span>
-              </div>
             </div>
           </div>
 
