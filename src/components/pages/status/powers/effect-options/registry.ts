@@ -4,6 +4,7 @@ import { AmbienteOptions } from "./ambiente-options";
 import { CompreenderOptions } from "./compreender-options";
 import { CaracteristicaOptions } from "./caracteristica-options";
 import { MovimentoOptions } from "./movimento-options";
+import { SentidosOptions } from "./sentidos-options";
 
 interface EffectOptionConfig {
   component: FC<{
@@ -29,16 +30,16 @@ export const EFFECT_OPTIONS_REGISTRY: Record<string, EffectOptionConfig> = {
     component: AmbienteOptions,
     title: "Opções de Ambiente",
     description:
-      "Escolha um subtipo (apenas um) e o custo em PP por graduação.",
+      "Distribua as graduações entre os diferentes tipos de alteração ambiental.",
     infoTip:
-      "Algumas aplicações de Ambiente não têm modificadores separados; selecione o tipo de ambiente e o custo aqui.",
+      "Cada graduação permite ativar um novo tipo de efeito ambiental ou aumentar a intensidade de um já existente.",
   },
   compreender: {
     component: CompreenderOptions,
     title: "Opções de Compreender",
-    description: "Escolha a categoria e a graduação desejada.",
+    description: "Distribua as graduações entre as categorias de compreensão.",
     infoTip:
-      "Cada graduação em Compreender permite um nível diferente de interação com a categoria escolhida.",
+      "Cada graduação permite entender ou falar com diferentes tipos de seres/objetos.",
   },
   "caracteristica-aumentada": {
     component: CaracteristicaOptions,
@@ -46,5 +47,12 @@ export const EFFECT_OPTIONS_REGISTRY: Record<string, EffectOptionConfig> = {
     description: "Selecione a característica que deseja aprimorar.",
     infoTip:
       "Transforma uma característica natural em um efeito de poder, permitindo modificadores e façanhas.",
+  },
+  sentidos: {
+    component: SentidosOptions,
+    title: "Configuração Sensorial",
+    description: "Distribua os pontos de graduação entre as opções sensoriais.",
+    infoTip:
+      "Cada graduação no efeito Sentidos concede 1 ponto para comprar as opções desta lista. Algumas opções custam mais de 1 ponto (ex: Visão no Escuro custa 2).",
   },
 };

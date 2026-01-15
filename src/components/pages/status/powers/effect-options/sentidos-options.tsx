@@ -2,29 +2,29 @@
 
 import { FC, useMemo } from "react";
 import { EffectOptions } from "../types";
-import { AMBIENTE_SUBS } from "@/lib/powers/effect-constants";
+import { SENTIDOS_SUBS } from "@/lib/powers/effect-constants";
 import { EffectOptionsTemplate } from "./effect-options-template";
 
-interface AmbienteOptionsProps {
+interface SentidosOptionsProps {
   options: EffectOptions;
   rank: number;
   onChange: (opts: EffectOptions) => void;
 }
 
-export const AmbienteOptions: FC<AmbienteOptionsProps> = ({
+export const SentidosOptions: FC<SentidosOptionsProps> = ({
   options,
   rank,
   onChange,
 }) => {
   const config = useMemo(
     () => ({
-      title: "Distribuição Ambiental",
+      title: "Distribuição Sensorial",
       unitLabels: {
-        singular: "Graduação",
-        plural: "Graduações",
+        singular: "Ponto",
+        plural: "Pontos",
       },
-      color: "emerald",
-      completeLabel: "Estabilizado",
+      color: "blue",
+      completeLabel: "Calibrado",
     }),
     [],
   );
@@ -34,7 +34,7 @@ export const AmbienteOptions: FC<AmbienteOptionsProps> = ({
       options={options}
       rank={rank}
       onChange={onChange}
-      subOptions={AMBIENTE_SUBS}
+      subOptions={SENTIDOS_SUBS}
       config={config}
     />
   );

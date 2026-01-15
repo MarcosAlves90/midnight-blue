@@ -821,6 +821,48 @@ export const EFFECT_SPECIFIC_EXTRAS: Modifier[] = [
     description:
       "O efeito afeta todas as características de um mesmo conjunto ao mesmo tempo. (+1 PP)",
   },
+  {
+    id: "a-distancia-sentidos",
+    name: "À Distância",
+    type: "extra",
+    costPerRank: 1,
+    appliesTo: ["sentidos"],
+    description: "Este extra se aplica apenas a Sentidos que Afetam Outros, estendendo a distância na qual você pode conceder seus benefícios. (+1 PP)",
+  },
+  {
+    id: "afeta-outros-sentidos",
+    name: "Afeta Outros",
+    type: "extra",
+    costPerRank: 1,
+    appliesTo: ["sentidos"],
+    description: "Você pode conceder os benefícios de um ou mais Sentidos a outro personagem. (+1 PP/graduação)",
+  },
+  {
+    id: "area-sentidos",
+    name: "Área",
+    type: "extra",
+    costPerRank: 1,
+    appliesTo: ["sentidos"],
+    description: "Este extra se aplica apenas a Sentidos que Afetam Outros para estender seus benefícios a todos na área. (+1 PP/graduação)",
+  },
+  {
+    id: "dimensional-sentidos",
+    name: "Dimensional",
+    type: "extra",
+    costPerRank: 1,
+    isFlat: true,
+    appliesTo: ["sentidos"],
+    description: "Permite estender seus sentidos a outras dimensões. (+1 PF/graduação)",
+  },
+  {
+    id: "inato-sentidos",
+    name: "Inato",
+    type: "extra",
+    costPerRank: 1,
+    isFlat: true,
+    appliesTo: ["sentidos"],
+    description: "Os Sentidos podem ser Inatos, mas não evita que efeitos sensoriais os desabilite. (+1 PF)",
+  },
 ];
 
 
@@ -906,5 +948,30 @@ export const EFFECT_SPECIFIC_FLAWS: Modifier[] = [
     appliesTo: ["camuflagem"],
     description:
       "Sua Camuflagem oferece um teste de salvamento para qualquer personagem que tenta penetrá-la. (–1 PP)",
+  },
+  {
+    id: "inconstante-sentidos",
+    name: "Inconstante",
+    type: "falha",
+    costPerRank: -1,
+    appliesTo: ["sentidos"],
+    description: "Sua percepção é inconstante; pode não funcionar ou fornecer informação errada. (–1 PP)",
+  },
+  {
+    id: "limitado-sentidos",
+    name: "Limitado",
+    type: "falha",
+    costPerRank: -1,
+    appliesTo: ["sentidos"],
+    description: "Sentidos limitados a sentir apenas algumas coisas ou funcionar apenas sob certas circunstâncias. (–1 PP)",
+  },
+  {
+    id: "perceptivel-sentidos",
+    name: "Perceptível",
+    type: "falha",
+    costPerRank: -1,
+    isFlat: true,
+    appliesTo: ["sentidos"],
+    description: "Sentidos especialmente perceptíveis (olhos brilham, vibração, energia, etc.). (–1 PF)",
   },
 ];

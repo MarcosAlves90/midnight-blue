@@ -12,11 +12,15 @@ interface EffectSpecificOptionsProps {
   onChange: (opts: EffectOptions) => void;
 }
 
-const EffectSpecificOptions: FC<EffectSpecificOptionsProps> = memo(
-  ({ effectId, options = {}, rank = 1, onChange }) => {
+const EffectSpecificOptions: FC<EffectSpecificOptionsProps> = ({
+  effectId,
+  options = {},
+  rank = 1,
+  onChange,
+}) => {
     const config = EFFECT_OPTIONS_REGISTRY[effectId];
 
-    if (!config) {
+    if (!config || !config.component) {
       return null;
     }
 
@@ -42,9 +46,6 @@ const EffectSpecificOptions: FC<EffectSpecificOptionsProps> = memo(
         <OptionsComponent options={options} rank={rank} onChange={onChange} />
       </div>
     );
-  },
-);
-
-EffectSpecificOptions.displayName = "EffectSpecificOptions";
+};
 
 export default EffectSpecificOptions;

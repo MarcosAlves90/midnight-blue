@@ -1,10 +1,9 @@
 "use client";
 
-import { FC, useEffect } from "react";
-import { Tip } from "@/components/ui/tip";
+import { FC, useMemo } from "react";
 import { EffectOptions } from "../types";
 import { COMPREENDER_SUBS } from "@/lib/powers/effect-constants";
-import { OptionSelector } from "./shared-components";
+import { EffectOptionsTemplate } from "./effect-options-template";
 
 interface CompreenderOptionsProps {
   options: EffectOptions;
@@ -14,86 +13,30 @@ interface CompreenderOptionsProps {
 
 export const CompreenderOptions: FC<CompreenderOptionsProps> = ({
   options,
+  rank,
   onChange,
 }) => {
-  const selectedSub = options.sub || "";
-  const currentRank = (options.rank as number) || 1;
-
-  const getMaxRankForSub = (subId: string) => {
-    if (subId === "idiomas") return 4;
-    return 2;
-  };
-
-  const maxRecommended = selectedSub ? getMaxRankForSub(selectedSub) : 2;
-  const isOverLimit = currentRank > maxRecommended;
-
-  // Sincronizar metadados quando o subtipo muda
-  useEffect(() => {
-    if (selectedSub) {
-      const maxR = getMaxRankForSub(selectedSub);
-      const newRank = Math.min(currentRank, maxR);
-      if (options.maxRank !== maxR || options.rank !== newRank) {
-        onChange({ ...options, maxRank: maxR, rank: newRank });
-      }
-    }
-  }, [selectedSub, onChange, options, currentRank]);
+  const config = useMemo(
+    () => ({
+      title: "Distribuição de Compreensão",
+      unitLabels: {
+        singular: "Graduação",
+        plural: "Graduações",
+      },
+      color: "purple",
+      completeLabel: "Totalizado",
+    }),
+    [],
+  );
 
   return (
-    <div className="space-y-3">
-      <div className="grid grid-cols-2 gap-2">
-        {COMPREENDER_SUBS.map((s) => (
-          <button
-            key={s.id}
-            onClick={(e) => {
-              e.stopPropagation();
-              onChange({
-                ...options,
-                sub: s.id,
-                rank: Math.min(currentRank, getMaxRankForSub(s.id)),
-              });
-            }}
-            className={`group p-2 text-left rounded border transition-colors ${
-              selectedSub === s.id
-                ? "border-purple-500 bg-purple-500/10"
-                : "border-border/40 hover:border-purple-400/30 hover:bg-muted/10"
-            }`}
-          >
-            <Tip
-              side="right"
-              content={
-                <div className="max-w-xs text-xs whitespace-pre-line">
-                  {s.tip}
-                </div>
-              }
-            >
-              <div className="text-sm font-medium underline decoration-dotted underline-offset-2">
-                {s.label}
-              </div>
-            </Tip>
-          </button>
-        ))}
-      </div>
-
-      {selectedSub && (
-        <div className="pt-2 border-t border-border/20">
-          <OptionSelector
-            label="Graduação"
-            value={currentRank}
-            min={1}
-            max={maxRecommended}
-            step={1}
-            unit=" G"
-            onChange={(val) => onChange({ ...options, rank: val })}
-            warning={
-              isOverLimit
-                ? `A graduação recomendada para ${
-                    COMPREENDER_SUBS.find((s) => s.id === selectedSub)?.label
-                  } é até ${maxRecommended}.`
-                : undefined
-            }
-          />
-        </div>
-      )}
-    </div>
+    <EffectOptionsTemplate
+      options={options}
+      rank={rank}
+      onChange={onChange}
+      subOptions={COMPREENDER_SUBS}
+      config={config}
+    />
   );
 };
+
