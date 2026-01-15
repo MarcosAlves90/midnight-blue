@@ -44,7 +44,7 @@ export function IndividualSkeleton() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <div className="space-y-4">
               {/* Biometric Data */}
-              <div className="p-6 border rounded-xl space-y-6 bg-card/20 border-border/40">
+              <div className="p-6 border rounded-none border-white/5 bg-card/20 space-y-6">
                 <div className="flex items-center gap-2 mb-2">
                   <Skeleton className="h-4 w-4 rounded" />
                   <Skeleton className="h-4 w-32" />
@@ -60,7 +60,7 @@ export function IndividualSkeleton() {
               </div>
 
               {/* Personal Data */}
-              <div className="p-6 border rounded-xl space-y-6 bg-card/20 border-border/40">
+              <div className="p-6 border rounded-none border-white/5 bg-card/20 space-y-6">
                 <div className="flex items-center gap-2 mb-2">
                   <Skeleton className="h-4 w-4 rounded" />
                   <Skeleton className="h-4 w-32" />
@@ -84,7 +84,7 @@ export function IndividualSkeleton() {
 
             <div className="space-y-4">
               {/* Confidential File */}
-              <div className="p-6 border rounded-xl space-y-6 bg-card/20 border-border/40 flex flex-col h-fit">
+              <div className="p-6 border rounded-none border-white/5 bg-card/20 space-y-6 flex flex-col h-fit">
                 <div className="flex items-center gap-2 mb-2">
                   <Skeleton className="h-4 w-4 rounded" />
                   <Skeleton className="h-4 w-40" />
@@ -109,7 +109,7 @@ export function IndividualSkeleton() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
         {/* Complications */}
-        <div className="p-6 border rounded-xl space-y-4 bg-card/20 border-border/40">
+        <div className="p-6 border rounded-none border-white/5 space-y-4 bg-card/20">
           <div className="flex items-center gap-2 mb-2">
             <Skeleton className="h-4 w-4 rounded" />
             <Skeleton className="h-4 w-32" />
@@ -130,7 +130,7 @@ export function IndividualSkeleton() {
           </div>
         </div>
         {/* History */}
-        <div className="p-6 border rounded-xl space-y-4 bg-card/20 border-border/40 flex flex-col">
+        <div className="p-6 border rounded-none border-white/5 space-y-4 bg-card/20 flex flex-col">
           <div className="flex items-center gap-2 mb-2">
             <Skeleton className="h-4 w-4 rounded" />
             <Skeleton className="h-4 w-32" />

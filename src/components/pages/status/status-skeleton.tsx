@@ -9,7 +9,7 @@ export function StatusSkeleton() {
         {/* Left Column: Attributes and Advanced Status */}
         <div className="flex flex-col gap-4 w-full max-w-120">
           {/* Attributes Grid Skeleton */}
-          <div className="bg-muted/50 rounded-xl p-6">
+          <div className="bg-muted/50 rounded-none p-6 border border-white/5">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <Skeleton className="h-5 w-24" />
@@ -39,7 +39,7 @@ export function StatusSkeleton() {
           </div>
 
           {/* Advanced Status Skeleton */}
-          <div className="bg-muted/50 rounded-xl p-6">
+          <div className="bg-muted/50 rounded-none p-6 border border-white/5">
             <div className="flex items-center justify-between mb-6">
               <Skeleton className="h-5 w-32" />
               <div className="p-2 rounded bg-muted-foreground/10 text-muted-foreground/40">
@@ -115,7 +115,7 @@ export function StatusSkeleton() {
         {/* Right Column: Skills and Powers */}
         <div className="flex gap-4 flex-1 max-xl:flex-col">
           {/* Skills List Skeleton */}
-          <div className="bg-muted/50 flex-1 rounded-xl p-6 h-fit">
+          <div className="bg-muted/50 flex-1 rounded-none p-6 h-fit border border-white/5">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <Skeleton className="h-5 w-20" />
@@ -148,7 +148,8 @@ export function StatusSkeleton() {
           </div>
 
           {/* Powers Section Skeleton */}
-          <div className="bg-muted/50 flex-1 rounded-xl p-6 h-fit">
+          {/* Powers Section Skeleton */}
+          <div className="bg-muted/50 flex-1 rounded-none p-6 h-fit border border-white/5">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-2">
                 <Skeleton className="h-5 w-24" />

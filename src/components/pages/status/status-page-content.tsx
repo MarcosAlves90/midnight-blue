@@ -15,10 +15,10 @@ export default function StatusPageContent() {
           <AdvancedStatus />
         </div>
         <div className="flex gap-4 flex-1 max-xl:flex-col">
-          <div className="bg-muted/50 flex-1 rounded-xl p-6 h-fit">
+          <div className="bg-muted/50 flex-1 rounded-none p-6 h-fit border border-white/5">
             <SkillsList />
           </div>
-          <div className="bg-muted/50 flex-1 rounded-xl p-6 h-fit">
+          <div className="bg-muted/50 flex-1 rounded-none p-6 h-fit border border-white/5">
             <PowersSection />
           </div>
         </div>

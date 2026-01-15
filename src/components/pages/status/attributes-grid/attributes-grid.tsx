@@ -1,7 +1,8 @@
 "use client";
 
 import { memo, useState, useEffect, useCallback } from "react";
-import { Edit3, Lock } from "lucide-react";
+import { Lock } from "lucide-react";
+import { EditToggle } from "@/components/ui/edit-toggle";
 import { Tip } from "@/components/ui/tip";
 import { AttributeCard } from "./attribute-card";
 import { AttributesGridProps, Attribute } from "./types";
@@ -77,7 +78,7 @@ const AttributesGrid = memo(function AttributesGrid({
 
   if (!mounted) {
     return (
-      <div className="bg-muted/50 rounded-xl p-6">
+      <div className="bg-muted/50 rounded-none p-6 border border-white/5">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold">Atributos</h3>
           <div className="p-2 rounded bg-muted-foreground/20 text-muted-foreground">
@@ -90,7 +91,7 @@ const AttributesGrid = memo(function AttributesGrid({
   }
 
   return (
-    <div className="bg-muted/50 rounded-xl p-6">
+    <div className="bg-muted/50 rounded-none p-6 border border-white/5">
       <div className="flex items-center justify-between mb-4">
         <Tip
           content={
@@ -110,27 +111,12 @@ const AttributesGrid = memo(function AttributesGrid({
             Atributos
           </h3>
         </Tip>
-        <button
-          onClick={toggleEditMode}
-          className={`p-2 rounded cursor-pointer transition-all duration-200 ${
-            isEditMode
-              ? "bg-primary text-primary-foreground hover:bg-primary/90"
-              : "bg-muted-foreground/20 text-muted-foreground hover:bg-muted-foreground/30"
-          }`}
-          title={
-            isEditMode ? "Desativar modo de edição" : "Ativar modo de edição"
-          }
-          aria-label={
-            isEditMode ? "Desativar modo de edição" : "Ativar modo de edição"
-          }
-          aria-pressed={isEditMode}
-        >
-          {isEditMode ? (
-            <Edit3 className="w-4 h-4" />
-          ) : (
-            <Lock className="w-4 h-4" />
-          )}
-        </button>
+        <EditToggle 
+          isActive={isEditMode} 
+          onToggle={toggleEditMode}
+          activeTitle="Desativar modo de edição"
+          inactiveTitle="Ativar modo de edição"
+        />
       </div>
 
       {renderCards()}

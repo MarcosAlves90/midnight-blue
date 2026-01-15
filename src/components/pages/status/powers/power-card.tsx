@@ -7,16 +7,9 @@ import { calculatePowerCost } from "@/lib/powers/utils";
 import { Tip } from "@/components/ui/tip";
 import { 
   ChevronDown, 
-  ChevronUp, 
   Trash2, 
   Sparkles, 
   Edit3, 
-  Zap, 
-  Shield, 
-  Info, 
-  Layers,
-  Activity,
-  Plus
 } from "lucide-react";
 import { ParameterGrid } from "./components/parameter-grid";
 import { cn } from "@/lib/utils";

@@ -12,13 +12,12 @@ import {
   Shield,
   Star,
   Move,
-  Edit3,
-  Lock,
   Zap,
   Plus,
   Minus,
   RotateCcw,
 } from "lucide-react";
+import { EditToggle } from "@/components/ui/edit-toggle";
 import DefenseWarning from "@/components/ui/custom/warning-icon";
 import { rollDice } from "@/lib/dice-system";
 import { DiceIcon } from "@/components/ui/icons/dice-icon";
@@ -340,30 +339,15 @@ export default function AdvancedStatus() {
   const hasFortitudeVontadeDisparity = fortitudeVontadeDisparity > 50;
 
   return (
-    <div className="bg-muted/50 rounded-xl p-6 space-y-4">
+    <div className="bg-muted/50 rounded-none p-6 border border-white/5 space-y-4">
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-lg font-semibold">Progressão</h2>
-        <button
-          onClick={toggleEditMode}
-          className={`p-2 rounded cursor-pointer transition-all duration-200 ${
-            isEditMode
-              ? "bg-primary text-primary-foreground hover:bg-primary/90"
-              : "bg-muted-foreground/20 text-muted-foreground hover:bg-muted-foreground/30"
-          }`}
-          title={
-            isEditMode ? "Desativar modo de edição" : "Ativar modo de edição"
-          }
-          aria-label={
-            isEditMode ? "Desativar modo de edição" : "Ativar modo de edição"
-          }
-          aria-pressed={isEditMode}
-        >
-          {isEditMode ? (
-            <Edit3 className="w-4 h-4" />
-          ) : (
-            <Lock className="w-4 h-4" />
-          )}
-        </button>
+        <EditToggle 
+          isActive={isEditMode} 
+          onToggle={toggleEditMode}
+          activeTitle="Desativar modo de edição"
+          inactiveTitle="Ativar modo de edição"
+        />
       </div>
       <div aria-live="polite" className="sr-only">
         {isEditMode ? "Modo de edição ativado" : "Modo de edição desativado"}

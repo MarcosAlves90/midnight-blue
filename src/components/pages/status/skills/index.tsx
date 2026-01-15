@@ -1,10 +1,12 @@
 "use client";
 
 import React, { useState, useCallback, useMemo } from "react";
-import { Edit3, Lock, ChevronDown, Search, X, Plus } from "lucide-react";
+import { ChevronDown, Search, X, Plus } from "lucide-react";
+import { EditToggle } from "@/components/ui/edit-toggle";
 import SkillCard from "./skill-card";
 import { useSkillsContext } from "@/contexts/SkillsContext";
 import { INITIAL_SKILLS } from "./constants";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -34,6 +36,7 @@ function SkillsList({
   const { skills, updateSkill, addSpecialization, removeSkill } =
     useSkillsContext();
   const [isEditMode, setIsEditMode] = useState(initialIsEditMode);
+  const [isControlsOpen, setIsControlsOpen] = useState(false);
   const [sortOption, setSortOption] = useState<SortOption>("name-asc");
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -124,10 +127,11 @@ function SkillsList({
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
             <button
-              className="p-2 rounded-lg cursor-pointer transition-all duration-200 bg-primary text-primary-foreground hover:bg-primary/90"
+              className="flex items-center gap-2 px-3 py-2 bg-blue-600/20 text-blue-400 border border-blue-500/30 text-[10px] font-black uppercase tracking-widest hover:bg-blue-600/30 transition-all active:scale-95"
               title="Adicionar Especialização"
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="h-3 w-3" />
+              Injetar
             </button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[425px]">
@@ -176,86 +180,71 @@ function SkillsList({
         </Dialog>
       )}
 
-      <button
-        onClick={toggleEditMode}
-        className={`p-2 rounded cursor-pointer transition-all duration-200 ${
-          isEditMode
-            ? "bg-primary text-primary-foreground hover:bg-primary/90"
-            : "bg-muted-foreground/20 text-muted-foreground hover:bg-muted-foreground/30"
-        }`}
-        title={
-          isEditMode ? "Desativar modo de edição" : "Ativar modo de edição"
-        }
-        aria-label={
-          isEditMode ? "Desativar modo de edição" : "Ativar modo de edição"
-        }
-        aria-pressed={isEditMode}
-      >
-        {isEditMode ? (
-          <Edit3 className="w-4 h-4" />
-        ) : (
-          <Lock className="w-4 h-4" />
-        )}
-      </button>
+      <EditToggle 
+        isActive={isEditMode} 
+        onToggle={toggleEditMode}
+        activeTitle="Desativar modo de edição"
+        inactiveTitle="Ativar modo de edição"
+      />
     </div>
   );
 
   const renderSortDropdown = () => (
-    <div className="relative">
+    <div className="relative group min-w-[140px]">
       <select
         id="skill-sort"
         name="skill-sort"
         value={sortOption}
         onChange={(e) => setSortOption(e.target.value as SortOption)}
-        className="flex h-8 w-full items-center justify-between rounded-md border border-input bg-transparent px-3 py-1 text-xs shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 appearance-none pr-8 cursor-pointer hover:bg-accent/50"
+        className="w-full h-9 pl-3 pr-8 bg-zinc-900/50 border border-white/5 text-[10px] font-black uppercase tracking-widest text-zinc-400 appearance-none focus:outline-none focus:border-blue-500/50 focus:text-blue-400 transition-all cursor-pointer hover:border-white/10"
         aria-label="Ordenar perícias"
       >
-        <option value="name-asc" className="bg-background">
+        <option value="name-asc" className="bg-zinc-950 text-zinc-400">
           Nome (A-Z)
         </option>
-        <option value="name-desc" className="bg-background">
+        <option value="name-desc" className="bg-zinc-950 text-zinc-400">
           Nome (Z-A)
         </option>
-        <option value="attribute" className="bg-background">
+        <option value="attribute" className="bg-zinc-950 text-zinc-400">
           Por Atributo
         </option>
-        <option value="value-asc" className="bg-background">
+        <option value="value-asc" className="bg-zinc-950 text-zinc-400">
           Valor (↑)
         </option>
-        <option value="value-desc" className="bg-background">
+        <option value="value-desc" className="bg-zinc-950 text-zinc-400">
           Valor (↓)
         </option>
-        <option value="others-asc" className="bg-background">
+        <option value="others-asc" className="bg-zinc-950 text-zinc-400">
           Bônus (↑)
         </option>
-        <option value="others-desc" className="bg-background">
+        <option value="others-desc" className="bg-zinc-950 text-zinc-400">
           Bônus (↓)
         </option>
       </select>
-      <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+      <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-3 h-3 text-zinc-600 group-hover:text-zinc-400 pointer-events-none transition-colors" />
     </div>
   );
 
   const renderSearchInput = () => (
-    <div className="relative">
-      <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none z-10" />
-      <Input
+    <div className="relative flex-1">
+      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-3 h-3 text-zinc-600 pointer-events-none z-10" />
+      <input
         id="skill-search"
         name="skill-search"
         type="text"
-        placeholder="Buscar perícia..."
+        placeholder="RASTREAR PERÍCIA..."
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
-        className="pl-8 pr-8 h-8 text-xs bg-transparent"
+        className="w-full h-9 pl-8 pr-8 bg-zinc-900/50 border border-white/5 text-[10px] font-black uppercase tracking-widest text-zinc-400 placeholder:text-zinc-700 focus:outline-none focus:border-blue-500/50 focus:text-blue-400 transition-all hover:border-white/10"
         aria-label="Buscar perícias"
       />
       {searchTerm && (
         <button
           onClick={() => setSearchTerm("")}
-          className="absolute right-2 top-1/2 transform -translate-y-1/2 p-0.5 hover:bg-muted-foreground/40 rounded transition-colors cursor-pointer"
+          className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 hover:bg-zinc-800 text-zinc-600 hover:text-rose-500 rounded transition-all cursor-pointer"
           aria-label="Limpar busca"
         >
-          <X className="w-4 h-4 text-muted-foreground" />
+          <X className="w-3 h-3" />
         </button>
       )}
     </div>
@@ -263,14 +252,37 @@ function SkillsList({
 
   return (
     <div className="overflow-x-auto">
-      <div className="flex items-center justify-between mb-4 gap-3">
-        <h2 className="text-lg font-semibold">Perícias</h2>
+      <div className="flex items-center justify-between mb-2 gap-3">
+        <div className="space-y-1">
+          <h2 className="text-xl font-black uppercase tracking-tighter text-white">
+            Perícias
+          </h2>
+        </div>
+        
         <div className="flex items-center gap-2">
-          {renderSearchInput()}
-          {renderSortDropdown()}
+          <button
+            onClick={() => setIsControlsOpen(!isControlsOpen)}
+            className={cn(
+              "p-2 border transition-all duration-300",
+              isControlsOpen || searchTerm
+                ? "bg-blue-500/10 border-blue-500/50 text-blue-400"
+                : "bg-zinc-900/50 text-zinc-500 border-white/5 hover:border-white/10"
+            )}
+            title="Filtrar e Buscar"
+          >
+            <Search className="w-4 h-4" />
+          </button>
           {renderEditButton()}
         </div>
       </div>
+
+      {isControlsOpen && (
+        <div className="flex flex-col sm:flex-row gap-2 mb-2 animate-in fade-in slide-in-from-top-2 duration-300">
+          {renderSearchInput()}
+          {renderSortDropdown()}
+        </div>
+      )}
+
       <table className="w-full table-fixed">
         <thead>
           <tr className="text-left text-[10px] uppercase tracking-wider text-muted-foreground border-b border-muted/20">

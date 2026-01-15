@@ -4,11 +4,11 @@ import { useState, useCallback, useMemo } from "react";
 import { Power } from "./types";
 import { PowerCard } from "./power-card";
 import { PowerBuilderModal } from "./power-builder-modal";
-import { Plus, Edit3, Lock, AlertTriangle, Sparkles } from "lucide-react";
+import { EditToggle } from "@/components/ui/edit-toggle";
+import { Plus, AlertTriangle, Sparkles } from "lucide-react";
 import { useStatusContext } from "@/contexts/StatusContext";
 import { usePowersContext } from "@/contexts/PowersContext";
 import { checkPowerLimit } from "@/lib/powers/utils";
-import { cn } from "@/lib/utils";
 
 export default function PowersSection() {
   const { powerLevel } = useStatusContext();
@@ -82,9 +82,6 @@ export default function PowersSection() {
           <h2 className="text-xl font-black uppercase tracking-tighter text-white">
             Poderes
           </h2>
-          <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">
-            Biblioteca de Habilidades
-          </p>
         </div>
         
         <div className="flex items-center gap-2">
@@ -97,22 +94,12 @@ export default function PowersSection() {
               Injetar
             </button>
           )}
-          <button
-            onClick={toggleEditMode}
-            className={cn(
-              "p-2 border transition-all duration-300",
-              isEditMode
-                ? "bg-blue-500 text-white border-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.5)]"
-                : "bg-zinc-900/50 text-zinc-500 border-white/5 hover:border-white/10"
-            )}
-            title={isEditMode ? "Trancar Modificações" : "Hackear Poderes"}
-          >
-            {isEditMode ? (
-              <Edit3 className="w-4 h-4" />
-            ) : (
-              <Lock className="w-4 h-4" />
-            )}
-          </button>
+          <EditToggle 
+            isActive={isEditMode} 
+            onToggle={toggleEditMode}
+            activeTitle="Trancar Modificações"
+            inactiveTitle="Hackear Poderes"
+          />
         </div>
       </div>
 
