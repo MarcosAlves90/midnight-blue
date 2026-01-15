@@ -17,6 +17,7 @@ import type { IdentityData } from "./IdentityContext";
 import type { Attribute } from "@/components/pages/status/attributes-grid/types";
 import type { Skill } from "@/components/pages/status/skills/types";
 import type { Power } from "@/components/pages/status/powers/types";
+import { SheetManager } from "@/services/sheet-manager";
 
 interface CharacterSheetState {
   identity: IdentityData;
@@ -346,7 +347,7 @@ export function CharacterSheetProvider({
 
         Object.keys(nextIdentityUpdates).forEach((k) => {
           const key = k as keyof IdentityData;
-          if (nextIdentityUpdates[key] !== prev.identity[key]) {
+          if (SheetManager.hasChanges(prev.identity[key], nextIdentityUpdates[key])) {
             (realChanges as Record<string, unknown>)[key] =
               nextIdentityUpdates[key];
             hasChanges = true;
@@ -363,11 +364,7 @@ export function CharacterSheetProvider({
 
         const nextIdentity = { ...prev.identity, ...realChanges };
 
-        setDirtyFields((d) => {
-          const n = new Set(d);
-          Object.keys(realChanges).forEach((k) => n.add(`identity.${k}`));
-          return n;
-        });
+        setDirtyFields((d) => SheetManager.getNewDirtyFields(d, realChanges, "identity"));
 
         const nextState = { ...prev, identity: nextIdentity };
         stateRef.current = nextState;

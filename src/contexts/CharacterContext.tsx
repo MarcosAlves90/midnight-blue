@@ -14,6 +14,8 @@ import { useAdmin } from "@/contexts/AdminContext";
 import { useCharacterPersistence } from "@/hooks/use-character-persistence";
 import { FirebaseCharacterRepository } from "@/services/repository/character-repo";
 import { CharacterStorageService } from "@/services/character-storage";
+import { CharacterResolver } from "@/services/character-resolver";
+import { useCharacterSync } from "@/hooks/use-character-sync";
 
 interface CharacterContextType {
   selectedCharacter: CharacterDocument | null;
@@ -112,32 +114,17 @@ export function CharacterProvider({ children }: { children: React.ReactNode }) {
     const resolveInitialCharacter = async () => {
       setIsLoading(true);
       try {
-        const currentId = CharacterStorageService.getStoredCurrentId();
-        const storedOwnerId = CharacterStorageService.getStoredOwnerId();
+        const char = await CharacterResolver.resolveInitial({
+          activeContextId,
+          isAdminMode,
+          userId: user?.uid,
+          loadCharacter,
+          loadLastSelected,
+        });
 
-        // Prioridade 1: Cache local se pertencer ao contexto atual
-        if (currentId && storedOwnerId === activeContextId) {
-          const char = await loadCharacter(currentId);
-          if (isSubscribed && char) {
-            internalSetSelectedCharacter(char);
-            return;
-          }
+        if (isSubscribed) {
+          internalSetSelectedCharacter(char);
         }
-
-        // Prioridade 2: Modo Usuário - Recuperar última própria
-        if (!isAdminMode) {
-          const lastOwnId = CharacterStorageService.getStoredLastOwnId();
-          const char = lastOwnId
-            ? await loadCharacter(lastOwnId)
-            : await loadLastSelected();
-          if (isSubscribed && char && char.userId === user?.uid) {
-            internalSetSelectedCharacter(char);
-            return;
-          }
-        }
-
-        // Fallback: Nada selecionado para este contexto
-        if (isSubscribed) internalSetSelectedCharacter(null);
       } catch (err) {
         console.error("[CharacterContext] Erro na restauração:", err);
       } finally {

@@ -58,12 +58,13 @@ export interface Effect {
 export interface EffectOptions {
   customName?: string;
   sub?: string;
+  description?: string;
   ppCost?: number;
   rank?: number;
   action?: ActionType;
   range?: RangeType;
   duration?: DurationType;
-  [key: string]: unknown;
+  [key: string]: any;
 }
 
 export interface Power {
