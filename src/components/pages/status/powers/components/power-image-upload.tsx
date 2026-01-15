@@ -1,22 +1,26 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
-import Image from "next/image";
-import { Upload, X, Loader2, Image as ImageIcon } from "lucide-react";
+import { useCallback, useRef } from "react";
+import { Upload, Loader2, Image as ImageIcon, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { PowerService } from "@/services/power-service";
 import { toast } from "@/lib/toast";
 
 interface PowerImageUploadProps {
   image?: { url: string; publicId: string };
   onImageChange: (image: { url: string; publicId: string } | undefined) => void;
+  pendingImageFile?: File;
+  onPendingImageChange: (file: File | undefined) => void;
 }
 
-export function PowerImageUpload({ image, onImageChange }: PowerImageUploadProps) {
-  const [uploading, setUploading] = useState(false);
+export function PowerImageUpload({ 
+  image, 
+  onImageChange,
+  pendingImageFile,
+  onPendingImageChange
+}: PowerImageUploadProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleUpload = useCallback(async (file: File) => {
+  const handleSelectFile = useCallback((file: File) => {
     // Validações básicas
     if (!file.type.startsWith("image/")) {
       toast.error("Por favor, selecione uma imagem.");
@@ -28,37 +32,20 @@ export function PowerImageUpload({ image, onImageChange }: PowerImageUploadProps
       return;
     }
 
-    setUploading(true);
-    try {
-      const result = await PowerService.uploadPowerCover(
-        file, 
-        image?.publicId
-      );
-
-      if (result) {
-        onImageChange(result);
-        toast.success("Imagem carregada com sucesso!");
-      } else {
-        toast.error("Falha ao carregar imagem.");
-      }
-    } catch (error) {
-      console.error(error);
-      toast.error("Erro ao processar imagem.");
-    } finally {
-      setUploading(false);
-    }
-  }, [image, onImageChange]);
+    onPendingImageChange(file);
+  }, [onPendingImageChange]);
 
   const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) handleUpload(file);
+    if (file) handleSelectFile(file);
   };
 
   const removeImage = () => {
-    // Não deletamos do Cloudinary aqui para permitir desfazer ou cancelar o builder
-    // Apenas removemos do estado local
     onImageChange(undefined);
+    onPendingImageChange(undefined);
   };
+
+  const hasImage = !!image || !!pendingImageFile;
 
   return (
     <div className="space-y-2">
@@ -67,53 +54,58 @@ export function PowerImageUpload({ image, onImageChange }: PowerImageUploadProps
       </label>
       
       <div className="relative group">
-        {image ? (
-          <div className="relative aspect-video rounded-lg overflow-hidden border border-white/10 bg-black/40">
-            <Image 
-              src={image.url} 
-              alt="Capa do Poder" 
-              fill
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+        {hasImage ? (
+          <div className={`flex items-center justify-between h-10 px-3 border animate-in fade-in zoom-in-95 duration-200 ${
+            pendingImageFile ? "border-blue-500/30 bg-blue-500/5" : "border-emerald-500/30 bg-emerald-500/5"
+          }`}>
+            <div className="flex items-center gap-2">
+              <div className={`h-5 w-5 flex items-center justify-center ${
+                pendingImageFile ? "bg-blue-500/20" : "bg-emerald-500/20"
+              }`}>
+                {pendingImageFile ? (
+                  <Upload className="h-3 w-3 text-blue-500" />
+                ) : (
+                  <Check className="h-3 w-3 text-emerald-500" />
+                )}
+              </div>
+              <span className={`text-[10px] font-bold uppercase tracking-widest ${
+                pendingImageFile ? "text-blue-500/80" : "text-emerald-500/80"
+              }`}>
+                {pendingImageFile ? "Arquivo Selecionado" : "Imagem Carregada"}
+              </span>
+            </div>
+            <div className="flex items-center gap-1">
               <Button
-                size="sm"
-                variant="outline"
+                variant="ghost"
+                className={`h-7 px-2 text-[9px] font-bold uppercase rounded-none ${
+                    pendingImageFile ? "hover:bg-blue-500/10 text-blue-600" : "hover:bg-emerald-500/10 text-emerald-600"
+                }`}
                 onClick={() => fileInputRef.current?.click()}
-                disabled={uploading}
               >
-                {uploading ? <Loader2 className="h-3 w-3 animate-spin" /> : "Trocar"}
+                Trocar
               </Button>
+              <div className="w-[1px] h-3 bg-white/10" />
               <Button
-                size="sm"
-                variant="destructive"
+                variant="ghost"
+                className="h-7 px-2 text-[9px] font-bold uppercase hover:bg-red-500/10 text-red-500 rounded-none"
                 onClick={removeImage}
-                disabled={uploading}
               >
-                <X className="h-3 w-3" />
+                Remover
               </Button>
             </div>
           </div>
         ) : (
           <div 
             onClick={() => fileInputRef.current?.click()}
-            className="aspect-video rounded-lg border-2 border-dashed border-white/10 bg-black/20 flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-black/30 hover:border-blue-500/50 transition-all group"
+            className="h-10 border border-dashed border-white/10 bg-black/20 flex items-center px-3 gap-3 cursor-pointer hover:bg-black/30 hover:border-blue-500/30 transition-all group"
           >
-            {uploading ? (
-              <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
-            ) : (
-              <>
-                <div className="p-3 rounded-full bg-white/5 group-hover:bg-blue-500/10 transition-colors">
-                  <Upload className="h-5 w-5 text-zinc-500 group-hover:text-blue-500" />
-                </div>
-                <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
-                  Clique para Upload
-                </span>
-                <span className="text-[9px] text-zinc-600">
-                  Resolução sugerida: 1200x675 (16:9)
-                </span>
-              </>
-            )}
+            <Upload className="h-3.5 w-3.5 text-zinc-500 group-hover:text-blue-500" />
+            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest group-hover:text-zinc-300">
+              Adicionar Imagem de Capa
+            </span>
+            <span className="text-[9px] text-zinc-600 ml-auto">
+              Máx 2MB
+            </span>
           </div>
         )}
         <input 

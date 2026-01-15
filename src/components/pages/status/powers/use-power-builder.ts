@@ -39,6 +39,7 @@ export function usePowerBuilder(editingPower?: Power) {
   const [image, setImage] = useState<{ url: string; publicId: string } | undefined>(
     editingPower?.image,
   );
+  const [pendingImageFile, setPendingImageFile] = useState<File | undefined>();
 
   // O rank global agora reflete a maior graduação entre os efeitos para compatibilidade
   const maxRank = useMemo(() => {
@@ -187,7 +188,9 @@ export function usePowerBuilder(editingPower?: Power) {
       notes: notes.trim() || "",
       effectOptions,
       alternatives,
-      image,
+      image: pendingImageFile 
+        ? { url: URL.createObjectURL(pendingImageFile), publicId: 'temp' } 
+        : image,
     }),
     [
       editingPower?.id,
@@ -200,6 +203,7 @@ export function usePowerBuilder(editingPower?: Power) {
       effectOptions,
       alternatives,
       image,
+      pendingImageFile,
     ],
   );
 
@@ -262,5 +266,7 @@ export function usePowerBuilder(editingPower?: Power) {
     canProceed,
     image,
     setImage,
+    pendingImageFile,
+    setPendingImageFile,
   };
 }

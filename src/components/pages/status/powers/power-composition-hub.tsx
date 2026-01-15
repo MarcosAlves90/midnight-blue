@@ -46,6 +46,8 @@ interface PowerCompositionHubProps {
   onUpdateAlternative: (id: string, updates: Partial<Power>) => void;
   image?: { url: string; publicId: string };
   onImageChange: (image: { url: string; publicId: string } | undefined) => void;
+  pendingImageFile?: File;
+  onPendingImageChange: (file: File | undefined) => void;
 }
 
 export const PowerCompositionHub = memo(
@@ -73,6 +75,8 @@ export const PowerCompositionHub = memo(
     onUpdateAlternative,
     image,
     onImageChange,
+    pendingImageFile,
+    onPendingImageChange,
   }: PowerCompositionHubProps) => {
     const [expandedIds, setExpandedIds] = useState<string[]>(["global-config"]);
     const [selectorOpen, setSelectorOpen] = useState(false);
@@ -153,6 +157,8 @@ export const PowerCompositionHub = memo(
                 customDescriptors={customDescriptors}
                 image={image}
                 onImageChange={onImageChange}
+                pendingImageFile={pendingImageFile}
+                onPendingImageChange={onPendingImageChange}
               />
             </section>
 

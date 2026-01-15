@@ -19,6 +19,8 @@ interface HubGlobalConfigProps {
   customDescriptors: string[];
   image?: { url: string; publicId: string };
   onImageChange: (image: { url: string; publicId: string } | undefined) => void;
+  pendingImageFile?: File;
+  onPendingImageChange: (file: File | undefined) => void;
 }
 
 export const HubGlobalConfig = memo(({
@@ -30,7 +32,9 @@ export const HubGlobalConfig = memo(({
   onNotesChange,
   customDescriptors,
   image,
-  onImageChange
+  onImageChange,
+  pendingImageFile,
+  onPendingImageChange
 }: HubGlobalConfigProps) => {
   return (
     <HubCollapsibleSection
@@ -53,21 +57,26 @@ export const HubGlobalConfig = memo(({
         </div>
       }
     >
-      <div className="p-4 pt-0 border-t border-white/5 space-y-6">
-        <div className="mt-4">
-          <PowerImageUpload image={image} onImageChange={onImageChange} />
+      <div className="p-4 pt-0 border-t border-white/5 space-y-4">
+        <div className="mt-3">
+          <PowerImageUpload 
+            image={image} 
+            onImageChange={onImageChange} 
+            pendingImageFile={pendingImageFile}
+            onPendingImageChange={onPendingImageChange}
+          />
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-2">
           <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
             <Tag className="h-3 w-3" /> Descritores Narrativos
           </label>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-1.5">
             {customDescriptors.map((d) => (
               <button
                 key={d}
                 onClick={() => onToggleDescriptor(d)}
-                className={`px-3 py-1 rounded-full text-[10px] font-bold border transition-all ${
+                className={`px-2.5 py-0.5 rounded-full text-[9px] font-bold border transition-all ${
                   selectedDescriptors.includes(d)
                     ? "bg-blue-500/20 border-blue-500 text-blue-300"
                     : "bg-white/5 border-white/10 text-zinc-500 hover:border-white/30"
@@ -79,7 +88,7 @@ export const HubGlobalConfig = memo(({
           </div>
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
             <BookOpen className="h-3 w-3" /> Notas de Execução
           </label>
@@ -87,7 +96,7 @@ export const HubGlobalConfig = memo(({
             value={notes}
             onChange={(e) => onNotesChange(e.target.value)}
             placeholder="Instruções adicionais ou flavor text..."
-            className="w-full bg-black/40 border border-white/10 p-3 text-xs min-h-[80px] resize-none"
+            className="w-full bg-black/40 border border-white/10 p-2.5 text-[11px] min-h-[60px] resize-none focus:border-blue-500/30 transition-colors"
           />
         </div>
       </div>

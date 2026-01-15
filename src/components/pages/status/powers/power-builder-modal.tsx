@@ -51,6 +51,8 @@ function PowerBuilderModalContent({
     canProceed,
     image,
     setImage,
+    pendingImageFile,
+    setPendingImageFile,
   } = usePowerBuilder(editingPower);
 
   useEffect(() => {
@@ -66,13 +68,32 @@ function PowerBuilderModalContent({
     
     setIsSaving(true);
     try {
-      // Garantir que um novo poder tenha um ID único, não "preview"
+      let finalImage = image;
+
+      // 1. Lógica de Imagem (Cloudinary)
+      // Se há um novo arquivo pendente, faz upload dele (e deleta o antigo se existir)
+      if (pendingImageFile) {
+        const uploadResult = await PowerService.uploadPowerCover(
+          pendingImageFile,
+          editingPower?.image?.publicId
+        );
+        if (uploadResult) {
+          finalImage = uploadResult;
+        }
+      } 
+      // Se não há novo arquivo, mas o usuário removeu a imagem existente
+      else if (!image && editingPower?.image?.publicId) {
+        await PowerService.rollbackImage(editingPower.image.publicId);
+      }
+
+      // 2. Garantir que um novo poder tenha um ID único
       const powerToSave: Power = {
         ...previewPower,
-        id: editingPower?.id || crypto.randomUUID()
+        id: editingPower?.id || crypto.randomUUID(),
+        image: finalImage
       };
 
-      // Se o usuário está logado, tenta salvar na biblioteca para normalização
+      // 3. Se o usuário está logado, tenta salvar na biblioteca
       if (user) {
         const result = await PowerService.savePowerToLibrary(user.uid, powerToSave);
         if (!result.success) {
@@ -135,6 +156,8 @@ function PowerBuilderModalContent({
                 onUpdateAlternative={updateAlternative}
                 image={image}
                 onImageChange={setImage}
+                pendingImageFile={pendingImageFile}
+                onPendingImageChange={setPendingImageFile}
               />
             </div>
 
