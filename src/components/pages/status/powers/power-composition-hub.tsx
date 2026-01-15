@@ -23,11 +23,39 @@ import { EffectSelector } from "./effect-selector";
 import { calculatePowerCost } from "@/lib/powers/utils";
 import { Button } from "@/components/ui/button";
 import { useCustomDescriptors } from "@/contexts/CustomDescriptorsContext";
-
 import { PowerBuilderProvider } from "./context/PowerBuilderContext";
 
 interface PowerCompositionHubProps {
-  // ... (manter igual)
+  name: string;
+  onNameChange: (val: string) => void;
+  selectedEffects: Effect[];
+  onToggleEffect: (effect: Effect) => void;
+  effectOptions: Record<string, EffectOptions>;
+  onUpdateEffectOptions: (id: string, opts: EffectOptions) => void;
+  rank: number;
+  selectedModifierInstances: ModifierInstance[];
+  onAddModifier: (m: Modifier, effectId: string) => void;
+  onRemoveModifier: (id: string) => void;
+  onUpdateModifierOptions: (id: string, opts: Record<string, unknown>) => void;
+  availableExtras: Modifier[];
+  availableFlaws: Modifier[];
+  selectedDescriptors: string[];
+  onToggleDescriptor: (d: string) => void;
+  notes: string;
+  onNotesChange: (n: string) => void;
+  customAction: ActionType | null;
+  onActionChange: (a: ActionType | null) => void;
+  customRange: RangeType | null;
+  onRangeChange: (r: RangeType | null) => void;
+  customDuration: DurationType | null;
+  onDurationChange: (d: DurationType | null) => void;
+  defaultAction: ActionType;
+  defaultRange: RangeType;
+  defaultDuration: DurationType;
+  alternatives: Power[];
+  onAddAlternative: () => void;
+  onRemoveAlternative: (id: string) => void;
+  onUpdateAlternative: (id: string, updates: Partial<Power>) => void;
 }
 
 export const PowerCompositionHub = memo(
@@ -129,7 +157,7 @@ export const PowerCompositionHub = memo(
             rank={rank}
           />
 
-          <div className="flex-1 overflow-y-auto p-4 space-y-6 custom-scrollbar">
+          <div className="flex-1 overflow-y-auto p-2 space-y-6 custom-scrollbar">
             {/* Bloco 0: Parâmetros Globais e Descritores */}
             <section className="space-y-3">
               <HubGlobalConfig

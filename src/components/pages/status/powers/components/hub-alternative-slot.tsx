@@ -4,13 +4,11 @@ import { memo, useMemo, useCallback } from "react";
 import { 
   ArrowRight, 
   Trash2, 
-  Sparkles, 
-  X,
   AlertTriangle 
 } from "lucide-react";
 import { HubCollapsibleSection } from "./hub-collapsible-section";
 import { Button } from "@/components/ui/button";
-import { ActionType, DurationType, Effect, EffectOptions, Modifier, ModifierInstance, Power, RangeType } from "../types";
+import { Effect, EffectOptions, Modifier, ModifierInstance, Power } from "../types";
 import { HubEffectItem } from "./hub-effect-item";
 import { calculatePowerCost } from "@/lib/powers/utils";
 import { usePowerBuilderContext } from "../context/PowerBuilderContext";
@@ -39,8 +37,6 @@ export const HubAlternativeSlot = memo(({
   const { 
     onUpdateAlternative, 
     onRemoveAlternative,
-    availableExtras,
-    availableFlaws 
   } = usePowerBuilderContext();
 
   const internalCost = useMemo(() => calculatePowerCost(

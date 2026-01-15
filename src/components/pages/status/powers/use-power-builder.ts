@@ -49,9 +49,6 @@ export function usePowerBuilder(editingPower?: Power) {
     editingPower?.alternatives || [],
   );
 
-  // Estado auxiliar para saber onde inserir o próximo efeito selecionado
-  const [activeSlotIndex, setActiveSlotIndex] = useState<number | null>(null);
-
   // O rank global agora reflete a maior graduação entre os efeitos para compatibilidade
   const maxRank = useMemo(() => {
     const ranks = Object.values(effectOptions)
