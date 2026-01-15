@@ -64,7 +64,7 @@ export interface EffectOptions {
   action?: ActionType;
   range?: RangeType;
   duration?: DurationType;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface Power {

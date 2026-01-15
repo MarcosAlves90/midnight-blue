@@ -60,7 +60,7 @@ export const EffectOptionsTemplate: FC<EffectOptionsTemplateProps> = ({
     [selections, options, onChange],
   );
 
-  const colorMaps: Record<string, any> = {
+  const colorMaps: Record<string, Record<string, string>> = {
     purple: {
       bg: "bg-purple-500/10",
       border: "border-purple-500/40",

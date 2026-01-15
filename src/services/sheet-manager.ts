@@ -1,6 +1,3 @@
-import { CharacterDocument } from "@/lib/types/character";
-import { IdentityData } from "@/contexts/IdentityContext";
-
 export class SheetManager {
   /**
    * Compara se dois objetos são diferentes de forma eficiente (rasa para campos simples).
@@ -18,7 +15,7 @@ export class SheetManager {
    */
   static getNewDirtyFields(
     currentDirty: Set<string>,
-    updates: Record<string, any>,
+    updates: Record<string, unknown>,
     prefix: string = ""
   ): Set<string> {
     const next = new Set(currentDirty);

@@ -1,6 +1,6 @@
 "use client";
 
-import { FC, memo } from "react";
+import { FC } from "react";
 import { Tip } from "@/components/ui/tip";
 import { EffectOptions } from "./types";
 import { EFFECT_OPTIONS_REGISTRY } from "./effect-options/registry";

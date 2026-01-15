@@ -210,14 +210,14 @@ export function usePowerBuilder(editingPower?: Power) {
   const addAlternative = useCallback(() => {
     const newAlt: Power = {
       id: crypto.randomUUID(),
-      name: `Efeito Alternativo ${alternatives.length + 1}`,
+      name: "",
       effects: [],
       rank: 1,
       descriptors: [],
       modifiers: [],
     };
     setAlternatives((prev) => [...prev, newAlt]);
-  }, [alternatives.length]);
+  }, []);
 
   const removeAlternative = useCallback((id: string) => {
     setAlternatives((prev) => prev.filter((a) => a.id !== id));

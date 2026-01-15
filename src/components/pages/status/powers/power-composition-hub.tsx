@@ -3,11 +3,12 @@
 import { memo, useState, useMemo, useCallback } from "react";
 import {
   Plus,
-  Maximize2,
+  Zap,
+  ArrowRight
 } from "lucide-react";
 import { HubGlobalConfig } from "./components/hub-global-config";
-import { HubEffectItem } from "./components/hub-effect-item";
-import { HubAlternativeSlot } from "./components/hub-alternative-slot";
+
+import { HubArrangementSlot } from "./components/hub-arrangement-slot";
 import { PowerSummaryHeader } from "./components/summary-header";
 import {
   Effect,
@@ -162,62 +163,32 @@ export const PowerCompositionHub = memo(
               />
             </section>
 
-            {/* Seção de Efeitos */}
+            {/* Seção de Efeitos (Arranjo Principal) */}
             <section className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <h4 className="text-[10px] font-black uppercase tracking-[0.25em] text-blue-500/70">
-                    Arquitetura de Efeitos
-                  </h4>
-                  <p className="text-[10px] text-zinc-500 font-medium">
-                    Combine efeitos bases para criar poderes complexos.
-                  </p>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setTargetGroup("primary");
-                    setSelectorOpen(true);
-                  }}
-                  className="h-8 border-blue-500/20 bg-blue-500/5 hover:bg-blue-500/10 text-blue-400 text-[10px] rounded-none font-bold uppercase tracking-wider gap-2"
-                >
-                  <Plus className="h-3 w-3" /> Inserir Componente
-                </Button>
-              </div>
-
-              <div className="grid grid-cols-1 gap-3">
-                {selectedEffects.length === 0 ? (
-                  <div
-                    onClick={() => {
-                      setTargetGroup("primary");
-                      setSelectorOpen(true);
-                    }}
-                    className="group border border-dashed border-white/5 p-8 flex flex-col items-center justify-center gap-4 hover:border-blue-500/30 hover:bg-blue-500/5 transition-all cursor-pointer"
-                  >
-                    <div className="rounded-full text-zinc-600 group-hover:scale-110 group-hover:text-blue-500 transition-all">
-                      <Maximize2 className="h-8 w-8" />
-                    </div>
-                    <div className="text-center">
-                      <p className="text-sm font-bold text-zinc-400">
-                        Nenhum componente selecionado
-                      </p>
-                      <p className="text-xs text-zinc-600 mt-1">
-                        Clique para abrir o catálogo e começar a construção.
-                      </p>
-                    </div>
-                  </div>
-                ) : (
-                  selectedEffects.map((effect) => (
-                    <HubEffectItem
-                      key={effect.id}
-                      effect={effect}
-                      isExpanded={expandedIds.includes(effect.id)}
-                      onToggle={() => toggleExpand(effect.id)}
-                    />
-                  ))
-                )}
-              </div>
+              <HubArrangementSlot
+                id="primary-arrangement"
+                name={name}
+                onNameChange={onNameChange}
+                effects={selectedEffects}
+                modifiers={selectedModifierInstances}
+                effectOptions={effectOptions}
+                rank={rank}
+                variant="blue"
+                icon={Zap}
+                isExpanded={expandedIds.includes("primary-arrangement")}
+                onToggle={() => toggleExpand("primary-arrangement")}
+                onAddEffect={() => {
+                  setTargetGroup("primary");
+                  setSelectorOpen(true);
+                }}
+                onRemoveEffect={onToggleEffect}
+                onUpdateEffectOptions={onUpdateEffectOptions}
+                onAddModifier={onAddModifier}
+                onRemoveModifier={onRemoveModifier}
+                onUpdateModifierOptions={onUpdateModifierOptions}
+                expandedIds={expandedIds}
+                onToggleExpand={toggleExpand}
+              />
             </section>
 
             {/* Bloco 3: Arranjos Alternativos */}
@@ -242,18 +213,63 @@ export const PowerCompositionHub = memo(
               </div>
 
               <div className="grid grid-cols-1 gap-3">
-                {alternatives.map((alt, idx) => (
-                  <HubAlternativeSlot
+                {alternatives.map((alt) => (
+                  <HubArrangementSlot
                     key={alt.id}
-                    alt={alt}
-                    index={idx}
+                    id={alt.id}
+                    name={alt.name}
+                    onNameChange={(val) => onUpdateAlternative(alt.id, { name: val })}
+                    effects={alt.effects}
+                    modifiers={alt.modifiers || []}
+                    effectOptions={alt.effectOptions || {}}
+                    rank={alt.rank}
+                    variant="emerald"
+                    icon={ArrowRight}
                     isExpanded={expandedIds.includes(alt.id)}
                     onToggle={() => toggleExpand(alt.id)}
-                    basePowerLimit={basePowerCost}
-                    onOpenSelector={() => {
+                    onAddEffect={() => {
                       setTargetGroup({ alternativeId: alt.id });
                       setSelectorOpen(true);
                     }}
+                    onRemoveEffect={(effect) => {
+                        onUpdateAlternative(alt.id, {
+                            effects: alt.effects.filter((e) => e.id !== effect.id),
+                        });
+                    }}
+                    onUpdateEffectOptions={(effectId, opts) => {
+                        onUpdateAlternative(alt.id, {
+                            effectOptions: {
+                              ...(alt.effectOptions || {}),
+                              [effectId]: opts,
+                            },
+                        });
+                    }}
+                    onAddModifier={(m, effectId) => {
+                        const newId = Math.random().toString(36).substr(2, 9);
+                        const newModifierInstance: ModifierInstance = {
+                            id: newId,
+                            modifierId: m.id,
+                            modifier: m,
+                            appliesTo: [effectId],
+                        };
+                        onUpdateAlternative(alt.id, {
+                            modifiers: [...(alt.modifiers || []), newModifierInstance],
+                        });
+                    }}
+                    onRemoveModifier={(id) => {
+                        onUpdateAlternative(alt.id, {
+                            modifiers: (alt.modifiers || []).filter((m) => m.id !== id),
+                        });
+                    }}
+                    onUpdateModifierOptions={(id, opts) => {
+                        onUpdateAlternative(alt.id, {
+                            modifiers: (alt.modifiers || []).map((m) =>
+                              m.id === id ? { ...m, options: { ...(m.options || {}), ...opts } } : m
+                            ),
+                        });
+                    }}
+                    onDelete={() => onRemoveAlternative(alt.id)}
+                    basePowerLimit={basePowerCost}
                     expandedIds={expandedIds}
                     onToggleExpand={toggleExpand}
                   />

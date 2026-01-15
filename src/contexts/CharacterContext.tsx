@@ -15,7 +15,6 @@ import { useCharacterPersistence } from "@/hooks/use-character-persistence";
 import { FirebaseCharacterRepository } from "@/services/repository/character-repo";
 import { CharacterStorageService } from "@/services/character-storage";
 import { CharacterResolver } from "@/services/character-resolver";
-import { useCharacterSync } from "@/hooks/use-character-sync";
 
 interface CharacterContextType {
   selectedCharacter: CharacterDocument | null;

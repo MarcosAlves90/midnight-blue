@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useRef } from "react";
-import { Upload, Loader2, Image as ImageIcon, Check } from "lucide-react";
+import { Upload, Image as ImageIcon, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/lib/toast";
 
