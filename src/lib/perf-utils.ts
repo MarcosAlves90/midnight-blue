@@ -1,19 +1,3 @@
-export function markStart(key: string) {
-  try {
-    performance.mark(`${key}-start`);
-  } catch {
-    // ignore
-  }
-}
-
-export function markEnd(key: string) {
-  try {
-    performance.mark(`${key}-end`);
-  } catch {
-    // ignore
-  }
-}
-
 export function measureAndWarn(key: string, thresholdMs = 100) {
   try {
     const measureName = `${key}-measure`;

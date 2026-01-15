@@ -7,5 +7,4 @@ export {
   isCloudinaryConfigured,
   cloudName,
   buildImageUrl,
-  normalizeCloudinarySrc,
 } from "./cloudinary.config";

@@ -10,14 +10,11 @@ import { HubEffectItem } from "./components/hub-effect-item";
 import { HubAlternativeSlot } from "./components/hub-alternative-slot";
 import { PowerSummaryHeader } from "./components/summary-header";
 import {
-  ActionType,
-  DurationType,
   Effect,
   EffectOptions,
   Modifier,
   ModifierInstance,
   Power,
-  RangeType,
 } from "./types";
 import { EffectSelector } from "./effect-selector";
 import { calculatePowerCost } from "@/lib/powers/utils";
@@ -43,19 +40,12 @@ interface PowerCompositionHubProps {
   onToggleDescriptor: (d: string) => void;
   notes: string;
   onNotesChange: (n: string) => void;
-  customAction: ActionType | null;
-  onActionChange: (a: ActionType | null) => void;
-  customRange: RangeType | null;
-  onRangeChange: (r: RangeType | null) => void;
-  customDuration: DurationType | null;
-  onDurationChange: (d: DurationType | null) => void;
-  defaultAction: ActionType;
-  defaultRange: RangeType;
-  defaultDuration: DurationType;
   alternatives: Power[];
   onAddAlternative: () => void;
   onRemoveAlternative: (id: string) => void;
   onUpdateAlternative: (id: string, updates: Partial<Power>) => void;
+  image?: { url: string; publicId: string };
+  onImageChange: (image: { url: string; publicId: string } | undefined) => void;
 }
 
 export const PowerCompositionHub = memo(
@@ -77,19 +67,12 @@ export const PowerCompositionHub = memo(
     onToggleDescriptor,
     notes,
     onNotesChange,
-    customAction,
-    onActionChange,
-    customRange,
-    onRangeChange,
-    customDuration,
-    onDurationChange,
-    defaultAction,
-    defaultRange,
-    defaultDuration,
     alternatives,
     onAddAlternative,
     onRemoveAlternative,
     onUpdateAlternative,
+    image,
+    onImageChange,
   }: PowerCompositionHubProps) => {
     const [expandedIds, setExpandedIds] = useState<string[]>(["global-config"]);
     const [selectorOpen, setSelectorOpen] = useState(false);
@@ -167,16 +150,9 @@ export const PowerCompositionHub = memo(
                 onToggleDescriptor={onToggleDescriptor}
                 notes={notes}
                 onNotesChange={onNotesChange}
-                customAction={customAction}
-                onActionChange={onActionChange}
-                customRange={customRange}
-                onRangeChange={onRangeChange}
-                customDuration={customDuration}
-                onDurationChange={onDurationChange}
-                defaultAction={defaultAction}
-                defaultRange={defaultRange}
-                defaultDuration={defaultDuration}
                 customDescriptors={customDescriptors}
+                image={image}
+                onImageChange={onImageChange}
               />
             </section>
 

@@ -2,7 +2,6 @@ import { initializeApp, getApps, getApp } from "firebase/app";
 import type { FirebaseApp } from "firebase/app";
 import { getAuth, type Auth } from "firebase/auth";
 import { getFirestore, type Firestore } from "firebase/firestore";
-import { getStorage, type FirebaseStorage } from "firebase/storage";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -27,9 +26,8 @@ const app = getFirebaseApp();
 // Auth só deve ser usado no cliente (browser)
 const auth: Auth | null = typeof window !== "undefined" ? getAuth(app) : null;
 const db: Firestore = getFirestore(app);
-const storage: FirebaseStorage = getStorage(app);
 
-export { app, auth, db, storage };
+export { auth, db };
 
 // Helpers opcional
 export function getClientAuth(): Auth {

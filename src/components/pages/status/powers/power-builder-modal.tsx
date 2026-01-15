@@ -1,12 +1,14 @@
 "use client";
 
-import { memo, useEffect } from "react";
-import { X } from "lucide-react";
+import { memo, useEffect, useState } from "react";
+import { X, Loader2 } from "lucide-react";
 import { Power } from "./types";
-import { getPowerDefaults } from "@/lib/powers/utils";
 import { PowerBuilderPreview } from "./power-builder-preview";
 import { usePowerBuilder } from "./use-power-builder";
 import { PowerCompositionHub } from "./power-composition-hub";
+import { useAuth } from "@/contexts/AuthContext";
+import { PowerService } from "@/services/power-service";
+import { toast } from "@/lib/toast";
 
 interface PowerBuilderModalProps {
   onClose: () => void;
@@ -20,6 +22,8 @@ function PowerBuilderModalContent({
   editingPower,
 }: PowerBuilderModalProps) {
   const isEditing = !!editingPower;
+  const { user } = useAuth();
+  const [isSaving, setIsSaving] = useState(false);
   const {
     name,
     setName,
@@ -32,12 +36,6 @@ function PowerBuilderModalContent({
     updateModifierOptions,
     selectedDescriptors,
     toggleDescriptor,
-    customAction,
-    setCustomAction,
-    customRange,
-    setCustomRange,
-    customDuration,
-    setCustomDuration,
     notes,
     setNotes,
     effectOptions,
@@ -51,6 +49,8 @@ function PowerBuilderModalContent({
     calculateCost,
     previewPower,
     canProceed,
+    image,
+    setImage,
   } = usePowerBuilder(editingPower);
 
   useEffect(() => {
@@ -61,17 +61,30 @@ function PowerBuilderModalContent({
     return () => window.removeEventListener("keydown", handleEsc);
   }, [onClose]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (selectedEffects.length === 0 || !name.trim()) return;
-    onSave(previewPower);
-    onClose();
-  };
+    
+    setIsSaving(true);
+    try {
+      const powerToSave = previewPower;
 
-  const {
-    action: defaultAction,
-    range: defaultRange,
-    duration: defaultDuration,
-  } = getPowerDefaults(selectedEffects);
+      // Se o usuário está logado, tenta salvar na biblioteca para normalização
+      if (user) {
+        const result = await PowerService.savePowerToLibrary(user.uid, powerToSave);
+        if (!result.success) {
+          console.warn("Poder salvo na ficha, mas falhou ao salvar na biblioteca:", result.error);
+        }
+      }
+
+      onSave(powerToSave);
+      onClose();
+    } catch (error) {
+      console.error("Erro ao salvar poder:", error);
+      toast.error("Erro ao finalizar a construção do poder.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
     <div
@@ -112,19 +125,12 @@ function PowerBuilderModalContent({
                 onToggleDescriptor={toggleDescriptor}
                 notes={notes}
                 onNotesChange={setNotes}
-                customAction={customAction}
-                onActionChange={setCustomAction}
-                customRange={customRange}
-                onRangeChange={setCustomRange}
-                customDuration={customDuration}
-                onDurationChange={setCustomDuration}
-                defaultAction={defaultAction}
-                defaultRange={defaultRange}
-                defaultDuration={defaultDuration}
                 alternatives={alternatives}
                 onAddAlternative={addAlternative}
                 onRemoveAlternative={removeAlternative}
                 onUpdateAlternative={updateAlternative}
+                image={image}
+                onImageChange={setImage}
               />
             </div>
 
@@ -139,10 +145,17 @@ function PowerBuilderModalContent({
 
               <button
                 onClick={handleSave}
-                disabled={!canProceed()}
-                className="px-8 py-2.5 bg-purple-600 cursor-pointer hover:bg-purple-500 disabled:opacity-30 disabled:grayscale text-white text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-purple-500/20 active:scale-95"
+                disabled={!canProceed() || isSaving}
+                className="px-8 py-2.5 bg-purple-600 cursor-pointer hover:bg-purple-500 disabled:opacity-30 disabled:grayscale text-white text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-purple-500/20 active:scale-95 flex items-center gap-2"
               >
-                {isEditing ? "Atualizar Poder" : "Finalizar Construção"}
+                {isSaving ? (
+                  <>
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                    Salvando...
+                  </>
+                ) : (
+                  isEditing ? "Atualizar Poder" : "Finalizar Construção"
+                )}
               </button>
             </div>
           </div>

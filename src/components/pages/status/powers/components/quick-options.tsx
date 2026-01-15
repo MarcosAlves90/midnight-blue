@@ -1,9 +1,11 @@
 "use client";
 
 import { memo } from "react";
-import { Effect, EffectOptions } from "../types";
+import { ActionType, DurationType, Effect, EffectOptions, RangeType } from "../types";
 import { FormInput } from "@/components/ui/form-input";
+import { ACTION_LABELS, DURATION_LABELS, RANGE_LABELS } from "@/lib/powers";
 import EffectSpecificOptions from "../effect-specific-options";
+import { Zap, ArrowRight, Settings2 } from "lucide-react";
 
 interface QuickEffectOptionsProps {
   effect: Effect;
@@ -47,6 +49,66 @@ export const QuickEffectOptions = memo(
                 }}
                 className="h-10 bg-black/40 border-white/5 text-sm rounded-none text-center focus:border-purple-500/50"
               />
+            </div>
+          </div>
+
+          {/* Novos Selects de Ação, Alcance e Duração por Efeito */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 py-2 border-y border-white/5">
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.1em] flex items-center gap-2">
+                <Zap className="h-3 w-3" /> Ação
+              </label>
+              <select
+                value={options.action || effect.action}
+                onChange={(e) =>
+                  onUpdate({ ...options, action: e.target.value as ActionType })
+                }
+                className="w-full bg-black/40 border border-white/10 p-2 text-xs h-10 outline-none focus:border-purple-500/50 transition-colors"
+              >
+                {Object.entries(ACTION_LABELS).map(([val, label]) => (
+                  <option key={val} value={val}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.1em] flex items-center gap-2">
+                <ArrowRight className="h-3 w-3" /> Alcance
+              </label>
+              <select
+                value={options.range || effect.range}
+                onChange={(e) =>
+                  onUpdate({ ...options, range: e.target.value as RangeType })
+                }
+                className="w-full bg-black/40 border border-white/10 p-2 text-xs h-10 outline-none focus:border-purple-500/50 transition-colors"
+              >
+                {Object.entries(RANGE_LABELS).map(([val, label]) => (
+                  <option key={val} value={val}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.1em] flex items-center gap-2">
+                <Settings2 className="h-3 w-3" /> Duração
+              </label>
+              <select
+                value={options.duration || effect.duration}
+                onChange={(e) =>
+                  onUpdate({ ...options, duration: e.target.value as DurationType })
+                }
+                className="w-full bg-black/40 border border-white/10 p-2 text-xs h-10 outline-none focus:border-purple-500/50 transition-colors"
+              >
+                {Object.entries(DURATION_LABELS).map(([val, label]) => (
+                  <option key={val} value={val}>
+                    {label}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
 

@@ -4,9 +4,6 @@ import {
   Effect,
   Modifier,
   ModifierInstance,
-  ActionType,
-  RangeType,
-  DurationType,
   EffectOptions,
 } from "./types";
 import {
@@ -32,21 +29,15 @@ export function usePowerBuilder(editingPower?: Power) {
   const [selectedDescriptors, setSelectedDescriptors] = useState<string[]>(
     editingPower?.descriptors || [],
   );
-  const [customAction, setCustomAction] = useState<ActionType | null>(
-    editingPower?.customAction || null,
-  );
-  const [customRange, setCustomRange] = useState<RangeType | null>(
-    editingPower?.customRange || null,
-  );
-  const [customDuration, setCustomDuration] = useState<DurationType | null>(
-    editingPower?.customDuration || null,
-  );
   const [notes, setNotes] = useState(editingPower?.notes || "");
   const [effectOptions, setEffectOptions] = useState<
     Record<string, EffectOptions>
   >(editingPower?.effectOptions || {});
   const [alternatives, setAlternatives] = useState<Power[]>(
     editingPower?.alternatives || [],
+  );
+  const [image, setImage] = useState<{ url: string; publicId: string } | undefined>(
+    editingPower?.image,
   );
 
   // O rank global agora reflete a maior graduação entre os efeitos para compatibilidade
@@ -193,12 +184,10 @@ export function usePowerBuilder(editingPower?: Power) {
       rank,
       descriptors: selectedDescriptors,
       modifiers: selectedModifierInstances,
-      customAction: customAction || undefined,
-      customRange: customRange || undefined,
-      customDuration: customDuration || undefined,
       notes: notes.trim() || undefined,
       effectOptions,
       alternatives,
+      image,
     }),
     [
       editingPower?.id,
@@ -207,12 +196,10 @@ export function usePowerBuilder(editingPower?: Power) {
       rank,
       selectedDescriptors,
       selectedModifierInstances,
-      customAction,
-      customRange,
-      customDuration,
       notes,
       effectOptions,
       alternatives,
+      image,
     ],
   );
 
@@ -260,12 +247,6 @@ export function usePowerBuilder(editingPower?: Power) {
     updateModifierOptions,
     selectedDescriptors,
     toggleDescriptor,
-    customAction,
-    setCustomAction,
-    customRange,
-    setCustomRange,
-    customDuration,
-    setCustomDuration,
     notes,
     setNotes,
     effectOptions,
@@ -279,5 +260,7 @@ export function usePowerBuilder(editingPower?: Power) {
     calculateCost,
     previewPower,
     canProceed,
+    image,
+    setImage,
   };
 }

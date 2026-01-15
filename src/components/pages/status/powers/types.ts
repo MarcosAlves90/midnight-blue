@@ -60,6 +60,9 @@ export interface EffectOptions {
   sub?: string;
   ppCost?: number;
   rank?: number;
+  action?: ActionType;
+  range?: RangeType;
+  duration?: DurationType;
   [key: string]: unknown;
 }
 
@@ -70,12 +73,14 @@ export interface Power {
   rank: number;
   descriptors: string[];
   modifiers: ModifierInstance[];
-  customAction?: ActionType;
-  customRange?: RangeType;
-  customDuration?: DurationType;
   notes?: string;
   // Opções específicas por efeito (ex: ambiente -> { sub: 'luz', ppCost: 2 })
   effectOptions?: Record<string, EffectOptions>;
   // Poderes Alternativos (Arranjos)
   alternatives?: Power[];
+  // Imagem de capa do poder
+  image?: {
+    url: string;
+    publicId: string;
+  };
 }

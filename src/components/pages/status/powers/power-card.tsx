@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Power } from "./types";
+import Image from "next/image";
+import { ActionType, DurationType, Power, RangeType } from "./types";
 import { calculatePowerCost } from "@/lib/powers/utils";
 import { Tip } from "@/components/ui/tip";
 import { ChevronDown, ChevronUp, Trash2, Sparkles, Edit3 } from "lucide-react";
@@ -41,13 +42,21 @@ export function PowerCard({
       m.modifier.type === "falha" && (!m.appliesTo || m.appliesTo.length === 0),
   );
 
-  const action = power.customAction || power.effects[0]?.action || "padrao";
-  const range = power.customRange || power.effects[0]?.range || "perto";
-  const duration =
-    power.customDuration || power.effects[0]?.duration || "instantaneo";
-
   return (
-    <div className="bg-background/30 border border-blue-500/20 overflow-hidden transition-all">
+    <div className="bg-background/30 border border-blue-500/20 overflow-hidden transition-all group/card">
+      {/* Imagem de Capa */}
+      {power.image && (
+        <div className="relative h-24 sm:h-32 overflow-hidden border-b border-blue-500/20">
+          <Image 
+            src={power.image.url} 
+            alt={power.name}
+            fill
+            className="w-full h-full object-cover transition-transform duration-500 group-hover/card:scale-105"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-transparent to-transparent" />
+        </div>
+      )}
+
       {/* Header */}
       <div
         className="p-3 flex items-center justify-between cursor-pointer hover:bg-background/50 transition-colors"
@@ -176,25 +185,30 @@ export function PowerCard({
                 (m) => m.appliesTo && m.appliesTo.includes(effect.id),
               );
 
+              const eAction = opts?.action || effect.action;
+              const eRange = opts?.range || effect.range;
+              const eDuration = opts?.duration || effect.duration;
+
               return (
-                <div key={idx} className="space-y-1">
-                  <p className="text-xs text-muted-foreground">
-                    <span className="font-medium text-foreground">
+                <div key={idx} className="space-y-2 py-3 first:pt-0 border-b border-white/5 last:border-0">
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    <span className="font-bold text-blue-400">
                       {opts?.customName || effect.name}
                       {opts?.customName && (
-                        <span className="text-[10px] text-muted-foreground ml-1 font-normal italic">
+                        <span className="text-[9px] text-zinc-500 ml-1 font-normal italic">
                           ({effect.name})
                         </span>
                       )}
                       :
                     </span>{" "}
-                    {effect.description}
+                    {opts?.description || effect.description}
                   </p>
-                  <div className="mt-1 flex flex-wrap gap-1.5 items-center">
-                    {opts && (
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="flex flex-wrap gap-1.5 items-center">
                       <div className="text-xs text-muted-foreground flex flex-wrap gap-2 items-center">
-                        <span className="px-1.5 py-0.5 bg-blue-500/20 text-blue-300 font-mono text-[10px]">
-                          Graduação {opts.rank ?? power.rank}
+                        <span className="px-1.5 py-0.5 bg-blue-500/20 text-blue-300 font-mono text-[10px] font-bold">
+                          GRAD {opts?.rank ?? power.rank}
                         </span>
                         {Object.entries(selections).map(([key, val]) => (
                           <span
@@ -204,55 +218,48 @@ export function PowerCard({
                             {subLabelMap[key] || key} ({val})
                           </span>
                         ))}
-                        {opts.sub && (
-                          <span className="px-2 py-0.5 text-[10px] bg-blue-500/10 text-blue-300 border border-blue-500/20">
-                            {subLabelMap[opts.sub] || opts.sub}
-                          </span>
-                        )}
-                        {opts.ppCost && (
-                          <span className="px-2 py-0.5 text-[10px] bg-background/30">
-                            {opts.ppCost} PP/grad
-                          </span>
-                        )}
                       </div>
-                    )}
+                    </div>
 
-                    {effectModifiers.map((m) => (
-                      <Tip
-                        key={m.id}
-                        content={
-                          <div className="max-w-xs text-xs">
-                            {m.customDescription || m.modifier.description}
-                          </div>
-                        }
-                      >
-                        <span
-                          className={`px-1.5 py-0.5 text-[10px] border ${
-                            m.modifier.type === "extra"
-                              ? "bg-green-500/5 text-green-300 border-green-500/20"
-                              : "bg-red-500/5 text-red-300 border-red-500/20"
-                          }`}
-                        >
-                          {m.modifier.name}{" "}
-                          {m.modifier.isFlat
-                            ? "(PF)"
-                            : `(${m.modifier.costPerRank > 0 ? "+" : ""}${m.modifier.costPerRank} PP)`}
-                        </span>
-                      </Tip>
-                    ))}
+                    <ParameterGrid 
+                      action={eAction as ActionType} 
+                      range={eRange as RangeType} 
+                      duration={eDuration as DurationType} 
+                      className="grid grid-cols-3 gap-1"
+                    />
                   </div>
+
+                  {effectModifiers.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5">
+                      {effectModifiers.map((m) => (
+                        <Tip
+                          key={m.id}
+                          content={
+                            <div className="max-w-xs text-xs">
+                              {m.customDescription || m.modifier.description}
+                            </div>
+                          }
+                        >
+                          <span
+                            className={`px-1.5 py-0.5 text-[9px] font-bold border uppercase tracking-tighter ${
+                              m.modifier.type === "extra"
+                                ? "bg-green-500/5 text-green-300 border-green-500/20"
+                                : "bg-red-500/5 text-red-300 border-red-500/20"
+                            }`}
+                          >
+                            {m.modifier.name}{" "}
+                            {m.modifier.isFlat
+                              ? "(PF)"
+                              : `(${m.modifier.costPerRank > 0 ? "+" : ""}${m.modifier.costPerRank} PP)`}
+                          </span>
+                        </Tip>
+                      ))}
+                    </div>
+                  )}
                 </div>
               );
             })}
           </div>
-
-          {/* Parameters Grid */}
-          <ParameterGrid 
-            action={action} 
-            range={range} 
-            duration={duration}
-            className="grid grid-cols-1 gap-1.5" 
-          />
 
           {/* Descriptors */}
           {power.descriptors.length > 0 && (

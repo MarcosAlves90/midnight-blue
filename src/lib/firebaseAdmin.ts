@@ -29,9 +29,6 @@ if (!admin.apps.length) {
 
 export const adminAuth = admin.auth();
 export const adminDb = admin.firestore();
-export const adminApp: App | undefined = admin.apps.length
-  ? admin.app()
-  : undefined;
 
 export async function verifyIdToken(idToken: string) {
   if (!adminAuth) throw new Error("Firebase Admin não inicializado");

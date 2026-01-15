@@ -83,14 +83,6 @@ export const filterModifiers = (
   });
 };
 
-export const getPowerDefaults = (selectedEffects: Effect[]) => {
-  return {
-    action: selectedEffects[0]?.action || "padrao",
-    range: selectedEffects[0]?.range || "perto",
-    duration: selectedEffects[0]?.duration || "instantaneo",
-  };
-};
-
 export const checkPowerLimit = (power: Power, powerLevel: number): boolean => {
   // Para cada efeito, verificar se sua graduação respeita o limite do nível de poder
   return power.effects.some((effect) => {

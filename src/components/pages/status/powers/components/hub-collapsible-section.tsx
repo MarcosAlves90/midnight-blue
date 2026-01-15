@@ -55,7 +55,7 @@ export const HubCollapsibleSection = memo(({
       open={isOpen}
       onOpenChange={() => onToggle(id)}
       className={cn(
-        "group border overflow-hidden transition-all duration-300",
+        "group border overflow-hidden",
         isOpen && variant === "blue" && "border-blue-500/40 shadow-lg shadow-blue-500/5",
         variants[variant],
         className
@@ -101,7 +101,7 @@ export const HubCollapsibleSection = memo(({
         </div>
       </div>
 
-      <CollapsibleContent className="animate-in slide-in-from-top-2 duration-300">
+      <CollapsibleContent>
         {children}
       </CollapsibleContent>
     </Collapsible>
