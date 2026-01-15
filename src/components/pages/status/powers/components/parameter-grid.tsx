@@ -12,17 +12,17 @@ interface ParameterGridProps {
 }
 
 const ParameterItem = ({ label, value }: { label: string; value: string }) => (
-  <div className="bg-black/20 p-2 ring-1 ring-white/5 flex items-center">
-    <p className="text-[9px] text-zinc-500 uppercase tracking-[0.1em] font-black w-15">
-      {label}
+  <div className="bg-zinc-950/20 px-1.5 py-1 border border-white/[0.03] flex items-center justify-between gap-2 overflow-hidden">
+    <p className="text-[7px] text-zinc-600 uppercase tracking-widest font-black leading-none shrink-0">
+      {label}:
     </p>
-    <p className="text-[9px] font-bold text-zinc-200 uppercase">
+    <p className="text-[9px] font-bold text-blue-400 uppercase leading-none truncate">
       {value}
     </p>
   </div>
 );
 
-export const ParameterGrid = memo(({ action, range, duration, className = "grid grid-cols-3 gap-2" }: ParameterGridProps) => {
+export const ParameterGrid = memo(({ action, range, duration, className = "grid grid-cols-3 gap-0.5" }: ParameterGridProps) => {
   return (
     <div className={className}>
       <ParameterItem label="Ação" value={ACTION_LABELS[action]} />

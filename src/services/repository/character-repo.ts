@@ -391,28 +391,58 @@ export class FirebaseCharacterRepository implements CharacterRepository {
       if (val === undefined || key === "attributes" || key === "skills") return;
 
       if (key === "powers" || key === "customDescriptors") {
-        payload[key] = val;
+        payload[key] = this.deepClean(val);
       } else if (key === "status" && typeof val === "object" && val !== null) {
-        Object.keys(val).forEach(
-          (k) => (payload[`status.${k}`] = (val as Record<string, unknown>)[k]),
-        );
+        Object.keys(val).forEach((k) => {
+          const subVal = (val as Record<string, unknown>)[k];
+          if (subVal !== undefined) {
+            payload[`status.${k}`] = subVal;
+          }
+        });
       } else if (
         key === "identity" &&
         typeof val === "object" &&
         val !== null
       ) {
-        Object.keys(val).forEach(
-          (k) =>
-            (payload[`identity.${k}`] = (val as Record<string, unknown>)[k]),
-        );
+        Object.keys(val).forEach((k) => {
+          const subVal = (val as Record<string, unknown>)[k];
+          if (subVal !== undefined) {
+            payload[`identity.${k}`] = subVal;
+          }
+        });
       } else if (key.includes(".") || key === "heroName") {
-        payload[key === "heroName" ? "identity.heroName" : key] = val;
+        const targetKey = key === "heroName" ? "identity.heroName" : key;
+        if (val !== undefined) {
+          payload[targetKey] = val;
+        }
       } else {
         payload[key] = val;
       }
     });
 
     return payload;
+  }
+
+  private deepClean(obj: unknown): unknown {
+    if (obj === null || typeof obj !== "object") return obj;
+    
+    // Não recursivo para objetos especiais (Firestore FieldValues, Dates, etc)
+    if (obj.constructor !== Object && !Array.isArray(obj)) return obj;
+
+    if (Array.isArray(obj)) {
+      return obj.map((v) => this.deepClean(v)).filter((v) => v !== undefined);
+    }
+
+    const cleaned: Record<string, unknown> = {};
+    const input = obj as Record<string, unknown>;
+
+    Object.keys(input).forEach((key) => {
+      const val = this.deepClean(input[key]);
+      if (val !== undefined) {
+        cleaned[key] = val;
+      }
+    });
+    return cleaned;
   }
 
   listenToFolders(callback: (folders: Folder[]) => void): Unsubscribe {

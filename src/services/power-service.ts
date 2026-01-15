@@ -52,12 +52,31 @@ export class PowerService {
       const powerId = power.id || crypto.randomUUID();
       const powerRef = doc(userPowersRef, powerId);
 
-      // Limpar campos undefined para o Firestore
-      const powerData = JSON.parse(JSON.stringify({
+      // Limpar campos undefined para o Firestore de forma segura
+      const cleanData = (data: unknown): unknown => {
+        if (data === null || typeof data !== "object") return data;
+        
+        // Mantém objetos especiais (Dates, Firestore FieldValues)
+        if (data.constructor !== Object && !Array.isArray(data)) return data;
+
+        if (Array.isArray(data)) return data.map(cleanData);
+        
+        const cleaned: Record<string, unknown> = {};
+        const obj = data as Record<string, unknown>;
+        
+        Object.keys(obj).forEach(key => {
+          if (obj[key] !== undefined) {
+            cleaned[key] = cleanData(obj[key]);
+          }
+        });
+        return cleaned;
+      };
+
+      const powerData = cleanData({
         ...power,
         id: powerId,
         updatedAt: serverTimestamp(),
-      }));
+      }) as Record<string, unknown>;
 
       await setDoc(powerRef, powerData, { merge: true });
 

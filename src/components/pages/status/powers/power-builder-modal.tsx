@@ -66,7 +66,11 @@ function PowerBuilderModalContent({
     
     setIsSaving(true);
     try {
-      const powerToSave = previewPower;
+      // Garantir que um novo poder tenha um ID único, não "preview"
+      const powerToSave: Power = {
+        ...previewPower,
+        id: editingPower?.id || crypto.randomUUID()
+      };
 
       // Se o usuário está logado, tenta salvar na biblioteca para normalização
       if (user) {

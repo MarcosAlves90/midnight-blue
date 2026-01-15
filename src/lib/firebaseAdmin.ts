@@ -1,5 +1,4 @@
 import admin from "firebase-admin";
-import type { App } from "firebase-admin/app";
 
 // Variáveis esperadas: FIREBASE_PRIVATE_KEY, FIREBASE_CLIENT_EMAIL, FIREBASE_PROJECT_ID
 

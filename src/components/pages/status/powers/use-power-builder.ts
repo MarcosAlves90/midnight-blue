@@ -178,13 +178,13 @@ export function usePowerBuilder(editingPower?: Power) {
 
   const previewPower: Power = useMemo(
     () => ({
-      id: editingPower?.id || "preview",
+      id: editingPower?.id || "temp-preview-id",
       name: name.trim() || "Novo Poder",
       effects: selectedEffects,
       rank,
       descriptors: selectedDescriptors,
       modifiers: selectedModifierInstances,
-      notes: notes.trim() || undefined,
+      notes: notes.trim() || "",
       effectOptions,
       alternatives,
       image,
