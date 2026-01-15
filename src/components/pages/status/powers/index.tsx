@@ -78,11 +78,9 @@ export default function PowersSection() {
   return (
     <>
       <div className="flex items-center justify-between mb-6 gap-3">
-        <div className="space-y-1">
-          <h2 className="text-xl font-black uppercase tracking-tighter text-white">
-            Poderes
-          </h2>
-        </div>
+        <h2 className="text-lg font-semibold">
+          Poderes
+        </h2>
         
         <div className="flex items-center gap-2">
           {isEditMode && (

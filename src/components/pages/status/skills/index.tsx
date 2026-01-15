@@ -253,11 +253,9 @@ function SkillsList({
   return (
     <div className="overflow-x-auto">
       <div className="flex items-center justify-between mb-2 gap-3">
-        <div className="space-y-1">
-          <h2 className="text-xl font-black uppercase tracking-tighter text-white">
-            Perícias
-          </h2>
-        </div>
+        <h2 className="text-lg font-semibold">
+          Perícias
+        </h2>
         
         <div className="flex items-center gap-2">
           <button
