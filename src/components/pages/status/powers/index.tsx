@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback } from "react";
 import { Power } from "./types";
 import { PowerCard } from "./power-card";
 import { PowerBuilderModal } from "./power-builder-modal";
@@ -22,21 +22,11 @@ export default function PowersSection() {
   }, []);
 
   const handleAddPower = (power: Power) => {
-    // Fail-safe: garantir que o ID não seja temporário ao salvar no estado real
-    const powerToSave = {
-      ...power,
-      id: (power.id === "preview" || power.id === "temp-preview-id") 
-        ? crypto.randomUUID() 
-        : power.id
-    };
-
     if (editingPower) {
-      // Update existing power
-      updatePower(powerToSave);
+      updatePower(power);
       setEditingPower(undefined);
     } else {
-      // Add new power
-      addPower(powerToSave);
+      addPower(power);
     }
   };
 
@@ -58,22 +48,6 @@ export default function PowersSection() {
   const powersExceedingLimit = powers.filter((power) =>
     checkPowerLimit(power, powerLevel),
   );
-
-  // Sanitização de dados: remover IDs duplicados ou temporários que podem ter sido salvos
-  // Isso evita o erro de "two children with the same key"
-  const sanitizedPowers = useMemo(() => {
-    const seenIds = new Set<string>();
-    return powers.map(p => {
-      const isTempId = p.id === "preview" || p.id === "temp-preview-id";
-      if (isTempId || seenIds.has(p.id)) {
-        const newId = crypto.randomUUID();
-        seenIds.add(newId);
-        return { ...p, id: newId };
-      }
-      seenIds.add(p.id);
-      return p;
-    });
-  }, [powers]);
 
   return (
     <>
@@ -118,7 +92,7 @@ export default function PowersSection() {
       )}
 
       <div className="grid grid-cols-1 gap-3">
-        {sanitizedPowers.length === 0 ? (
+        {powers.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 px-4 border border-dashed border-white/5 bg-zinc-900/20 backdrop-blur-sm rounded-lg">
             <Sparkles className="h-8 w-8 text-zinc-700 mb-3" />
             <p className="text-zinc-500 text-[10px] font-black uppercase tracking-[0.3em]">
@@ -126,9 +100,9 @@ export default function PowersSection() {
             </p>
           </div>
         ) : (
-          sanitizedPowers.map((power) => (
+          powers.map((power, index) => (
             <PowerCard
-              key={power.id}
+              key={`${power.id}-${index}`}
               power={power}
               onDelete={handleDeletePower}
               onEdit={handleEditPower}

@@ -40,7 +40,21 @@ export const PowersProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const addPower = useCallback(
     (power: Power) => {
-      updatePowers((prev) => [...prev, power]);
+      // Garantir que o ID é único e não é um ID temporário
+      const cleanPower = {
+        ...power,
+        id: (power.id === "preview" || power.id === "temp-preview-id" || !power.id)
+          ? crypto.randomUUID()
+          : power.id
+      };
+      
+      updatePowers((prev) => {
+        // Evitar duplicatas exatas de ID se o usuário salvar várias vezes rápido
+        if (prev.some(p => p.id === cleanPower.id)) {
+          return prev.map(p => p.id === cleanPower.id ? cleanPower : p);
+        }
+        return [...prev, cleanPower];
+      });
       markFieldDirty("powers");
     },
     [updatePowers, markFieldDirty],
